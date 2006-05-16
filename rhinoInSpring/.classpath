@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry sourcepath="/Users/aszegedi.noenc/src/spring-framework-1.2.7/src" kind="lib" path="lib/spring-webmvc.jar"/>
+	<classpathentry sourcepath="/Users/aszegedi.noenc/src/spring-framework-1.2.7/src" kind="lib" path="lib/spring-web.jar"/>
+	<classpathentry sourcepath="/Users/aszegedi.noenc/src/spring-framework-1.2.7/src" kind="lib" path="lib/spring-core.jar"/>
+	<classpathentry sourcepath="/Users/aszegedi.noenc/src/spring-framework-1.2.7/src" kind="lib" path="lib/spring-context.jar"/>
+	<classpathentry sourcepath="/Users/aszegedi.noenc/src/spring-framework-1.2.7/src" kind="lib" path="lib/spring-beans.jar"/>
+	<classpathentry kind="lib" path="lib/js.jar"/>
+	<classpathentry kind="lib" path="lib/javax.servlet.jar"/>
+	<classpathentry sourcepath="/Users/aszegedi.noenc/src/spring-framework-1.2.7/src" kind="lib" path="lib/spring-jdbc.jar"/>
+	<classpathentry kind="lib" path="lib/spring-dao.jar"/>
+	<classpathentry kind="output" path="build/eclipse"/>
+</classpath>

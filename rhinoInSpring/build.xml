@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project basedir="." default="jar" name="rhino-in-spring">
+    <property name="version" value="1.0"/>
+
+    <path id="build.class.path">
+        <pathelement path="src"/>
+        <fileset dir="lib">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="clean">
+        <delete dir="build"/>
+    </target>
+   
+    <target name="init">
+        <mkdir dir="build"/>
+    </target>
+   
+    <target name="compile" depends="init">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src" destdir="build/classes" classpathref="build.class.path" debug="true"/>
+    </target>
+   
+    <target name="jar" depends="compile">
+        <mkdir dir="build/classes"/>
+        <copy toDir="build/classes">
+          <fileset dir="src/java"
+            excludes="**/CVS/**,**/*.bak,**/*.java,**/package.html"/>
+        </copy>
+        <jar basedir="build/classes" jarfile="build/rhinoInSpring.jar">
+            <manifest>
+                <attribute name="Implementation-Title" value="Rhino in Spring"/>
+                <attribute name="Implementation-Version" value="1.0"/>
+                <attribute name="Implementation-Vendor" value="Attila Szegedi"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="example" depends="jar">
+        <mkdir dir="build/example"/>
+	    <copy toDir="build/example">
+		    <fileset dir="src/example" excludes="**/CVS/**,**/*.bak"/>
+        </copy>
+	    <copy toDir="build/example/WEB-INF/lib">
+		    <fileset dir="lib" excludes="javax.servlet.jar"/>
+        </copy>
+    	    <copy toDir="build/example/WEB-INF/lib" file="build/rhinoInSpring.jar"/>
+	</target>
+	
+	<target name="javadoc" depends="init">
+		<mkdir dir="build/web/javadoc"/>
+		<javadoc sourcepath="src/java" author="true" 
+			classpathref="build.class.path" packagenames="org.szegedi.*"
+			doctitle="Rhino on Spring" destdir="build/web/javadoc"/>
+	</target>
+	
+	<target name="web" depends="javadoc">
+		<copy toDir="build/web">
+		    <fileset dir="src/web" excludes="**/CVS/**,**/*.bak"/>
+        </copy>
+    </target>
+	
+	<target name="dist" depends="jar,web">
+		<mkdir dir="build/dist/src"/>
+		<copy toDir="build/dist" file="LICENSE.txt"/>
+		<copy toDir="build/dist" file="build.xml"/>
+		<copy toDir="build/dist/src">
+		    <fileset dir="src" excludes="**/CVS/**,**/*.bak"/>
+        </copy>
+		<mkdir dir="build/dist/build"/>
+		<copy toDir="build/dist/build" file="build/rhinoInSpring.jar"/>
+		<mkdir dir="build/dist/web"/>
+		<copy toDir="build/dist/web">
+		    <fileset dir="build/web" excludes="**/CVS/**,**/*.bak"/>
+        </copy>
+		<mkdir dir="build/dist/lib"/>
+		<copy toDir="build/dist/lib">
+		    <fileset dir="lib" excludes="**/CVS/**,**/*.bak"/>
+        </copy>
+		<tar destfile="build/rhinoInSpring-${version}.tgz" compression="gzip" basedir="build/dist"/>
+	</target>
+ </project>
