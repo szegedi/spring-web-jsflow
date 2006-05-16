@@ -16,7 +16,6 @@
 package org.szegedi.spring.web.jsflow;
 
 import org.springframework.core.NestedRuntimeException;
-import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
 
 /**
  * Thrown when {@link org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage}
