@@ -1,0 +1,106 @@
+<body>
+    <h1>JavaScript Web Flow for Spring</h1>
+    <h2>What is it?</h2>
+    <p>
+      <i>JavaScript Web Flow for Spring</i> is a controller component for the 
+      MVC architecture of the <a href="http://www.springframework.org"> Spring 
+      Framework</a> that uses scripts written in the ECMAScript language (more 
+      widely known as "JavaScript") to drive web flows. A web flow is a 
+      multi-step series of HTTP requests and responses that comprise a single 
+      logical operation (i.e. a checkout procedure in a webshop taking several
+      webpages). JSFlow is built on top of the 
+      <a href="http://www.mozilla.org/rhino/">Mozilla Rhino ECMAScript 
+      interpreter</a>, and leverages its support for continuations.
+    </p>
+    <h2>Why does it exist?</h2>
+    <p>
+      For pretty much the same purpose 
+      <a href="http://opensource.atlassian.com/confluence/spring/display/WEBFLOW/Home">
+      Spring Web Flow</a> exists. Instead of repeating the arguments presented
+      there, we'll just direct you to read 
+      <a href="http://www.theserverside.com/articles/article.tss?l=SpringWebFlow">
+      this article</a> about it and then return to us.
+    </p>
+    <h2>Ok, then why a different implementation?</h2>
+    <p>
+      While we agree with the goals Spring Web Flow strives to achieve, we
+      are not comfortable with their flow description language of choice. 
+      Namely, they chose to describe page flows in XML. At their heart, page 
+      flows are algorithms, and we feel that describing algorithms in a 
+      first-class imperative programming language is a more natural fit for the 
+      task. It gives you the full expressive power of <i>if</i>, <i>for</i>, 
+      <i>switch</i>, etc. statements as well as the ability to define functions
+      and call them from multiple places in the flow, reusing common 
+      functionality. JavaScript is close enough in syntax to Java and is easy to
+      learn. To efficiently edit Spring Web Flow flows, you need to hand craft 
+      their XML files, a task that looks complex enough that the Spring 
+      community started developing 
+      <a href="http://springide.org/project/wiki/WebFlowEditor">graphical 
+      editors</a> for maintaining flowgraph XML documents in response to the 
+      complexity. In contrast, you can edit a JavaScript web flow in any text
+      editor you'd otherwise find fit for writing a snippet of JavaScript in.
+    </p>
+    <p>
+      So, it boils down to a matter of having more than one choice if you want 
+      to develop web applications with Spring. If you're comfortable with flows 
+      expressed in XML, and eventually being forced to use graphical IDE graph 
+      builders to describe control flow of a program, use Spring Web Flow, 
+      <i>may it do ya fine</i>. If you prefer writing the same control flow in a
+      proper programming language, you might discover <i>JavaScript Web Flow for
+      Spring</i> is right for you.
+    </p>
+    <p>
+      By using continuations, the state of your script is recorded in an 
+      encapsulation of its call stack (together with all local variables) 
+      whenever it sends back a HTTP response. Not only does it allow you to 
+      store state between two requests simply in script local variables, it also
+      opens up quite wild possibilities. Namely, the users of your web 
+      application can navigate at will in your web application: use the back 
+      button of their browser few times then continue from there, or even open a
+      new window at a backed page and diverge in two different directions. Your
+      web application will seamlessly assume the script states appropriate for
+      the current page on the next request, as those states aren't thrown away 
+      (well, up to a point - by default 100 states are remembered per session). 
+      And remember that you only had to write a single, structured, mostly 
+      linear script for all of this! The system manages the mapping of user's
+      unpredictable browsing behaviors to your structured-programming script for
+      you!
+    </p>
+    <p>
+      At the moment, continuations can be stored in-memory, bound to a HTTP 
+      session, or for more sophisticated applications, they can be persisted to 
+      a JDBC data source. In this case, smart stubbing of shared objects is 
+      employed that both minimizes the size of the serialized state and allows 
+      continuations to be resumed in a different JVM than the one that 
+      originally created them, allowing for clustering and failover scenarios. 
+      An extensible architecture allows you to develop your own persistence 
+      mechanisms as well.
+    </p>
+    <h2>Getting started</h2>
+      <h3>Prerequisites</h3>
+      <p>
+        You are expected to be familiar with Spring MVC and JavaScript.
+      </p>
+      <h3>An example</h3>
+      <p>
+        The distribution contains a simple example web application that has a 
+        flow defined in JavaScript, emulating a checkout process from a web 
+        store. Just drop it into a servlet container of your choice, and point
+        your browser to "checkout.js" inside of it.
+      </p>
+      <h3>JavaDoc</h3>
+      <p>
+        JavaDoc will explain you why is the example configured as it is. 
+        Especially pay attention to 
+        {@link org.szegedi.spring.web.jsflow.FlowController#handleRequestInternal(HttpServletRequest, HttpServletResponse)}
+        which describes the features available to your flowscripts as well as
+        how to incorporate the state ID into HTML pages generated by your views.
+      </p>
+    <h2>Other players in the space</h2>
+    <p>
+      We already mentioned the Spring's default Spring Web Flow implementation.
+      <a href="http://cocoon.apache.org/">Apache Coccoon</a> also has a web flow
+      engine based on Rhino, but that engine would probably be hard to integrate
+      into Spring proper. 
+    </p>
+</body>
