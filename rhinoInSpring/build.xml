@@ -24,12 +24,13 @@
     </target>
    
     <target name="jar" depends="compile">
+    		<property name="jarfile" location="build/rhinoInSpring-${version}.jar"/>
         <mkdir dir="build/classes"/>
         <copy toDir="build/classes">
           <fileset dir="src/java"
             excludes="**/CVS/**,**/*.bak,**/*.java,**/package.html"/>
         </copy>
-        <jar basedir="build/classes" jarfile="build/rhinoInSpring.jar">
+        <jar basedir="build/classes" jarfile="${jarfile}">
             <manifest>
                 <attribute name="Implementation-Title" value="Rhino in Spring"/>
                 <attribute name="Implementation-Version" value="1.0"/>
@@ -46,7 +47,7 @@
 	    <copy toDir="build/example/WEB-INF/lib">
 		    <fileset dir="lib" excludes="javax.servlet.jar"/>
         </copy>
-    	    <copy toDir="build/example/WEB-INF/lib" file="build/rhinoInSpring.jar"/>
+    	    <copy toDir="build/example/WEB-INF/lib" file="${jarfile}"/>
 	</target>
 	
 	<target name="javadoc" depends="init">
@@ -63,22 +64,33 @@
     </target>
 	
 	<target name="dist" depends="jar,web">
-		<mkdir dir="build/dist/src"/>
-		<copy toDir="build/dist" file="LICENSE.txt"/>
-		<copy toDir="build/dist" file="build.xml"/>
-		<copy toDir="build/dist/src">
+		<property name="distdir" location="build/rhinoInSpring-${version}"/>
+		<mkdir dir="${distdir}/src"/>
+		<copy toDir="${distdir}" file="LICENSE.txt"/>
+		<copy toDir="${distdir}" file="build.xml"/>
+		<copy toDir="${distdir}/src">
 		    <fileset dir="src" excludes="**/CVS/**,**/*.bak"/>
         </copy>
-		<mkdir dir="build/dist/build"/>
-		<copy toDir="build/dist/build" file="build/rhinoInSpring.jar"/>
-		<mkdir dir="build/dist/web"/>
-		<copy toDir="build/dist/web">
+		<mkdir dir="${distdir}/build"/>
+		<copy toDir="${distdir}/build" file="${jarfile}"/>
+		<mkdir dir="${distdir}/web"/>
+		<copy toDir="${distdir}/web">
 		    <fileset dir="build/web" excludes="**/CVS/**,**/*.bak"/>
         </copy>
-		<mkdir dir="build/dist/lib"/>
-		<copy toDir="build/dist/lib">
+		<mkdir dir="${distdir}/lib"/>
+		<copy toDir="${distdir}/lib">
 		    <fileset dir="lib" excludes="**/CVS/**,**/*.bak"/>
         </copy>
-		<tar destfile="build/rhinoInSpring-${version}.tgz" compression="gzip" basedir="build/dist"/>
+		<tar destfile="build/rhinoInSpring-${version}.tgz" compression="gzip" 
+			basedir="build" includes="rhinoInSpring-${version}/**"/>
+	</target>
+	
+	<target name="dist-nodep" depends="dist">
+		<tar destfile="build/rhinoInSpring-nodep-${version}.tgz" compression="gzip" 
+			basedir="build" includes="rhinoInSpring-${version}/**/*" 
+			excludes="
+				rhinoInSpring-${version}/lib/javax.servlet.jar
+				rhinoInSpring-${version}/lib/spring*.jar 
+				rhinoInSpring-${version}/src/example/WEB-INF/lib/freemarker.jar"/>
 	</target>
  </project>
