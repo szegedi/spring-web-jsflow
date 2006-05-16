@@ -23,7 +23,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 /**
  * An extension to the beans factory utils in Spring.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class BeanFactoryUtilsEx
 {

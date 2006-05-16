@@ -34,7 +34,7 @@ import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
  * also possible to have identical flowstate ids in two sessions without any 
  * interference).
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class HttpSessionFlowStateStorage extends AbstractFlowStateStorage
 {

@@ -23,7 +23,7 @@ import org.szegedi.spring.crypto.support.ProviderBasedFactory;
  * Generates a {@link SecureRandom} instance using a specified algorithm and
  * security provider.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class SecureRandomFactory extends ProviderBasedFactory
 {

@@ -32,7 +32,7 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
  * front of a {@link org.szegedi.spring.web.jsflow.codec.ConfidentialityCodec},
  * as compression improves the security of the encryption. 
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class CompressionCodec implements BinaryStateCodec
 {

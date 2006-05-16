@@ -38,7 +38,7 @@ import org.mozilla.javascript.continuations.Continuation;
  * private parts of Rhino, we're using reflection with overriding accessibility
  * to get to them. 
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 class FunctionFingerprintManager
 {

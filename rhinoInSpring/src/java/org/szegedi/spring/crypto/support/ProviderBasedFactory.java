@@ -20,7 +20,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
 /**
  * Base class for all factory beans that can take a security provider name.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public abstract class ProviderBasedFactory extends AbstractFactoryBean
 {

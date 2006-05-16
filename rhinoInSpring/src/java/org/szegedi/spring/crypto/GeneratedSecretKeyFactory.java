@@ -27,7 +27,7 @@ import org.szegedi.spring.crypto.support.ProviderBasedFactory;
  * application context restarts, whatever you might have encrypted using it will 
  * become invalid no later than when the JVM is shut down.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class GeneratedSecretKeyFactory extends ProviderBasedFactory
 {

@@ -30,7 +30,7 @@ import org.springframework.web.servlet.ModelAndView;
  * if you receive an exception saying there is no current Rhino context during 
  * view rendering, you will need to use the interceptor.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class OpenContextInViewInterceptor implements HandlerInterceptor
 {

@@ -21,7 +21,7 @@ import org.springframework.core.NestedRuntimeException;
  * Thrown when {@link org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage}
  * persistence fails.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class FlowStateStorageException extends NestedRuntimeException
 {

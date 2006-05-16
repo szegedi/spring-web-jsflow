@@ -29,7 +29,7 @@ import org.szegedi.spring.crypto.support.ProviderBasedFactory;
  * specifications result in identical keys, thus you can use it to construct a
  * key valid accross JVM restarts.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class KeySpecSecretKeyFactory extends ProviderBasedFactory
 {

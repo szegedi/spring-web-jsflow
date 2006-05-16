@@ -22,7 +22,7 @@ import org.mozilla.javascript.Wrapper;
 
 /**
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 class ScriptableConverter
 {

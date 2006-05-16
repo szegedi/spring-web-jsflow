@@ -25,7 +25,7 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
  * {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage} to compress,
  * encrypt, and/or digitally sign the state before passing it to the client.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public interface BinaryStateCodec
 {

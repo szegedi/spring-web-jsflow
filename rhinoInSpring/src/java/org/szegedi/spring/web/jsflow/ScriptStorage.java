@@ -48,7 +48,7 @@ import org.szegedi.spring.web.jsflow.support.PersistenceSupport;
  * context. The script storage is resource loader aware, and will use the 
  * resource loader it was made aware of for loading script source code.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class ScriptStorage implements ResourceLoaderAware
 {

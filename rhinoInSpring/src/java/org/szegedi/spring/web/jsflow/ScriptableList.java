@@ -22,7 +22,7 @@ import org.mozilla.javascript.Scriptable;
 
 /**
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 class ScriptableList extends AbstractList
 {

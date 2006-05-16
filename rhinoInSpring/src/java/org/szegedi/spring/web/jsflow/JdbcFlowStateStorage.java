@@ -49,7 +49,7 @@ import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
  * not null, random not null int, created timestamp default current_timestamp, primary key (id));
  * </tt>
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class JdbcFlowStateStorage extends AbstractFlowStateStorage
 {

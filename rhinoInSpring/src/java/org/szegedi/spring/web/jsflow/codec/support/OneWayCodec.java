@@ -19,7 +19,7 @@ package org.szegedi.spring.web.jsflow.codec.support;
  * Basic worker interface, encapsulating a single encoding or decoding 
  * operation. 
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public interface OneWayCodec
 {

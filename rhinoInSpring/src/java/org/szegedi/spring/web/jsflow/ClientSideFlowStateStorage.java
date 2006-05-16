@@ -39,7 +39,7 @@ import sun.misc.BASE64Encoder;
  * further enhance with {@link org.szegedi.spring.web.jsflow.codec.PooledCodec 
  * pooling}).  
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class ClientSideFlowStateStorage extends AbstractFlowStateStorage
 {

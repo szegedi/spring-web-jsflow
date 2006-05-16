@@ -30,7 +30,7 @@ import org.mozilla.javascript.ScriptableObject;
  * A Map interface for Scriptables. Used to convert a Scriptable model into a 
  * Map, as Spring MVC expects models to be Maps.  
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 class ScriptableMap extends AbstractMap
 {
