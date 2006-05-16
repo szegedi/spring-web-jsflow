@@ -35,7 +35,7 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
  * confidentiality or integrity, as their coding operations can have high 
  * initialization overhead.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class CompositeCodec implements BinaryStateCodec
 {

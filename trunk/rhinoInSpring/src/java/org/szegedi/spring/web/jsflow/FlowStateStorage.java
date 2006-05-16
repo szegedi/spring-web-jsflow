@@ -27,7 +27,7 @@ import org.mozilla.javascript.continuations.Continuation;
  * application context, then all flow controllers that don't have their own
  * storage set will use it.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public interface FlowStateStorage
 {

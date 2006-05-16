@@ -15,7 +15,7 @@
 */
 /**
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 
 var __terminate_interpreter__ = new Continuation();

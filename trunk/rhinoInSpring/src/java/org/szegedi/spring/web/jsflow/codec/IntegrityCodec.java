@@ -32,7 +32,7 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
  * {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage} as it 
  * prevents the client from tampering the state.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class IntegrityCodec implements BinaryStateCodec, InitializingBean
 {

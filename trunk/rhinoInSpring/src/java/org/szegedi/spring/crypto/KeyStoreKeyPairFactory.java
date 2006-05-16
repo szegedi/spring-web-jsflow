@@ -30,7 +30,7 @@ import org.szegedi.spring.crypto.support.ProviderBasedFactory;
  * recommended way to obtain a keypair, as it will remain valid across JVM 
  * restarts.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class KeyStoreKeyPairFactory extends ProviderBasedFactory implements ResourceLoaderAware 
 {

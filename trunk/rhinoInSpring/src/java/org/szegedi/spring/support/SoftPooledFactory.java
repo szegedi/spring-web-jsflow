@@ -23,7 +23,7 @@ import java.util.List;
 /**
  * A factory of soft-reference pooled objects.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public abstract class SoftPooledFactory
 {

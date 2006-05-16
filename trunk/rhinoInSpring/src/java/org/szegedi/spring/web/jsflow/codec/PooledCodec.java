@@ -33,7 +33,7 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
  * to wrap the composite codec with a pooled codec, instead of wrapping the
  * individual component codecs.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class PooledCodec implements BinaryStateCodec
 {

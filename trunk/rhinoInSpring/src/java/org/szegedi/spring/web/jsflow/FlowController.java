@@ -46,7 +46,7 @@ import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
  * instance of controller can encapsulate a single webflow represented by a 
  * single script, or it can handle several flows represented by several scripts.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class FlowController extends AbstractController
 implements InitializingBean

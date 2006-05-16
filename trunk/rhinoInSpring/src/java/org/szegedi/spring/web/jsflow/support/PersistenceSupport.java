@@ -25,7 +25,7 @@ import org.szegedi.spring.web.jsflow.ScriptStorage;
  * persistence from {@link org.szegedi.spring.web.jsflow.ScriptStorage}. Not
  * intended for client use.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public abstract class PersistenceSupport
 {

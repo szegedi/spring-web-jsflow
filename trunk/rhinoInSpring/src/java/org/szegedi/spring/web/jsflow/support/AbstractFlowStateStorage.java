@@ -77,7 +77,7 @@ import org.szegedi.spring.web.jsflow.codec.BinaryStateCodec;
  * where the client is entrusted with storing the flowstates, so you might wish
  * to ensure they're resistant to tampering.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public abstract class AbstractFlowStateStorage 
 implements FlowStateStorage, ApplicationContextAware, InitializingBean

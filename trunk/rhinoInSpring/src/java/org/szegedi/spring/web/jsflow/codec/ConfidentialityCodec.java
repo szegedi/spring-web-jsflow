@@ -40,7 +40,7 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
  * tampering with or forging a false flowstate, then you should use an
  * {@link org.szegedi.spring.web.jsflow.codec.IntegrityCodec} instead.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
 {

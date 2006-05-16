@@ -28,7 +28,7 @@ import org.szegedi.spring.crypto.support.ProviderBasedFactory;
  * JVM is shut down. Use the {@link KeyStoreKeyPairFactory} instead to load a 
  * persistent keypair from a Java keystore file.
  * @author Attila Szegedi
- * @version $Id: $
+ * @version $Id$
  */
 public class GeneratedKeyPairFactory extends ProviderBasedFactory
 {
