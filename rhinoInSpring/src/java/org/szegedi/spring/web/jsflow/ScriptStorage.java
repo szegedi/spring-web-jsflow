@@ -18,11 +18,14 @@ package org.szegedi.spring.web.jsflow;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.InvalidObjectException;
 import java.io.Reader;
 import java.io.Serializable;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -54,6 +57,7 @@ public class ScriptStorage implements ResourceLoaderAware
 {
     private ResourceLoader resourceLoader;
     private String prefix = "";
+    private long noStaleCheckPeriod = 10000;
     private final Map scripts = new HashMap();
     private Map functionsToStubs = Collections.EMPTY_MAP;
     private Map stubsToFunctions = Collections.EMPTY_MAP;
@@ -120,6 +124,27 @@ public class ScriptStorage implements ResourceLoaderAware
         this.prefix = prefix;
     }
 
+    /**
+     * Sets the period in milliseconds during which a script resource will not
+     * be checked for staleness. Defaults to 10000, that is, if upon requesting
+     * a script its file's timestamp was checked in the last 10 seconds, then 
+     * it won't be checked again. If it was checked earlier than 10 seconds
+     * though, then its timestamp will be checked and if it changed, the script
+     * will be reloaded. Setting it to nonzero improves performance, while
+     * setting it to a very large value effectively disables automatic script 
+     * reloading.
+     * @param noStaleCheckPeriod the period in milliseconds during which one
+     * script file's timestamp is not rechecked.
+     */
+    public void setNoStaleCheckPeriod(long noStaleCheckPeriod)
+    {
+        if(noStaleCheckPeriod < 0)
+        {
+            throw new IllegalArgumentException("noStaleCheckPeriod < 0");
+        }
+        this.noStaleCheckPeriod = noStaleCheckPeriod;
+    }
+    
     /**
      * Returns an object implementing support functionality for persistent flow
      * state storage. Not usable by client applications, this is meant to be 
@@ -191,19 +216,91 @@ public class ScriptStorage implements ResourceLoaderAware
     
     Script getScript(String path) throws IOException
     {
-        Script s;
+        TimestampedScript ts;
         synchronized(scripts)
         {
-            s = (Script)scripts.get(path);
-            if(s == null)
+            ts = (TimestampedScript)scripts.get(path);
+            if(ts == null)
             {
-                s = loadScript(resourceLoader.getResource(prefix + path), path);
-                scripts.put(path, s);
+                ts = new TimestampedScript(path);
+                scripts.put(path, ts);
             }
         }
-        return s;
+        return ts.getScript();
     }
 
+    private class TimestampedScript
+    {
+        private final String path;
+        private long lastModified;
+        private long lastChecked;
+        private Script script;
+        
+        TimestampedScript(String path)
+        {
+            this.path = path;
+        }
+        
+        synchronized Script getScript() throws IOException
+        {
+            long now = System.currentTimeMillis();
+            if(script != null && now - lastChecked < noStaleCheckPeriod)
+            {
+                return script;
+            }
+            Resource resource = resourceLoader.getResource(prefix + path);
+            URL url;
+            try
+            {
+                url = resource.getURL();
+            }
+            catch(IOException e)
+            {
+                url = null;
+            }
+            long newLastModified;
+            URLConnection conn;
+            if(url != null)
+            {
+                if("file".equals(url.getProtocol()))
+                {
+                    newLastModified = resource.getFile().lastModified();
+                    conn = null;
+                }
+                else
+                {
+                    conn = url.openConnection();
+                    newLastModified = conn.getLastModified();
+                }
+            }
+            else
+            {
+                newLastModified = 0;
+                conn = null;
+            }
+            lastChecked = now;
+            if(script == null || newLastModified != lastModified)
+            {
+                lastModified = newLastModified;
+                InputStream in = conn == null ? resource.getInputStream() : 
+                    conn.getInputStream();
+                try
+                {
+                    script = loadScript(in, resource.getDescription(), path);
+                }
+                finally
+                {
+                    in.close();
+                }
+            }
+            else if(conn != null)
+            {
+                conn.getInputStream().close();
+            }
+            return script;
+        }
+    }
+    
     ScriptableObject createNewTopLevelScope(Context cx)
     {
         ScriptableObject scope = (ScriptableObject)cx.newObject(library);
@@ -212,14 +309,29 @@ public class ScriptStorage implements ResourceLoaderAware
         return scope;
     }
     
-    private Script loadScript(final Resource scriptResource, String path)
+    private Script loadScript(Resource resource, String path)
     throws IOException
     {
-        final Reader r = new InputStreamReader(scriptResource.getInputStream());
+        InputStream in = resource.getInputStream();
+        try
+        {
+            return loadScript(in, resource.getDescription(), path);
+        }
+        finally
+        {
+            in.close();
+        }
+    }
+    
+    private Script loadScript(final InputStream in, String description, 
+            String path)
+    throws IOException
+    {
+        final Reader r = new InputStreamReader(in);
         try
         {
             Script script = Context.getCurrentContext().compileReader(r, 
-                    scriptResource.getURL().toExternalForm(), 1, null);
+                    description, 1, null);
             new FunctionStubFactory(path).createStubs(script);
             return script;
         }
@@ -234,10 +346,6 @@ public class ScriptStorage implements ResourceLoaderAware
                 throw (IOException)e.getCause();
             }
             throw e;
-        }
-        finally
-        {
-            r.close();
         }
     }
     
