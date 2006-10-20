@@ -38,6 +38,7 @@ import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.debug.DebuggableScript;
 import org.mozilla.javascript.serialize.ScriptableOutputStream;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -53,10 +54,11 @@ import org.szegedi.spring.web.jsflow.support.PersistenceSupport;
  * @author Attila Szegedi
  * @version $Id$
  */
-public class ScriptStorage implements ResourceLoaderAware
+public class ScriptStorage implements ResourceLoaderAware, InitializingBean
 {
     private ResourceLoader resourceLoader;
     private String prefix = "";
+    private String[] globalLibraries; 
     private long noStaleCheckPeriod = 10000;
     private final Map scripts = new HashMap();
     private Map functionsToStubs = Collections.EMPTY_MAP;
@@ -64,43 +66,6 @@ public class ScriptStorage implements ResourceLoaderAware
     private final Object lock = new Object();
 
     private final ScriptableObject library = new NativeObject();
-    {
-        Context.call(new ContextAction()
-        {
-            public Object run(Context cx)
-            {
-                try
-                {
-                    cx.setOptimizationLevel(-1);
-                    Script libraryScript = loadScript(new ClassPathResource(
-                            "library.js", ScriptStorage.class), "~library.js");
-                    cx.initStandardObjects(library);
-                    libraryScript.exec(cx, library);
-                    ScriptableObject.defineClass(library, HostObject.class);
-                    
-                    // bit of a hack to initialize all lazy objects that 
-                    // ScriptableOutputStream would initialize, so we can then
-                    // safely seal it
-                    new ScriptableOutputStream(new ByteArrayOutputStream(), library);
-                    
-                    library.sealObject();
-                }
-                catch(RuntimeException e)
-                {
-                    throw e;
-                }
-                catch(Error e)
-                {
-                    throw e;
-                }
-                catch(Throwable t)
-                {
-                    throw new UndeclaredThrowableException(t);
-                }
-                return null;
-            }
-        });
-    }
     
     /**
      * Sets the resource loader for this storage. The resource loader will be 
@@ -143,6 +108,84 @@ public class ScriptStorage implements ResourceLoaderAware
             throw new IllegalArgumentException("noStaleCheckPeriod < 0");
         }
         this.noStaleCheckPeriod = noStaleCheckPeriod;
+    }
+    
+    /**
+     * Specifies the name of an application-specific global library script. 
+     * This script will execute only once, during the initialization of the
+     * script storage, in the global library scope. Therefore, it mostly makes
+     * sense to only place function definitions into it.
+     * @param globalLibrary the name of the application-specific global library
+     * script.
+     */
+    public void setGlobalLibrary(String globalLibrary)
+    {
+        this.globalLibraries = new String[] { globalLibrary };
+    }
+    
+    /**
+     * Specifies the names of application-specific global library scripts. 
+     * These scripts will execute only once, in the order specified in the 
+     * array, during the initialization of the script storage, in the global 
+     * library scope. Therefore, it mostly makes sense to only place function 
+     * definitions into them.
+     * @param globalLibraries an array of names of the application-specific 
+     * global library scripts.
+     */
+    public void setGlobalLibraries(String[] globalLibraries)
+    {
+        this.globalLibraries = (String[])globalLibraries.clone();
+    }
+    
+    public void afterPropertiesSet() throws Exception
+    {
+        Context.call(new ContextAction()
+        {
+            public Object run(Context cx)
+            {
+                try
+                {
+                    cx.setOptimizationLevel(-1);
+                    // Run the built-in library script
+                    Script libraryScript = loadScript(new ClassPathResource(
+                            "library.js", ScriptStorage.class), "~library.js");
+                    cx.initStandardObjects(library);
+                    libraryScript.exec(cx, library);
+                    ScriptableObject.defineClass(library, HostObject.class);
+                    
+                    // Run application-defined global libraries in the library
+                    // scope
+                    if(globalLibraries != null)
+                    {
+                        for (int i = 0; i < globalLibraries.length; i++)
+                        {
+                            getScript(globalLibraries[i]).exec(cx, library);
+                        }
+                    }
+                    
+                    // bit of a hack to initialize all lazy objects that 
+                    // ScriptableOutputStream would initialize, so we can then
+                    // safely seal it
+                    new ScriptableOutputStream(new ByteArrayOutputStream(), 
+                            library);
+                    // Finally seal the library scope
+                    library.sealObject();
+                }
+                catch(RuntimeException e)
+                {
+                    throw e;
+                }
+                catch(Error e)
+                {
+                    throw e;
+                }
+                catch(Throwable t)
+                {
+                    throw new UndeclaredThrowableException(t);
+                }
+                return null;
+            }
+        });
     }
     
     /**
