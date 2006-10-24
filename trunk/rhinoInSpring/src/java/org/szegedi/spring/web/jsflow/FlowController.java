@@ -323,6 +323,12 @@ implements InitializingBean
             try
             {
                 String scriptPath = scriptSelectionStrategy.getScriptPath(request);
+                if(scriptPath == null)
+                {
+                    // Couldn't select script
+                    response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                    return null;
+                }
                 Script script = scriptStorage.getScript(scriptPath);
                 if(script == null)
                 {
