@@ -15,7 +15,6 @@
 */
 package org.szegedi.spring.web.jsflow;
 
-import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -61,62 +60,11 @@ implements InitializingBean
         ScriptableObject.PERMANENT; 
     private static final int HIDDEN = ScriptableObject.DONTENUM;
     
-    private String resourcePath = "";
-    private boolean usePathInfo;
-    private boolean useServletPath;
-    
     private ScriptStorage scriptStorage;
+    private ScriptSelectionStrategy scriptSelectionStrategy;
     private FlowStateStorage flowStateStorage;
+    private FlowStateInitializer flowStateInitializer;
     
-    /**
-     * Sets the resource path. If neither path info nor servlet path are used,
-     * then this controller will always execute a single script, the resource 
-     * path of its source file being specified in this property. If either 
-     * servlet path or path info (or both) are used, then the controller will 
-     * run multiple scripts selected by servlet path and/or path info, and the 
-     * path specified here will be used as a common prefix for the resource 
-     * paths of script source files. Defaults to empty string, which is a handy 
-     * value in case no prefix is required and either servlet path or path info 
-     * are used. Be aware that this prefix can be further prefixed by a prefix
-     * specified using {@link ScriptStorage#setPrefix(String)}) ScriptStorage
-     * class.
-     * @param resourcePath
-     */
-    public void setResourcePath(String resourcePath)
-    {
-        if(resourcePath == null)
-        {
-            throw new IllegalArgumentException("resourcePath == null");
-        }
-        this.resourcePath = resourcePath;
-    }
-    
-    /**
-     * Whether to use the path info portion of the request URI when looking up 
-     * the script to run. If true, the name of the script to run will be 
-     * determined by concatenating resource path + (optionally servlet path) + 
-     * path info. If false, the name of the script to run will be determined by
-     * concatenating resource path + (optionally servlet path). 
-     * Defaults to false.
-     * @param usePathInfo
-     */
-    public void setUsePathInfo(boolean usePathInfo)
-    {
-        this.usePathInfo = usePathInfo;
-    }
-
-    /**
-     * Whether to use the servlet path portion of the request URI when looking 
-     * up the script to run. If true, the name of the script to run will be 
-     * determined by concatenating resource path + servlet path + (optionally 
-     * path info). If false, the name of the script to run will be determined by
-     * concatenating resource path + (optionally path info). Defaults to false.
-     * @param useServletPath
-     */
-    public void setUseServletPath(boolean useServletPath)
-    {
-        this.useServletPath = useServletPath;
-    }
     
     /**
      * Sets the flow state storage used to store flow states between a HTTP
@@ -141,10 +89,36 @@ implements InitializingBean
         this.scriptStorage = scriptStorage;
     }
     
+    /**
+     * Sets the script selector used to select scripts for initial HTTP 
+     * requests. If not set, an instance of 
+     * {@link UrlScriptSelectionStrategy} with
+     * {@link UrlScriptSelectionStrategy#setUsePathInfo(boolean)} set to 
+     * true will be used.
+     * @param scriptSelector
+     */
+    public void setScriptSelectionStrategy(ScriptSelectionStrategy scriptSelector)
+    {
+        this.scriptSelectionStrategy = scriptSelector;
+    }
+    
+    /**
+     * Sets the flow state initializer used to initialize an instance of a
+     * flow. If not set, the controller will attempt to look up an instance of
+     * it by type in the application context during initialization. If none is
+     * found, no custom flow initialization will be performed.
+     * @param flowStateInitializer
+     */
+    public void setFlowStateInitializer(
+            FlowStateInitializer flowStateInitializer)
+    {
+        this.flowStateInitializer = flowStateInitializer;
+    }
+    
     public void afterPropertiesSet() throws Exception
     {
-        // Try to autodiscover a script cache and a flow state storage in the
-        // context
+        // Try to autodiscover a script cache, flow state storage, and flow 
+        // state initializer in the context if they're not explicitly set.
         ApplicationContext ctx = getApplicationContext();
         if(scriptStorage == null)
         {
@@ -166,6 +140,17 @@ implements InitializingBean
                         getApplicationContext());
                 ((HttpSessionFlowStateStorage)flowStateStorage).afterPropertiesSet();
             }
+        }
+        if(flowStateInitializer == null)
+        {
+            flowStateInitializer = (FlowStateInitializer)BeanFactoryUtilsEx.beanOfTypeIncludingAncestors(ctx, 
+                    FlowStateInitializer.class);
+        }
+        if(scriptSelectionStrategy == null)
+        {
+            UrlScriptSelectionStrategy dss = new UrlScriptSelectionStrategy();
+            dss.setUsePathInfo(true);
+            scriptSelectionStrategy = dss;
         }
         // Since we can't guarantee initialization order, make sure that we're
         // using the same script storage.
@@ -337,15 +322,21 @@ implements InitializingBean
         {
             try
             {
-                Script script = scriptStorage.getScript(getScriptPath(request));
+                String scriptPath = scriptSelectionStrategy.getScriptPath(request);
+                Script script = scriptStorage.getScript(scriptPath);
                 if(script == null)
                 {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
                     return null;
                 }
+                if(flowStateInitializer != null)
+                {
+                    flowStateInitializer.initializeFlowState(request, 
+                            scriptPath, cx, scope);
+                }
                 script.exec(cx, scope);
             }
-            catch(IOException e)
+            catch(Exception e)
             {
                 throw new UndeclaredThrowableException(e);
             }
@@ -372,42 +363,6 @@ implements InitializingBean
         return hostObject.getModelAndView(id);
     }
 
-    private String getScriptPath(HttpServletRequest request)
-    {
-        if(!(usePathInfo || useServletPath))
-        {
-            return resourcePath;
-        }
-        StringBuffer buf = new StringBuffer(resourcePath);
-        if(useServletPath)
-        {
-            String servletPath  = (String) request.getAttribute(
-                    "javax.servlet.include.servlet_path");
-            if(servletPath == null)
-            {
-                servletPath = request.getServletPath();
-            }
-            if(servletPath != null)
-            {
-                buf.append(servletPath);
-            }
-        }
-        if(usePathInfo)
-        {
-            String pathInfo = (String) request.getAttribute(
-                    "javax.servlet.include.path_info");
-            if(pathInfo == null)
-            {
-                pathInfo = request.getPathInfo();
-            }
-            if(pathInfo != null)
-            {
-                buf.append(pathInfo);
-            }
-        }
-        return buf.toString();
-    }
-    
     private static void deleteProperty(ScriptableObject object, String property)
     {
         object.setAttributes(property, 0);
