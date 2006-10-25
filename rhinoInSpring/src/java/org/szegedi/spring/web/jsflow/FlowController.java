@@ -104,6 +104,55 @@ implements InitializingBean
     }
     
     /**
+     * @deprecated Use {@link #setScriptSelectionStrategy(ScriptSelectionStrategy)} with
+     * a {@link UrlScriptSelectionStrategy} instead
+     */
+    public void setResourcePath(String resourcePath)
+    {
+        getUrlScriptSelectionStrategy().setResourcePath(resourcePath);
+    }
+    
+    /**
+     * @deprecated Use {@link #setScriptSelectionStrategy(ScriptSelectionStrategy)} with
+     * a {@link UrlScriptSelectionStrategy} instead
+     */
+    public void setUsePathInfo(boolean usePathInfo)
+    {
+        getUrlScriptSelectionStrategy().setUsePathInfo(usePathInfo);
+    }
+
+    /**
+     * @deprecated Use {@link #setScriptSelectionStrategy(ScriptSelectionStrategy)} with
+     * a {@link UrlScriptSelectionStrategy} instead
+     */
+    public void setUseServletPath(boolean useServletPath)
+    {
+        getUrlScriptSelectionStrategy().setUseServletPath(useServletPath);
+    }
+    
+    /**
+     * This method exists as a helper to the three deprecated methods above.
+     * When they get removed, we'll remove it too. 
+     */
+    private UrlScriptSelectionStrategy getUrlScriptSelectionStrategy()
+    {
+        if(scriptSelectionStrategy == null)
+        {
+            scriptSelectionStrategy = new UrlScriptSelectionStrategy();
+        }
+        try
+        {
+            return (UrlScriptSelectionStrategy)scriptSelectionStrategy;
+        }
+        catch(ClassCastException e)
+        {
+            throw new IllegalStateException("You can't use the deprecated " + 
+                            "script selection methods after explicitly " +
+                            "setting a custom script selection strategy");
+        }
+    }
+    
+    /**
      * Sets the flow state initializer used to initialize an instance of a
      * flow. If not set, the controller will attempt to look up an instance of
      * it by type in the application context during initialization. If none is
