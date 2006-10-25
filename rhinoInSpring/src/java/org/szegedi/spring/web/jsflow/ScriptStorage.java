@@ -58,7 +58,8 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
 {
     private ResourceLoader resourceLoader;
     private String prefix = "";
-    private LibraryCustomizer libraryCustomizer; 
+    private LibraryCustomizer libraryCustomizer;
+    private SecurityDomainFactory securityDomainFactory;
     private long noStaleCheckPeriod = 10000;
     private final Map scripts = new HashMap();
     private Map functionsToStubs = Collections.EMPTY_MAP;
@@ -119,6 +120,17 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     public void setLibraryCustomizer(LibraryCustomizer libraryCustomizer)
     {
         this.libraryCustomizer = libraryCustomizer;
+    }
+    
+    /**
+     * Sets a security domain factory for this script storage. It can be used
+     * to associate Rhino security domain objects with scripts.
+     * @param securityDomainFactory
+     */
+    public void setSecurityDomainFactory(
+            SecurityDomainFactory securityDomainFactory)
+    {
+        this.securityDomainFactory = securityDomainFactory;
     }
     
     public void afterPropertiesSet() throws Exception
@@ -308,7 +320,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                     conn.getInputStream();
                 try
                 {
-                    script = loadScript(in, resource.getDescription(), path);
+                    script = loadScript(in, resource, path);
                 }
                 finally
                 {
@@ -337,7 +349,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         InputStream in = resource.getInputStream();
         try
         {
-            return loadScript(in, resource.getDescription(), path);
+            return loadScript(in, resource, path);
         }
         finally
         {
@@ -345,15 +357,17 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         }
     }
     
-    private Script loadScript(final InputStream in, String description, 
+    private Script loadScript(final InputStream in, Resource resource, 
             String path)
     throws IOException
     {
         final Reader r = new InputStreamReader(in);
         try
         {
+            Object securityDomain = securityDomainFactory == null ? null : 
+                securityDomainFactory.createSecurityDomain(resource);
             Script script = Context.getCurrentContext().compileReader(r, 
-                    description, 1, null);
+                    resource.getDescription(), 1, securityDomain);
             new FunctionStubFactory(path).createStubs(script);
             return script;
         }
