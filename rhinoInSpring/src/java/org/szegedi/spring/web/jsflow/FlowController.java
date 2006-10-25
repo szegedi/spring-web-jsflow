@@ -15,6 +15,7 @@
 */
 package org.szegedi.spring.web.jsflow;
 
+import java.io.FileNotFoundException;
 import java.lang.reflect.UndeclaredThrowableException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -329,7 +330,15 @@ implements InitializingBean
                     response.sendError(HttpServletResponse.SC_BAD_REQUEST);
                     return null;
                 }
-                Script script = scriptStorage.getScript(scriptPath);
+                Script script;
+                try
+                {
+                    script = scriptStorage.getScript(scriptPath);
+                }
+                catch(FileNotFoundException e)
+                {
+                    script = null;
+                }
                 if(script == null)
                 {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND);
