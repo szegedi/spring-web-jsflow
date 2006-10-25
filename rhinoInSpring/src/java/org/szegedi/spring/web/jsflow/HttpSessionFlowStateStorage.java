@@ -15,6 +15,11 @@
 */
 package org.szegedi.spring.web.jsflow;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.security.SecureRandom;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -24,23 +29,21 @@ import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
+import org.mozilla.javascript.continuations.Continuation;
+import org.szegedi.spring.web.jsflow.support.FlowStateSerializer;
 
 /**
  * An implementation for flow state storage that stores flow states in 
  * the {@link javax.servlet.http.HttpSession} objects. As states are stored
  * privately to HTTP sessions, no crossover between sessions is possible 
- * (requesting a state from a session it doesn't belong to won't work, and it is 
- * also possible to have identical flowstate ids in two sessions without any 
- * interference). This class does not allow script files to be reloaded without 
- * already running coversations (likely) throwing an exception, however the 
- * conversations are replicatable among clusters of servlet containers using 
- * HTTP session replication (in constrast with 
- * {@link NonreplicatableHttpSessionFlowStateStorage}).
+ * (requesting a state from a session it doesn't belong to won't work, and it 
+ * is also possible to have identical flowstate ids in two sessions without any 
+ * interference).
  * @author Attila Szegedi
  * @version $Id$
  */
-public class HttpSessionFlowStateStorage extends AbstractFlowStateStorage
+public class HttpSessionFlowStateStorage extends FlowStateSerializer 
+implements FlowStateStorage
 {
     private static final String MAP_KEY = HttpSessionFlowStateStorage.class.getName(); 
 
@@ -81,7 +84,7 @@ public class HttpSessionFlowStateStorage extends AbstractFlowStateStorage
         }
     }
     
-    protected String storeSerializedState(HttpServletRequest request, byte[] state)
+    public String storeState(HttpServletRequest request, Continuation state)
     {
         Long id;
         Map stateMap = getStateMap(request, true);
@@ -92,7 +95,7 @@ public class HttpSessionFlowStateStorage extends AbstractFlowStateStorage
                 id = new Long(random.nextLong() & Long.MAX_VALUE);
                 if(!stateMap.containsKey(id))
                 {
-                    stateMap.put(id, state);
+                    stateMap.put(id, new ReplicatableContinuation(this, state));
                     break;
                 }
             }
@@ -100,7 +103,7 @@ public class HttpSessionFlowStateStorage extends AbstractFlowStateStorage
         return Long.toHexString(id.longValue());
     }
     
-    protected byte[] getSerializedState(HttpServletRequest request, String id)
+    public Continuation getState(HttpServletRequest request, String id)
     {
         Map stateMap = getStateMap(request, false);
         if(stateMap == null)
@@ -109,14 +112,44 @@ public class HttpSessionFlowStateStorage extends AbstractFlowStateStorage
         }
         try
         {
+            ReplicatableContinuation rc;
             synchronized(stateMap)
             {
-                return (byte[])stateMap.get(Long.valueOf(id, 16));
+                rc = (ReplicatableContinuation)stateMap.get(Long.valueOf(id, 16));
+            }
+            if(rc == null)
+            {
+                return null;
+            }
+            synchronized(rc)
+            {
+                Object oc = rc.getContinuation();
+                if(oc instanceof Continuation)
+                {
+                    return ((Continuation)oc);
+                }
+                else if(oc instanceof byte[])
+                {
+                    // This was serialized as part of HTTP session persistence
+                    // Deserialize it in our context then.
+                    Continuation c = deserializeContinuation((byte[])oc);
+                    rc.setContinuation(this, c);
+                    return c;
+                }
+                else
+                {
+                    throw new AssertionError();
+                }
             }
         }
-        catch(NumberFormatException e)
+        catch(RuntimeException e)
         {
-            throw e; //return null;
+            throw e;
+        }
+        catch(Exception e)
+        {
+            throw new FlowStateStorageException(
+                    "Failed to load replicated state for stateId=" + id, e);
         }
     }
     
@@ -147,5 +180,85 @@ public class HttpSessionFlowStateStorage extends AbstractFlowStateStorage
             }
         }
         return m;
+    }
+
+    byte[] serializeContinuationAccessor(Continuation state) throws Exception
+    {
+        return serializeContinuation(state);
+    }
+    
+    /**
+     * This class can serialize the continuation as a properly stubbed byte
+     * array. This is important in HTTP session replication scenarios, as it
+     * will allow the continuation to be transferred to another servlet 
+     * container and appropriately deserialized.
+     * @author Attila Szegedi
+     * @version $Id: $
+     */
+    private static class ReplicatableContinuation implements Serializable
+    {
+        private static final long serialVersionUID = 1L;
+
+        private transient HttpSessionFlowStateStorage storage;
+        private transient Object continuation;
+
+        ReplicatableContinuation(HttpSessionFlowStateStorage storage, 
+                Continuation continuation)
+        {
+            setContinuation(storage, continuation);
+        }
+        
+        void setContinuation(HttpSessionFlowStateStorage storage, 
+                Continuation continuation)
+        {
+            this.storage = storage;
+            this.continuation = continuation;
+        }
+        
+        Object getContinuation()
+        {
+            return continuation;
+        }
+        
+        private void readObject(ObjectInputStream in) throws IOException, 
+        ClassNotFoundException
+        {
+            continuation = in.readObject();
+        }
+        
+        private void writeObject(ObjectOutputStream out) throws IOException
+        {
+            if(continuation instanceof byte[])
+            {
+                // Already serialized -- just write it as is
+                out.writeObject(continuation);
+            }
+            else if(continuation instanceof Continuation)
+            {
+                try
+                {
+                    // Not serialized yet -- use the storage to serialize it
+                    // first
+                    out.writeObject(storage.serializeContinuationAccessor(
+                            (Continuation)continuation));
+                }
+                catch(IOException e)
+                {
+                    throw e;
+                }
+                catch(RuntimeException e)
+                {
+                    throw e;
+                }
+                catch(Exception e)
+                {
+                    throw new UndeclaredThrowableException(e);
+                }
+            }
+            else
+            {
+                throw new AssertionError();
+            }
+        }
     }
 }

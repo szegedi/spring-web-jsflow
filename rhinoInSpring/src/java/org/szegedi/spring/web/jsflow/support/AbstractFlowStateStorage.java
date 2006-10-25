@@ -15,33 +15,11 @@
 */
 package org.szegedi.spring.web.jsflow.support;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InvalidObjectException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.IdentityHashMap;
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 
-import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.continuations.Continuation;
-import org.mozilla.javascript.serialize.ScriptableInputStream;
-import org.mozilla.javascript.serialize.ScriptableOutputStream;
-import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.szegedi.spring.web.jsflow.FlowStateStorage;
 import org.szegedi.spring.web.jsflow.FlowStateStorageException;
-import org.szegedi.spring.web.jsflow.HostObject;
-import org.szegedi.spring.web.jsflow.ScriptStorage;
 import org.szegedi.spring.web.jsflow.codec.BinaryStateCodec;
 
 /**
@@ -79,56 +57,14 @@ import org.szegedi.spring.web.jsflow.codec.BinaryStateCodec;
  * @author Attila Szegedi
  * @version $Id$
  */
-public abstract class AbstractFlowStateStorage 
-implements FlowStateStorage, ApplicationContextAware, InitializingBean
+public abstract class AbstractFlowStateStorage extends FlowStateSerializer
+implements FlowStateStorage
 {
-    private ScriptStorage scriptStorage;
-    private PersistenceSupport persistenceSupport;
-    private ApplicationContext applicationContext;
     private BinaryStateCodec binaryStateCodec;
-    private Map beansToStubs = Collections.EMPTY_MAP;
-    
-    public void setScriptStorage(ScriptStorage scriptStorage)
-    {
-        this.scriptStorage = scriptStorage;
-        if(scriptStorage != null)
-        {
-            persistenceSupport = scriptStorage.getPersistenceSupport();
-        }
-    }
-    
-    public ScriptStorage getScriptStorage()
-    {
-        return scriptStorage;
-    }
-    
-    public void setApplicationContext(ApplicationContext applicationContext)
-    {
-        this.applicationContext = applicationContext;
-    }
     
     public void setBinaryStateCodec(BinaryStateCodec binaryStateCodec)
     {
         this.binaryStateCodec = binaryStateCodec;
-    }
-    
-    public void afterPropertiesSet() throws Exception
-    {
-        createStubInfo();
-    }
-    
-    private void createStubInfo()
-    {
-        String[] names = BeanFactoryUtils.beanNamesIncludingAncestors(applicationContext);
-        Map beansToStubs = new IdentityHashMap();
-        for (int i = 0; i < names.length; i++)
-        {
-            String name = names[i];
-            beansToStubs.put(applicationContext.getBean(name), 
-                    new ApplicationContextBeanStub(name));
-        }
-        beansToStubs.put(".", applicationContext);
-        this.beansToStubs = beansToStubs;
     }
     
     public Continuation getState(HttpServletRequest request, String id)
@@ -144,12 +80,7 @@ implements FlowStateStorage, ApplicationContextAware, InitializingBean
             {
                 b = binaryStateCodec.createDecoder().code(b);
             }
-            ObjectInputStream in = new ContinuationInputStream(
-                    new ByteArrayInputStream(b));
-            Object fingerprints = in.readObject();
-            Continuation cont = (Continuation)in.readObject();
-            FunctionFingerprintManager.checkFingerprints(cont, fingerprints);
-            return cont;
+            return deserializeContinuation(b);
         }
         catch(RuntimeException e)
         {
@@ -160,7 +91,7 @@ implements FlowStateStorage, ApplicationContextAware, InitializingBean
             throw new FlowStateStorageException("Failed to load state", e);
         }
     }
-    
+
     /**
      * Implement in subclasses to retrieve the serialized state.
      * @param request the HTTP request that triggered the retrieval. Can be used
@@ -173,15 +104,9 @@ implements FlowStateStorage, ApplicationContextAware, InitializingBean
 
     public String storeState(HttpServletRequest request, Continuation state)
     {
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
         try
         {
-            ObjectOutputStream out = new ContinuationOutputStream(bout, 
-                    state);
-            out.writeObject(FunctionFingerprintManager.getFingerprints(state));
-            out.writeObject(state);
-            out.close();
-            byte[] b = bout.toByteArray();
+            byte[] b = serializeContinuation(state);
             if(binaryStateCodec != null)
             {
                 b = binaryStateCodec.createEncoder().code(b);
@@ -193,7 +118,7 @@ implements FlowStateStorage, ApplicationContextAware, InitializingBean
             throw new FlowStateStorageException("Failed to store state", e);
         }
     }
-    
+
     /**
      * Implement in subclasses to store the serialized state.
      * @param request the HTTP request that triggered the store operation. Can 
@@ -203,99 +128,4 @@ implements FlowStateStorage, ApplicationContextAware, InitializingBean
      * @throws Exception
      */
     protected abstract String storeSerializedState(HttpServletRequest request, byte[] state) throws Exception;
-
-    private class ContinuationInputStream extends ScriptableInputStream
-    {
-
-        public ContinuationInputStream(InputStream in) throws IOException
-        {
-            super(in, persistenceSupport.getLibrary());
-        }
-
-        protected Object resolveObject(Object obj)
-        throws 
-            IOException
-        {
-            if(obj instanceof ApplicationContextBeanStub)
-            {
-                ApplicationContextBeanStub stub = 
-                    (ApplicationContextBeanStub)obj;
-                Object robj = applicationContext.getBean(stub.beanName);
-                if(robj != null)
-                {
-                    return robj;
-                }
-                else
-                {
-                    throw new InvalidObjectException("No bean with name [" + 
-                            stub.beanName + "] found");
-                }
-            }
-            else
-            {
-                Object robj = persistenceSupport.resolveFunctionStub(obj);
-                if(robj != null)
-                {
-                    return robj;
-                }
-            }
-            return super.resolveObject(obj);
-        }
-    }
-    
-    private class ContinuationOutputStream extends ScriptableOutputStream
-    {
-        public ContinuationOutputStream(OutputStream out, Continuation cont) throws IOException
-        {
-            super(out, ScriptableObject.getTopLevelScope(cont).getPrototype());
-            addExcludedName(HostObject.CLASS_NAME);
-            addExcludedName(HostObject.CLASS_NAME + ".prototype");
-        }
-        
-        protected Object replaceObject(Object obj) throws IOException
-        {
-            Object stub = beansToStubs.get(obj);
-            if(stub != null)
-            {
-                return stub;
-            }
-            stub = persistenceSupport.getFunctionStub(obj);
-            if(stub != null)
-            {
-                return stub;
-            }
-            return super.replaceObject(obj);
-        }
-    }
-    
-    private static class ApplicationContextBeanStub implements Serializable
-    {
-        private static final long serialVersionUID = 1L;
-
-        private final String beanName;
-        
-        ApplicationContextBeanStub(String beanName)
-        {
-            this.beanName = beanName;
-        }
-        
-        public boolean equals(Object obj)
-        {
-            if(obj instanceof ApplicationContextBeanStub)
-            {
-                return ((ApplicationContextBeanStub)obj).beanName.equals(beanName);
-            }
-            return false;
-        }
-        
-        public int hashCode()
-        {
-            return beanName.hashCode();
-        }
-        
-        public String toString()
-        {
-            return "stub:" + beanName;
-        }
-    }
 }
