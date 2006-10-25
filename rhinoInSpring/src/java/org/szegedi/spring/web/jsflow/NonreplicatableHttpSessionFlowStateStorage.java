@@ -24,7 +24,8 @@ import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
+import org.mozilla.javascript.continuations.Continuation;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * An implementation for flow state storage that stores flow states in 
@@ -32,17 +33,17 @@ import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
  * privately to HTTP sessions, no crossover between sessions is possible 
  * (requesting a state from a session it doesn't belong to won't work, and it is 
  * also possible to have identical flowstate ids in two sessions without any 
- * interference). This class does not allow script files to be reloaded without 
- * already running coversations (likely) throwing an exception, however the 
- * conversations are replicatable among clusters of servlet containers using 
- * HTTP session replication (in constrast with 
- * {@link NonreplicatableHttpSessionFlowStateStorage}).
+ * interference). This class allows script files to be reloaded without 
+ * affecting the already running coversations, however the conversations are
+ * nonreplicatable among clusters of servlet containers using HTTP session
+ * replication (in constrast with {@link HttpSessionFlowStateStorage}.
  * @author Attila Szegedi
- * @version $Id$
+ * @version $Id: HttpSessionFlowStateStorage.java 10 2006-05-16 09:49:48Z szegedia $
  */
-public class HttpSessionFlowStateStorage extends AbstractFlowStateStorage
+public class NonreplicatableHttpSessionFlowStateStorage 
+implements FlowStateStorage, InitializingBean
 {
-    private static final String MAP_KEY = HttpSessionFlowStateStorage.class.getName(); 
+    private static final String MAP_KEY = NonreplicatableHttpSessionFlowStateStorage.class.getName(); 
 
     private int maxStates = 100;
     private Random random;
@@ -74,14 +75,13 @@ public class HttpSessionFlowStateStorage extends AbstractFlowStateStorage
     
     public void afterPropertiesSet() throws Exception
     {
-        super.afterPropertiesSet();
         if(random == null)
         {
             random = new SecureRandom();
         }
     }
     
-    protected String storeSerializedState(HttpServletRequest request, byte[] state)
+    public String storeState(HttpServletRequest request, Continuation state)
     {
         Long id;
         Map stateMap = getStateMap(request, true);
@@ -100,7 +100,7 @@ public class HttpSessionFlowStateStorage extends AbstractFlowStateStorage
         return Long.toHexString(id.longValue());
     }
     
-    protected byte[] getSerializedState(HttpServletRequest request, String id)
+    public Continuation getState(HttpServletRequest request, String id)
     {
         Map stateMap = getStateMap(request, false);
         if(stateMap == null)
@@ -111,7 +111,7 @@ public class HttpSessionFlowStateStorage extends AbstractFlowStateStorage
         {
             synchronized(stateMap)
             {
-                return (byte[])stateMap.get(Long.valueOf(id, 16));
+                return (Continuation)stateMap.get(Long.valueOf(id, 16));
             }
         }
         catch(NumberFormatException e)
