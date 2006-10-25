@@ -36,7 +36,7 @@ public class HostObject extends ScriptableObject
     private ScriptStorage scriptStorage;
     private Continuation continuation;
     private Scriptable model;
-    private ModelAndView modelAndView;
+    private String viewName;
     private int includeLevel;
     
     public HostObject()
@@ -61,13 +61,8 @@ public class HostObject extends ScriptableObject
     
     public void jsFunction_respond(String viewName, Scriptable model)
     {
-        if(viewName == "undefined")
-        {
-            viewName = null;
-        }
+        this.viewName = viewName == "undefined" ? null : viewName;
         this.model = model;
-        modelAndView = viewName == null ? null : new ModelAndView(viewName, 
-                new ScriptableMap(model));
     }
 
     public void jsFunction_wait(Continuation continuation)
@@ -90,7 +85,8 @@ public class HostObject extends ScriptableObject
         {
             model.put(FlowController.STATEID_KEY, model, continuationId);
         }
-        return modelAndView;
+        return viewName == null ? null : new ModelAndView(viewName, 
+                new ScriptableMap(model));
     }
     
     Continuation getContinuation()
