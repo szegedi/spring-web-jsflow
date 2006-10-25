@@ -17,7 +17,7 @@
 <!-- $Id$ -->
 
 <project basedir="." default="jar" name="rhino-in-spring">
-    <property name="version" value="1.0"/>
+    <property name="version" value="1.1"/>
 
     <path id="build.class.path">
         <pathelement path="src"/>
@@ -70,7 +70,7 @@
 		<mkdir dir="build/web/javadoc"/>
 		<javadoc sourcepath="src/java" author="true" 
 			classpathref="build.class.path" packagenames="org.szegedi.*"
-			doctitle="Rhino on Spring" destdir="build/web/javadoc"/>
+			doctitle="Rhino in Spring" destdir="build/web/javadoc"/>
 	</target>
 	
 	<target name="web" depends="javadoc">
@@ -82,6 +82,7 @@
 	<target name="dist" depends="clean,jar,web">
 		<property name="distdir" location="build/rhinoInSpring-${version}"/>
 		<mkdir dir="${distdir}/src"/>
+		<copy toDir="${distdir}" file="changelog.txt"/>
 		<copy toDir="${distdir}" file="LICENSE.txt"/>
 		<copy toDir="${distdir}" file="build.xml"/>
 		<copy toDir="${distdir}/src">
