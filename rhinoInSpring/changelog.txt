@@ -1,0 +1,20 @@
+RHINO-IN-SPRING CHANGELOG
+=========================
+http://rhinoinspring.sourceforge.net
+
+
+Changes in version 1.1 (??.??.200?)
+-----------------------------------
+
+Package org.szegedi.spring.web.jsflow
+* Added support for detection and automatic reloading of changed scripts in ScriptStorage, see method setNoStaleCheckPeriod()
+* Added ScriptSelectionStrategy interface to allow applications to customize the selection of the script to be run on the start of a conversation
+* Added UrlScriptSelectionStrategy as the default implementation of the ScriptSelectionStrategy
+* Deprecated FlowController methods setResourcePath(), setUseServletPath() and setUsePathInfo() in favor of explicitly using a ScriptSelectionStrategy.
+* Added FlowStateInitializer interface that allows applications to preprocess the initiation of a multi-request conversation
+* Added LibraryCustomizer interface that allows applications to customize the global library script scope
+* Throwing FileNotFoundException from ScriptStorage.getScript() will cause the FlowController to return HTTP 404
+* Added SecurityDomainFactory interface to allow customized creation of Rhino security domain objects for scripts
+
+Initial release 1.0 (16.06.2006)
+--------------------------------
