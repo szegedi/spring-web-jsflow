@@ -58,7 +58,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
 {
     private ResourceLoader resourceLoader;
     private String prefix = "";
-    private String[] globalLibraries; 
+    private LibraryCustomizer libraryCustomizer; 
     private long noStaleCheckPeriod = 10000;
     private final Map scripts = new HashMap();
     private Map functionsToStubs = Collections.EMPTY_MAP;
@@ -111,30 +111,14 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     }
     
     /**
-     * Specifies the name of an application-specific global library script. 
-     * This script will execute only once, during the initialization of the
-     * script storage, in the global library scope. Therefore, it mostly makes
-     * sense to only place function definitions into it.
-     * @param globalLibrary the name of the application-specific global library
-     * script.
+     * Sets a library customizer. A library customizer is an optional object
+     * that is given the chance to customize the global "library" scope that
+     * is the prototype of all conversation scopes.
+     * @param libraryCustomizer
      */
-    public void setGlobalLibrary(String globalLibrary)
+    public void setLibraryCustomizer(LibraryCustomizer libraryCustomizer)
     {
-        this.globalLibraries = new String[] { globalLibrary };
-    }
-    
-    /**
-     * Specifies the names of application-specific global library scripts. 
-     * These scripts will execute only once, in the order specified in the 
-     * array, during the initialization of the script storage, in the global 
-     * library scope. Therefore, it mostly makes sense to only place function 
-     * definitions into them.
-     * @param globalLibraries an array of names of the application-specific 
-     * global library scripts.
-     */
-    public void setGlobalLibraries(String[] globalLibraries)
-    {
-        this.globalLibraries = (String[])globalLibraries.clone();
+        this.libraryCustomizer = libraryCustomizer;
     }
     
     public void afterPropertiesSet() throws Exception
@@ -153,14 +137,9 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                     libraryScript.exec(cx, library);
                     ScriptableObject.defineClass(library, HostObject.class);
                     
-                    // Run application-defined global libraries in the library
-                    // scope
-                    if(globalLibraries != null)
+                    if(libraryCustomizer != null)
                     {
-                        for (int i = 0; i < globalLibraries.length; i++)
-                        {
-                            getScript(globalLibraries[i]).exec(cx, library);
-                        }
+                        libraryCustomizer.customizeLibrary(cx, library);
                     }
                     
                     // bit of a hack to initialize all lazy objects that 
