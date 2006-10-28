@@ -5,7 +5,9 @@ import org.springframework.core.io.Resource;
 /**
  * Classes implementing this interface can be plugged into the 
  * {@link ScriptStorage} to provide creation of Rhino security domain objects
- * for scripts.
+ * for scripts. I.e. to use it with Rhino's {@link PolicySecurityController},
+ * you could implement this interface so that it returns {@link CodeSource}
+ * objects based on the resource URL.
  * @author Attila Szegedi
  * @version $Id: $
  */
