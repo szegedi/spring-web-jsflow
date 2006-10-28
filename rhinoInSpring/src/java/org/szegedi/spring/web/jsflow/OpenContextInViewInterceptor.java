@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ContextFactory;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -34,10 +35,32 @@ import org.springframework.web.servlet.ModelAndView;
  */
 public class OpenContextInViewInterceptor implements HandlerInterceptor
 {
+    private ContextFactory contextFactory;
+    
+    /**
+     * Sets the Rhino context factory to use. If not set, the global context
+     * factory returned by {@link ContextFactory#getGlobal()} will be used.
+     * Note that this feature (customized context factory in the interceptor) 
+     * requires at least Rhino 1.6R3.
+     * @param contextFactory
+     */
+    public void setContextFactory(ContextFactory contextFactory)
+    {
+        this.contextFactory = contextFactory;
+    }
+    
     public boolean preHandle(HttpServletRequest request,
             HttpServletResponse response, Object handler) throws Exception
     {
-        Context cx = Context.enter();
+        Context cx;
+        if(contextFactory == null)
+        {
+            cx = Context.enter();
+        }
+        else
+        {
+            cx = contextFactory.enter();
+        }
         if(cx.getOptimizationLevel() != -1)
         {
             cx.setOptimizationLevel(-1);
@@ -49,7 +72,14 @@ public class OpenContextInViewInterceptor implements HandlerInterceptor
             HttpServletResponse response, Object handler, Exception ex)
             throws Exception
     {
-        Context.exit();
+        if(contextFactory == null)
+        {
+            Context.exit();
+        }
+        else
+        {
+            contextFactory.exit();
+        }
     }
     
     public void postHandle(HttpServletRequest request,
