@@ -21,6 +21,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
@@ -88,6 +89,34 @@ implements FlowStateStorage
     {
         Long id;
         Map stateMap = getStateMap(request, true);
+        Object objState;
+        if(maxStates > 1)
+        {
+            // Must serialize the continuation so it is deep-copied. If we 
+            // didn't do this, we couldn't keep multiple independent states.
+            Map stubsToFunctions = new HashMap();
+            try
+            {
+                objState = new LocallySerializedContinuation(
+                        serializeContinuation(state, stubsToFunctions), 
+                        stubsToFunctions);
+            }
+            catch(RuntimeException e)
+            {
+                throw e;
+            }
+            catch(Exception e)
+            {
+                throw new FlowStateStorageException("Failed to store state", e);
+            }
+        }
+        else
+        {
+            // Optimization for maxStates == 1. Since it is not possible to go
+            // back to an earlier continuation, there is no need to serialize
+            // it solely for purposes of deep copying
+            objState = state;
+        }
         synchronized(stateMap)
         {
             for(;;)
@@ -95,7 +124,7 @@ implements FlowStateStorage
                 id = new Long(random.nextLong() & Long.MAX_VALUE);
                 if(!stateMap.containsKey(id))
                 {
-                    stateMap.put(id, new ReplicatableContinuation(this, state));
+                    stateMap.put(id, new ReplicatableContinuation(this, objState));
                     break;
                 }
             }
@@ -128,11 +157,11 @@ implements FlowStateStorage
                 {
                     return ((Continuation)oc);
                 }
-                else if(oc instanceof byte[])
+                else if(oc instanceof LocallySerializedContinuation)
                 {
-                    // This was serialized as part of HTTP session persistence
-                    // Deserialize it in our context then.
-                    Continuation c = deserializeContinuation((byte[])oc);
+                    LocallySerializedContinuation lsc = (LocallySerializedContinuation)oc;
+                    Continuation c = deserializeContinuation(
+                            lsc.serializedState, lsc.stubsToFunctions);
                     rc.setContinuation(this, c);
                     return c;
                 }
@@ -182,9 +211,11 @@ implements FlowStateStorage
         return m;
     }
 
-    byte[] serializeContinuationAccessor(Continuation state) throws Exception
+    LocallySerializedContinuation serializeContinuationAccessor(Continuation state)
+    throws Exception
     {
-        return serializeContinuation(state);
+        return new LocallySerializedContinuation(serializeContinuation(state, 
+                null), null);
     }
     
     /**
@@ -200,47 +231,47 @@ implements FlowStateStorage
         private static final long serialVersionUID = 1L;
 
         private transient HttpSessionFlowStateStorage storage;
-        private transient Object continuation;
+        private transient Object state;
 
         ReplicatableContinuation(HttpSessionFlowStateStorage storage, 
-                Continuation continuation)
+                Object state)
         {
-            setContinuation(storage, continuation);
+            setContinuation(storage, state);
         }
         
         void setContinuation(HttpSessionFlowStateStorage storage, 
-                Continuation continuation)
+                Object state)
         {
             this.storage = storage;
-            this.continuation = continuation;
+            this.state = state;
         }
         
         Object getContinuation()
         {
-            return continuation;
+            return state;
         }
         
         private void readObject(ObjectInputStream in) throws IOException, 
         ClassNotFoundException
         {
-            continuation = in.readObject();
+            state = in.readObject();
         }
         
         private void writeObject(ObjectOutputStream out) throws IOException
         {
-            if(continuation instanceof byte[])
+            if(state instanceof LocallySerializedContinuation)
             {
                 // Already serialized -- just write it as is
-                out.writeObject(continuation);
+                out.writeObject(state);
             }
-            else if(continuation instanceof Continuation)
+            else if(state instanceof Continuation)
             {
                 try
                 {
                     // Not serialized yet -- use the storage to serialize it
                     // first
                     out.writeObject(storage.serializeContinuationAccessor(
-                            (Continuation)continuation));
+                            (Continuation)state));
                 }
                 catch(IOException e)
                 {
@@ -259,6 +290,20 @@ implements FlowStateStorage
             {
                 throw new AssertionError();
             }
+        }
+    }
+    
+    private static class LocallySerializedContinuation implements Serializable
+    {
+        private static final long serialVersionUID = 1L;
+
+        final byte[] serializedState;
+        transient final Map stubsToFunctions;
+        
+        LocallySerializedContinuation(byte[] serializedState, Map stubsToFunctions)
+        {
+            this.serializedState = serializedState;
+            this.stubsToFunctions = stubsToFunctions;
         }
     }
 }

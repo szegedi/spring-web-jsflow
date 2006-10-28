@@ -80,7 +80,7 @@ implements FlowStateStorage
             {
                 b = binaryStateCodec.createDecoder().code(b);
             }
-            return deserializeContinuation(b);
+            return deserializeContinuation(b, null);
         }
         catch(RuntimeException e)
         {
@@ -106,7 +106,7 @@ implements FlowStateStorage
     {
         try
         {
-            byte[] b = serializeContinuation(state);
+            byte[] b = serializeContinuation(state, null);
             if(binaryStateCodec != null)
             {
                 b = binaryStateCodec.createEncoder().code(b);

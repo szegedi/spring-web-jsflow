@@ -82,14 +82,21 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
      * internal JS bytecode representation of all JS functions on the 
      * continuation's stack is written.
      * @param state the continuation to serialize
+     * @param stubbedFunctions a map that'll receive all mappings of stubs to
+     * functions. Can be used to locally deserialize a continuation and 
+     * reconnect it with exact same functions that were current during 
+     * serialization (thus making continuations immune to script reloading 
+     * within a single JVM run). Can be null if tracking of stubs is not 
+     * required.
      * @return the serialized form
      * @throws Exception
      */
-    protected byte[] serializeContinuation(Continuation state) throws Exception
+    protected byte[] serializeContinuation(Continuation state, 
+            Map stubbedFunctions) throws Exception
     {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         ObjectOutputStream out = new ContinuationOutputStream(bout, 
-                state);
+                state, stubbedFunctions);
         out.writeObject(FunctionFingerprintManager.getFingerprints(state));
         out.writeObject(state);
         out.close();
@@ -110,10 +117,11 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
      * @return the deserialized continuation
      * @throws Exception
      */
-    protected Continuation deserializeContinuation(byte[] b) throws Exception
+    protected Continuation deserializeContinuation(byte[] b, Map stubbedFunctions)
+    throws Exception
     {
         ObjectInputStream in = new ContinuationInputStream(
-                new ByteArrayInputStream(b));
+                new ByteArrayInputStream(b), stubbedFunctions);
         Object fingerprints = in.readObject();
         Continuation cont = (Continuation)in.readObject();
         FunctionFingerprintManager.checkFingerprints(cont, fingerprints);
@@ -122,10 +130,13 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
     
     private class ContinuationInputStream extends ScriptableInputStream
     {
-
-        public ContinuationInputStream(InputStream in) throws IOException
+        private final Map stubbedFunctions;
+        
+        public ContinuationInputStream(InputStream in, Map stubbedFunctions) 
+        throws IOException
         {
             super(in, persistenceSupport.getLibrary());
+            this.stubbedFunctions = stubbedFunctions;
         }
 
         protected Object resolveObject(Object obj)
@@ -149,7 +160,16 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
             }
             else
             {
-                Object robj = persistenceSupport.resolveFunctionStub(obj);
+                Object robj;
+                if(stubbedFunctions != null)
+                {
+                    robj = stubbedFunctions.get(obj);
+                    if(robj != null)
+                    {
+                        return robj;
+                    }
+                }
+                robj = persistenceSupport.resolveFunctionStub(obj);
                 if(robj != null)
                 {
                     return robj;
@@ -161,11 +181,15 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
     
     private class ContinuationOutputStream extends ScriptableOutputStream
     {
-        public ContinuationOutputStream(OutputStream out, Continuation cont) throws IOException
+        private final Map stubbedFunctions;
+
+        public ContinuationOutputStream(OutputStream out, Continuation cont,
+                Map stubbedFunctions) throws IOException
         {
             super(out, ScriptableObject.getTopLevelScope(cont).getPrototype());
             addExcludedName(HostObject.CLASS_NAME);
             addExcludedName(HostObject.CLASS_NAME + ".prototype");
+            this.stubbedFunctions = stubbedFunctions;
         }
         
         protected Object replaceObject(Object obj) throws IOException
@@ -178,6 +202,10 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
             stub = persistenceSupport.getFunctionStub(obj);
             if(stub != null)
             {
+                if(stubbedFunctions != null)
+                {
+                    stubbedFunctions.put(stub, obj);
+                }
                 return stub;
             }
             return super.replaceObject(obj);
