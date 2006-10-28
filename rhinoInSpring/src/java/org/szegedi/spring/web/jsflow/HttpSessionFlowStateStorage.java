@@ -39,7 +39,9 @@ import org.szegedi.spring.web.jsflow.support.FlowStateSerializer;
  * privately to HTTP sessions, no crossover between sessions is possible 
  * (requesting a state from a session it doesn't belong to won't work, and it 
  * is also possible to have identical flowstate ids in two sessions without any 
- * interference).
+ * interference). The implementation is aware of HTTP session persistence. 
+ * States stored in a HTTP session that is serialized and later deserialized
+ * will work as expected.
  * @author Attila Szegedi
  * @version $Id$
  */
