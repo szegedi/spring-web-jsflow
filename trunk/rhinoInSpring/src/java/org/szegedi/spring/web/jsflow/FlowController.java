@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextAction;
+import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.continuations.Continuation;
@@ -65,7 +66,7 @@ implements InitializingBean
     private ScriptSelectionStrategy scriptSelectionStrategy;
     private FlowStateStorage flowStateStorage;
     private FlowStateInitializer flowStateInitializer;
-    
+    private ContextFactory contextFactory;
     
     /**
      * Sets the flow state storage used to store flow states between a HTTP
@@ -94,13 +95,25 @@ implements InitializingBean
      * Sets the script selector used to select scripts for initial HTTP 
      * requests. If not set, an instance of 
      * {@link UrlScriptSelectionStrategy} with
-     * {@link UrlScriptSelectionStrategy#setUsePathInfo(boolean)} set to 
+     * {@link UrlScriptSelectionStrategy#setUseServletPath(boolean)} set to 
      * true will be used.
      * @param scriptSelector
      */
     public void setScriptSelectionStrategy(ScriptSelectionStrategy scriptSelector)
     {
         this.scriptSelectionStrategy = scriptSelector;
+    }
+    
+    /**
+     * Sets the Rhino context factory to use. It will only be used when the
+     * flowscripts are executed outside of a {@link OpenContextInViewInterceptor}
+     * (otherwise the interceptor's is used). If not set, the global context
+     * factory returned by {@link ContextFactory#getGlobal()} will be used.
+     * @param contextFactory
+     */
+    public void setContextFactory(ContextFactory contextFactory)
+    {
+        this.contextFactory = contextFactory;
     }
     
     /**
@@ -199,7 +212,7 @@ implements InitializingBean
         if(scriptSelectionStrategy == null)
         {
             UrlScriptSelectionStrategy dss = new UrlScriptSelectionStrategy();
-            dss.setUsePathInfo(true);
+            dss.setUseServletPath(true);
             scriptSelectionStrategy = dss;
         }
         // Since we can't guarantee initialization order, make sure that we're
@@ -312,7 +325,7 @@ implements InitializingBean
         {
             // No context - we're not running within OpenContextInViewInterceptor.
             // Open our own context only for the duration of the controller.
-            return (ModelAndView)Context.call(new ContextAction()
+            ContextAction cxa = new ContextAction()
             {
                 public Object run(Context cx)
                 {
@@ -320,7 +333,15 @@ implements InitializingBean
                     return handleRequestInContext(request, response, 
                             continuation, cx);
                 }
-            });
+            };
+            if(contextFactory == null)
+            {
+                return (ModelAndView)Context.call(cxa);
+            }
+            else
+            {
+                return (ModelAndView)contextFactory.call(cxa);
+            }
         }
         else
         {
@@ -329,7 +350,7 @@ implements InitializingBean
             return handleRequestInContext(request, response, continuation, cx);
         }
     }
-    
+
     private Continuation getState(HttpServletRequest request)
     {
         String strId = request.getParameter(STATEID_KEY);
