@@ -65,9 +65,7 @@
     </p>
       
 <table border="1"><tr><td><pre><![CDATA[
-  <bean name="/*" class="org.szegedi.spring.web.jsflow.FlowController">
-    <property name="useServletPath"><value>true</value></property>
-  </bean>
+  <bean name="/*" class="org.szegedi.spring.web.jsflow.FlowController"/>
 ]]></pre></td></tr></table>
 
     <p>
@@ -112,7 +110,7 @@ var tape = new Array();
 tape[0] = 0;
 for(;;)
 {
-    <font color="red">request = respondAndWait("calculator", { tape: tape });</font>
+    <font color="red">respondAndWait("calculator", { tape: tape });</font>
     var operand1 = tape[tape.length - 1];
     try
     {
@@ -141,9 +139,11 @@ for(;;)
       get mapped to "calculator.jsp"), and send it a data model - a map, 
       essentially - with a single element named "tape" whose value is the tape
       variable. Then the <tt>respondAndWait()</tt> will stop and wait for the
-      next request to come in from the browser. Let's take a look at the view
-      now. (Apologies if you don't read FreeMarker Template Language, but there
-      really isn't much of it in there, it's mostly HTML):
+      next request to come in from the browser. The currently processed 
+      HttpServletRequest object is always available in the "request" variable.
+      Let's take a look at the view now. (Apologies if you don't read 
+      FreeMarker Template Language, but there really isn't much of it in there,
+      it's mostly HTML):
     </p>
 
 <table border="1"><tr><td><pre>
@@ -201,8 +201,7 @@ for(;;)
       <tt>"operand"</tt> , they're created as a drop-down select and a text 
       field respectively. When the user submits the request, the script state
       on the server wakes up and returns from the <tt>respondAndWait()</tt> 
-      call, returning the current <tt>ServletHttpRequest</tt> object to the 
-      script. Let's continue examining the script now.
+      call. Let's continue examining the script now.
     </p><p>
       Now, it is stunningly simple, really. It retrieves the two request 
       parameters, builds a string concatenating the last entry on the tape with
@@ -255,26 +254,27 @@ for(;;)
       Another option is to store the states in a JDBC database. For this to 
       work, you will have to explicitly create an instance of
       <tt><a href="javadoc/org/szegedi/spring/web/jsflow/JdbcFlowStateStorage.html">JdbcFlowStateStorage</a></tt>.
-      There is a commented one in the dispatch XML of the example web 
-      application - you can use it to get started, although you'll probably want
-      to replace the data source with some connection pooling implementation
-      such as Apache DBCP for a real-world application.
+      There is a commented-out one in the dispatch XML of the example web 
+      application - you can use it to get started, although you'll probably 
+      want to replace the data source with some connection pooling 
+      implementation such as Apache DBCP for a real-world application.
      </p><p>
        Yet another option is to store the states in the HTML page generated in
        the response. This is achieved by using an instance of 
       <tt><a href="javadoc/org/szegedi/spring/web/jsflow/ClientSideFlowStateStorage.html">ClientSideFlowStateStorage</a></tt>.
       In this case, the <tt>stateId</tt> variable available to views is not an 
       ID at all, but rather it is a full (textually encoded) representation of 
-      the state! It achieves unparalleled scalability, as zero state has to be 
-      stored on the server! Of course, entrusting the client to store the state 
-      can have potential security implications, so we provide full support for 
-      compression, encryption, and digital signing of the flow states to prevent
-      the clients from tampering with them - you can employ any, all, or none of
-      these features, of course. You can find several commented examples in the
-      example dispatcher XML for it. One thing to pay attention to is that you
-      should really use HTML forms with POST method to send the next request to
-      the server with client-side state storage - you don't want few kilobytes 
-      worth of an encoded state showing up in the query string of the URL.
+      the state! It achieves unparalleled scalability, as <i>zero</i> state has
+      to be stored on the server! Of course, entrusting the client to store the
+      state can have potential security implications, so we provide full 
+      support for compression, encryption, and digital signing of the flow 
+      states to prevent the clients from tampering with them - you can employ 
+      any, all, or none of these features, of course. You can find several 
+      commented examples in the example dispatcher XML for it. One thing to pay
+      attention to is that you should really use HTML forms with POST method to
+      send the next request to the server with client-side state storage - you 
+      don't want few kilobytes worth of an encoded state showing up in the 
+      query string of the URL.
     </p>
     <h3>Includes</h3>
     <p>
@@ -343,12 +343,12 @@ for(;;)
       <tt>applicationContext.getBean("foo")</tt> in a local variable between 
       waits, it won't get duplicated, but rather it won't be serialized at all
       and will be rebound to the correct bean next time it is deserialized.
-      However, it is important to notice that no other object objects are 
-      stubbed, including the following:
+      However, it is important to notice that no other objects are stubbed, 
+      including the following:
       <ul>
         <li>HTTP session or its attributes</li>
         <li>HTTP servlet context or its attributes (although the variable 
-        "servletContext" is specially managed - it'll work okay, but you can't 
+        "servletContext" is specially managed - it'll work okay, but don't 
         assign it to a variable with some other name)</li>
         <li>Any other objects that you can obtain from any of the otherwise
         stubbed object, i.e. application context's parents, or unmanaged objects
