@@ -18,7 +18,6 @@ package org.szegedi.spring.web.jsflow.support;
 import java.io.IOException;
 
 import org.mozilla.javascript.ScriptableObject;
-import org.szegedi.spring.web.jsflow.ScriptStorage;
 
 /**
  * An implementation class, used to expose implementation details required for
