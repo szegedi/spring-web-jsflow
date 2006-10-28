@@ -2,7 +2,7 @@ var tape = new Array();
 tape[0] = 0;
 for(;;)
 {
-    request = respondAndWait("calculator", { tape: tape });
+    respondAndWait("calculator", { tape: tape });
     var operand1 = tape[tape.length - 1];
     try
     {
