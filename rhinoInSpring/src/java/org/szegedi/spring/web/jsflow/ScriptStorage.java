@@ -33,6 +33,7 @@ import java.util.Map;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextAction;
+import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptableObject;
@@ -60,6 +61,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     private String prefix = "";
     private LibraryCustomizer libraryCustomizer;
     private SecurityDomainFactory securityDomainFactory;
+    private ContextFactory contextFactory;
     private long noStaleCheckPeriod = 10000;
     private final Map scripts = new HashMap();
     private Map functionsToStubs = Collections.EMPTY_MAP;
@@ -133,9 +135,19 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         this.securityDomainFactory = securityDomainFactory;
     }
     
+    /**
+     * Sets the context factory used to run the library script. If none is set
+     * the global context factory {@link ContextFactory#getGlobal()} is used.
+     * @param contextFactory
+     */
+    public void setContextFactory(ContextFactory contextFactory)
+    {
+        this.contextFactory = contextFactory;
+    }
+    
     public void afterPropertiesSet() throws Exception
     {
-        Context.call(new ContextAction()
+        ContextAction ca = new ContextAction()
         {
             public Object run(Context cx)
             {
@@ -176,7 +188,15 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                 }
                 return null;
             }
-        });
+        };
+        if(contextFactory == null)
+        {
+            Context.call(ca);
+        }
+        else
+        {
+            contextFactory.call(ca);
+        }
     }
     
     /**
