@@ -112,7 +112,7 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage
         {
             if(rs.next())
             {
-                return (byte[])rs.getBytes(1);
+                return rs.getBytes(1);
             }
             return null;
         }
