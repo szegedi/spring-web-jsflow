@@ -16,7 +16,6 @@
 package org.szegedi.spring.web.jsflow;
 
 import java.util.AbstractList;
-import java.util.Arrays;
 
 import org.mozilla.javascript.Scriptable;
 
@@ -41,8 +40,22 @@ class ScriptableList extends AbstractList
             if(size == -1)
             {
                 Object[] ids = s.getIds();
-                Arrays.sort(ids);
-                size = ((Number)(ids[ids.length - 1])).intValue() + 1;
+                int idsl = ids.length;
+                int max = 0;
+                for(int i = 0; i < idsl; ++i)
+                {
+                    Object id = ids[i];
+                    if(id instanceof Number)
+                    {
+                        int nid = ((Number)id).intValue();
+                        if(nid > max)
+                        {
+                            max = nid;
+                        }
+                        
+                    }
+                }
+                size = max + 1;
             }
         }
         return size;
