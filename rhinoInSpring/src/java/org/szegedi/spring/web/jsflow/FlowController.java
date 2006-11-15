@@ -31,6 +31,7 @@ import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.ModelAndViewDefiningException;
 import org.springframework.web.servlet.mvc.AbstractController;
 import org.szegedi.spring.beans.factory.BeanFactoryUtilsEx;
 import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
@@ -53,7 +54,7 @@ public class FlowController extends AbstractController
 implements InitializingBean
 {
     static final String STATEID_KEY = "stateId";
-    private static final String HOST_PROPERTY = "__host__";
+    public static final String HOST_PROPERTY = "__host__";
     private static final String REQUEST_PROPERTY = "request";
     private static final String RESPONSE_PROPERTY = "response";
     private static final String SERVLETCONTEXT_PROPERTY = "servletContext";
@@ -330,8 +331,23 @@ implements InitializingBean
                 public Object run(Context cx)
                 {
                     cx.setOptimizationLevel(-1);
-                    return handleRequestInContext(request, response, 
+                    try
+                    {
+                        return handleRequestInContext(request, response, 
                             continuation, cx);
+                    }
+                    catch(ModelAndViewDefiningException e)
+                    {
+                        return e.getModelAndView();
+                    }
+                    catch(RuntimeException e)
+                    {
+                        throw e;
+                    }
+                    catch(Exception e)
+                    {
+                        throw new UndeclaredThrowableException(e);
+                    }
                 }
             };
             if(contextFactory == null)
@@ -364,7 +380,7 @@ implements InitializingBean
     private ModelAndView handleRequestInContext(
             final HttpServletRequest request, 
             final HttpServletResponse response, final Continuation continuation,
-            Context cx)
+            Context cx) throws Exception
     {
         ScriptableObject scope;
         if(continuation == null)
@@ -391,40 +407,33 @@ implements InitializingBean
         cx.setOptimizationLevel(-1);
         if(continuation == null)
         {
+            String scriptPath = scriptSelectionStrategy.getScriptPath(request);
+            if(scriptPath == null)
+            {
+                // Couldn't select script
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                return null;
+            }
+            Script script;
             try
             {
-                String scriptPath = scriptSelectionStrategy.getScriptPath(request);
-                if(scriptPath == null)
-                {
-                    // Couldn't select script
-                    response.sendError(HttpServletResponse.SC_BAD_REQUEST);
-                    return null;
-                }
-                Script script;
-                try
-                {
-                    script = scriptStorage.getScript(scriptPath);
-                }
-                catch(FileNotFoundException e)
-                {
-                    script = null;
-                }
-                if(script == null)
-                {
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
-                    return null;
-                }
-                if(flowStateInitializer != null)
-                {
-                    flowStateInitializer.initializeFlowState(request, 
-                            scriptPath, cx, scope);
-                }
-                script.exec(cx, scope);
+                script = scriptStorage.getScript(scriptPath);
             }
-            catch(Exception e)
+            catch(FileNotFoundException e)
             {
-                throw new UndeclaredThrowableException(e);
+                script = null;
             }
+            if(script == null)
+            {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return null;
+            }
+            if(flowStateInitializer != null)
+            {
+                flowStateInitializer.initializeFlowState(request, 
+                        scriptPath, cx, scope);
+            }
+            script.exec(cx, scope);
         }
         else
         {
