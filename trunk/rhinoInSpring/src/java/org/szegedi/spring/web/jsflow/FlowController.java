@@ -66,7 +66,7 @@ implements InitializingBean
     private ScriptStorage scriptStorage;
     private ScriptSelectionStrategy scriptSelectionStrategy;
     private FlowStateStorage flowStateStorage;
-    private FlowStateInitializer flowStateInitializer;
+    private FlowExecutionInterceptor flowExecutionInterceptor;
     private ContextFactory contextFactory;
     
     /**
@@ -171,12 +171,12 @@ implements InitializingBean
      * flow. If not set, the controller will attempt to look up an instance of
      * it by type in the application context during initialization. If none is
      * found, no custom flow initialization will be performed.
-     * @param flowStateInitializer
+     * @param flowExecutionInterceptor
      */
-    public void setFlowStateInitializer(
-            FlowStateInitializer flowStateInitializer)
+    public void setFlowExecutionInterceptor(
+            FlowExecutionInterceptor flowExecutionInterceptor)
     {
-        this.flowStateInitializer = flowStateInitializer;
+        this.flowExecutionInterceptor = flowExecutionInterceptor;
     }
     
     public void afterPropertiesSet() throws Exception
@@ -205,10 +205,10 @@ implements InitializingBean
                 ((HttpSessionFlowStateStorage)flowStateStorage).afterPropertiesSet();
             }
         }
-        if(flowStateInitializer == null)
+        if(flowExecutionInterceptor == null)
         {
-            flowStateInitializer = (FlowStateInitializer)BeanFactoryUtilsEx.beanOfTypeIncludingAncestors(ctx, 
-                    FlowStateInitializer.class);
+            flowExecutionInterceptor = (FlowExecutionInterceptor)BeanFactoryUtilsEx.beanOfTypeIncludingAncestors(ctx, 
+                    FlowExecutionInterceptor.class);
         }
         if(scriptSelectionStrategy == null)
         {
@@ -428,16 +428,32 @@ implements InitializingBean
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return null;
             }
-            if(flowStateInitializer != null)
+            if(flowExecutionInterceptor != null)
             {
-                flowStateInitializer.initializeFlowState(request, 
+                flowExecutionInterceptor.beforeFlowExecution(request, 
                         scriptPath, cx, scope);
             }
-            script.exec(cx, scope);
+            try
+            {
+                script.exec(cx, scope);
+            }
+            catch(Exception e)
+            {
+                afterFlowExecution(cx, scope);
+                throw e;
+            }
         }
         else
         {
-            continuation.call(cx, scope, null, new Object[] { null });
+            try
+            {
+                continuation.call(cx, scope, null, new Object[] { null });
+            }
+            catch(Exception e)
+            {
+                afterFlowExecution(cx, scope);
+                throw e;
+            }
         }
         deleteProperty(scope, APPLICATIONCONTEXT_PROPERTY);
         deleteProperty(scope, SERVLETCONTEXT_PROPERTY);
@@ -453,8 +469,18 @@ implements InitializingBean
         else 
         {
             id = null;
+            afterFlowExecution(cx, scope);
         }
         return hostObject.getModelAndView(id);
+    }
+
+    private void afterFlowExecution(Context cx, ScriptableObject scope)
+    throws Exception
+    {
+        if(flowExecutionInterceptor != null)
+        {
+            flowExecutionInterceptor.afterFlowExecution(cx, scope);
+        }
     }
 
     private static void deleteProperty(ScriptableObject object, String property)
