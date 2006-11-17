@@ -27,5 +27,17 @@ public interface FlowExecutionInterceptor
     public void beforeFlowExecution(HttpServletRequest request, 
             String scriptPath, Context cx, Scriptable scope) throws Exception;
 
-    public void afterFlowExecution(Context cx, Scriptable scope) throws Exception;
+    /**
+     * Executed after the flow's script ended runnnig.
+     * @param cx the Rhino Context object that is used to run the terminating 
+     * stage of the flow
+     * @param scope the global variable scope for the flow
+     * @param cause the cause of flow execution termination. It is null if the
+     * flow execution terminated normally. The interceptor must not rethrow it,
+     * it will be retrown by the {@link FlowController} after this method 
+     * executed.
+     * @throws Exception
+     */
+    public void afterFlowExecution(Context cx, Scriptable scope, Exception e)
+    throws Exception;
 }

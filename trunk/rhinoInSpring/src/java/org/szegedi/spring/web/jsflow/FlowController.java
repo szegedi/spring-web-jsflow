@@ -439,7 +439,7 @@ implements InitializingBean
             }
             catch(Exception e)
             {
-                afterFlowExecution(cx, scope);
+                afterFlowExecution(cx, scope, e);
                 throw e;
             }
         }
@@ -451,7 +451,7 @@ implements InitializingBean
             }
             catch(Exception e)
             {
-                afterFlowExecution(cx, scope);
+                afterFlowExecution(cx, scope, e);
                 throw e;
             }
         }
@@ -469,17 +469,17 @@ implements InitializingBean
         else 
         {
             id = null;
-            afterFlowExecution(cx, scope);
+            afterFlowExecution(cx, scope, null);
         }
         return hostObject.getModelAndView(id);
     }
 
-    private void afterFlowExecution(Context cx, ScriptableObject scope)
-    throws Exception
+    private void afterFlowExecution(Context cx, ScriptableObject scope, 
+            Exception cause) throws Exception
     {
         if(flowExecutionInterceptor != null)
         {
-            flowExecutionInterceptor.afterFlowExecution(cx, scope);
+            flowExecutionInterceptor.afterFlowExecution(cx, scope, cause);
         }
     }
 
