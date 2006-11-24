@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
@@ -169,7 +170,22 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
                         return robj;
                     }
                 }
-                robj = persistenceSupport.resolveFunctionStub(obj);
+                try
+                {
+                    robj = persistenceSupport.resolveFunctionStub(obj);
+                }
+                catch(IOException e)
+                {
+                    throw e;
+                }
+                catch(RuntimeException e)
+                {
+                    throw e;
+                }
+                catch(Exception e)
+                {
+                    throw new UndeclaredThrowableException(e);
+                }
                 if(robj != null)
                 {
                     return robj;

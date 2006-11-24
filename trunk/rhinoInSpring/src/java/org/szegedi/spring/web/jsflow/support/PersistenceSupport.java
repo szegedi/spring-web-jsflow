@@ -30,5 +30,5 @@ public abstract class PersistenceSupport
 {
     protected abstract ScriptableObject getLibrary();
     protected abstract Object getFunctionStub(Object function);
-    protected abstract Object resolveFunctionStub(Object stub) throws IOException;
+    protected abstract Object resolveFunctionStub(Object stub) throws Exception;
 }

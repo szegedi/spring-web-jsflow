@@ -24,8 +24,6 @@ import java.io.InvalidObjectException;
 import java.io.Reader;
 import java.io.Serializable;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -44,6 +42,7 @@ import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.szegedi.spring.core.io.ResourceRepresentation;
 import org.szegedi.spring.web.jsflow.support.PersistenceSupport;
 
 /**
@@ -231,7 +230,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                 return null;
             }
 
-            protected Object resolveFunctionStub(Object stub) throws IOException
+            protected Object resolveFunctionStub(Object stub) throws Exception
             {
                 if(stub instanceof FunctionStub)
                 {
@@ -268,90 +267,34 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         };
     }
     
-    Script getScript(String path) throws IOException
+    Script getScript(String path) throws Exception
     {
-        TimestampedScript ts;
+        ScriptResource script;
         synchronized(scripts)
         {
-            ts = (TimestampedScript)scripts.get(path);
-            if(ts == null)
+            script = (ScriptResource)scripts.get(path);
+            if(script == null)
             {
-                ts = new TimestampedScript(path);
-                scripts.put(path, ts);
+                script = new ScriptResource(path);
+                scripts.put(path, script);
             }
         }
-        return ts.getScript();
+        return (Script)script.getRepresentation(noStaleCheckPeriod);
     }
 
-    private class TimestampedScript
+    private class ScriptResource extends ResourceRepresentation
     {
         private final String path;
-        private long lastModified;
-        private long lastChecked;
-        private Script script;
         
-        TimestampedScript(String path)
+        ScriptResource(String path)
         {
+            super(resourceLoader.getResource(prefix + path));
             this.path = path;
         }
         
-        synchronized Script getScript() throws IOException
+        protected Object loadRepresentation(InputStream in) throws IOException
         {
-            long now = System.currentTimeMillis();
-            if(script != null && now - lastChecked < noStaleCheckPeriod)
-            {
-                return script;
-            }
-            Resource resource = resourceLoader.getResource(prefix + path);
-            URL url;
-            try
-            {
-                url = resource.getURL();
-            }
-            catch(IOException e)
-            {
-                url = null;
-            }
-            long newLastModified;
-            URLConnection conn;
-            if(url != null)
-            {
-                if("file".equals(url.getProtocol()))
-                {
-                    newLastModified = resource.getFile().lastModified();
-                    conn = null;
-                }
-                else
-                {
-                    conn = url.openConnection();
-                    newLastModified = conn.getLastModified();
-                }
-            }
-            else
-            {
-                newLastModified = 0;
-                conn = null;
-            }
-            lastChecked = now;
-            if(script == null || newLastModified != lastModified)
-            {
-                lastModified = newLastModified;
-                InputStream in = conn == null ? resource.getInputStream() : 
-                    conn.getInputStream();
-                try
-                {
-                    script = loadScript(in, resource, path);
-                }
-                finally
-                {
-                    in.close();
-                }
-            }
-            else if(conn != null)
-            {
-                conn.getInputStream().close();
-            }
-            return script;
+            return loadScript(in, getResource(), path);
         }
     }
     
