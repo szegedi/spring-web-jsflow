@@ -29,6 +29,7 @@ public interface FlowExecutionInterceptor
 
     /**
      * Executed after the flow's script ended runnnig.
+     * @param request the HTTP request that concluded the flow. 
      * @param cx the Rhino Context object that is used to run the terminating 
      * stage of the flow
      * @param scope the global variable scope for the flow
@@ -38,6 +39,6 @@ public interface FlowExecutionInterceptor
      * executed.
      * @throws Exception
      */
-    public void afterFlowExecution(Context cx, Scriptable scope, Exception e)
-    throws Exception;
+    public void afterFlowExecution(HttpServletRequest request, Context cx, 
+            Scriptable scope, Exception e) throws Exception;
 }

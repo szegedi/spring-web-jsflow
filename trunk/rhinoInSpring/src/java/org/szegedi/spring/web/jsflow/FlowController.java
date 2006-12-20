@@ -25,6 +25,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextAction;
 import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.Script;
+import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.continuations.Continuation;
 import org.springframework.beans.factory.BeanInitializationException;
@@ -67,6 +68,7 @@ implements InitializingBean
     private ScriptSelectionStrategy scriptSelectionStrategy;
     private FlowStateStorage flowStateStorage;
     private FlowExecutionInterceptor flowExecutionInterceptor;
+    private StateExecutionInterceptor stateExecutionInterceptor;
     private ContextFactory contextFactory;
     
     /**
@@ -177,6 +179,12 @@ implements InitializingBean
             FlowExecutionInterceptor flowExecutionInterceptor)
     {
         this.flowExecutionInterceptor = flowExecutionInterceptor;
+    }
+    
+    public void setStateExecutionInterceptor(
+            StateExecutionInterceptor stateExecutionInterceptor)
+    {
+        this.stateExecutionInterceptor = stateExecutionInterceptor;
     }
     
     public void afterPropertiesSet() throws Exception
@@ -379,10 +387,10 @@ implements InitializingBean
     
     private ModelAndView handleRequestInContext(
             final HttpServletRequest request, 
-            final HttpServletResponse response, final Continuation continuation,
-            Context cx) throws Exception
+            final HttpServletResponse response, 
+            final Continuation continuation, final Context cx) throws Exception
     {
-        ScriptableObject scope;
+        final ScriptableObject scope;
         if(continuation == null)
         {
             scope = scriptStorage.createNewTopLevelScope(cx);
@@ -414,14 +422,15 @@ implements InitializingBean
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return null;
             }
-            Script script;
+            final Script script;
             try
             {
                 script = scriptStorage.getScript(scriptPath);
             }
             catch(FileNotFoundException e)
             {
-                script = null;
+                response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                return null;
             }
             if(script == null)
             {
@@ -435,11 +444,19 @@ implements InitializingBean
             }
             try
             {
-                script.exec(cx, scope);
+                if(stateExecutionInterceptor != null)
+                {
+                    stateExecutionInterceptor.aroundStateExecution(script, cx, 
+                            scope);
+                }
+                else
+                {
+                    script.exec(cx, scope);
+                }
             }
             catch(Exception e)
             {
-                afterFlowExecution(cx, scope, e);
+                afterFlowExecution(request, cx, scope, e);
                 throw e;
             }
         }
@@ -447,11 +464,25 @@ implements InitializingBean
         {
             try
             {
-                continuation.call(cx, scope, null, new Object[] { null });
+                if(stateExecutionInterceptor != null)
+                {
+                    stateExecutionInterceptor.aroundStateExecution(new Script()
+                    {
+                        public Object exec(Context cx, Scriptable scope)
+                        {
+                            return continuation.call(cx, scope, null, 
+                                    new Object[] { null });
+                        }
+                    }, cx, scope);
+                }
+                else
+                {
+                    continuation.call(cx, scope, null, new Object[] { null });
+                }
             }
             catch(Exception e)
             {
-                afterFlowExecution(cx, scope, e);
+                afterFlowExecution(request, cx, scope, e);
                 throw e;
             }
         }
@@ -469,17 +500,19 @@ implements InitializingBean
         else 
         {
             id = null;
-            afterFlowExecution(cx, scope, null);
+            afterFlowExecution(request, cx, scope, null);
         }
         return hostObject.getModelAndView(id);
     }
 
-    private void afterFlowExecution(Context cx, ScriptableObject scope, 
-            Exception cause) throws Exception
+    
+    private void afterFlowExecution(HttpServletRequest request, Context cx, 
+            ScriptableObject scope, Exception cause) throws Exception
     {
         if(flowExecutionInterceptor != null)
         {
-            flowExecutionInterceptor.afterFlowExecution(cx, scope, cause);
+            flowExecutionInterceptor.afterFlowExecution(request, cx, scope, 
+                    cause);
         }
     }
 
