@@ -22,6 +22,7 @@ import java.io.Serializable;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.security.SecureRandom;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
@@ -30,8 +31,12 @@ import java.util.Map.Entry;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.mozilla.javascript.continuations.Continuation;
+import org.szegedi.spring.web.jsflow.support.FlowStateIdGenerator;
 import org.szegedi.spring.web.jsflow.support.FlowStateSerializer;
+import org.szegedi.spring.web.jsflow.support.RandomFlowStateIdGenerator;
 
 /**
  * An implementation for flow state storage that stores flow states in 
@@ -48,10 +53,13 @@ import org.szegedi.spring.web.jsflow.support.FlowStateSerializer;
 public class HttpSessionFlowStateStorage extends FlowStateSerializer 
 implements FlowStateStorage
 {
+    private static final Log log = LogFactory.getLog(
+            HttpSessionFlowStateStorage.class);
+    
     private static final String MAP_KEY = HttpSessionFlowStateStorage.class.getName(); 
 
     private int maxStates = 100;
-    private Random random;
+    private FlowStateIdGenerator flowStateIdGenerator;
     
     /**
      * Sets the maximum number of states per HTTP session that this manager will
@@ -72,18 +80,33 @@ implements FlowStateStorage
      * Sets a source of randomness for generating state IDs. If not explicitly 
      * set, it will create and use a private instance of {@link SecureRandom}.
      * @param random
+     * @deprecated use {@link #setFlowStateIdGenerator(FlowStateIdGenerator)}
+     * with a {@link RandomFlowStateIdGenerator} instead.
      */
     public void setRandom(Random random)
     {
-        this.random = random;
+        setRandomInternal(random);
+    }
+    
+    private void setRandomInternal(Random random)
+    {
+        RandomFlowStateIdGenerator idGen = new RandomFlowStateIdGenerator();
+        idGen.setRandom(random);
+        flowStateIdGenerator = idGen;
+    }
+
+    public void setFlowStateIdGenerator(
+            FlowStateIdGenerator flowStateIdGenerator)
+    {
+        this.flowStateIdGenerator = flowStateIdGenerator;
     }
     
     public void afterPropertiesSet() throws Exception
     {
         super.afterPropertiesSet();
-        if(random == null)
+        if(flowStateIdGenerator == null)
         {
-            random = new SecureRandom();
+            setRandom(new SecureRandom());
         }
     }
     
@@ -123,10 +146,16 @@ implements FlowStateStorage
         {
             for(;;)
             {
-                id = new Long(random.nextLong() & Long.MAX_VALUE);
-                if(!stateMap.containsKey(id))
+                id = flowStateIdGenerator.generateStateId(state);
+                if(id.longValue() < 0)
                 {
-                    stateMap.put(id, new ReplicatableContinuation(this, objState));
+                    throw new RuntimeException("Got negative id");
+                }
+                if(flowStateIdGenerator.dependsOnContinuation() || 
+                        !stateMap.containsKey(id))
+                {
+                    stateMap.put(id, new ReplicatableContinuation(this, 
+                            objState));
                     break;
                 }
             }
@@ -152,26 +181,7 @@ implements FlowStateStorage
             {
                 return null;
             }
-            synchronized(rc)
-            {
-                Object oc = rc.getContinuation();
-                if(oc instanceof Continuation)
-                {
-                    return ((Continuation)oc);
-                }
-                else if(oc instanceof LocallySerializedContinuation)
-                {
-                    LocallySerializedContinuation lsc = (LocallySerializedContinuation)oc;
-                    Continuation c = deserializeContinuation(
-                            lsc.serializedState, lsc.stubsToFunctions);
-                    rc.setContinuation(this, c);
-                    return c;
-                }
-                else
-                {
-                    throw new AssertionError();
-                }
-            }
+            return getContinuation(rc);
         }
         catch(RuntimeException e)
         {
@@ -181,6 +191,31 @@ implements FlowStateStorage
         {
             throw new FlowStateStorageException(
                     "Failed to load replicated state for stateId=" + id, e);
+        }
+    }
+
+    private Continuation getContinuation(ReplicatableContinuation rc) 
+    throws Exception, AssertionError
+    {
+        synchronized(rc)
+        {
+            Object oc = rc.getContinuation();
+            if(oc instanceof Continuation)
+            {
+                return ((Continuation)oc);
+            }
+            else if(oc instanceof LocallySerializedContinuation)
+            {
+                LocallySerializedContinuation lsc = (LocallySerializedContinuation)oc;
+                Continuation c = deserializeContinuation(
+                        lsc.serializedState, lsc.stubsToFunctions);
+                rc.setContinuation(this, c);
+                return c;
+            }
+            else
+            {
+                throw new AssertionError();
+            }
         }
     }
     
@@ -213,8 +248,58 @@ implements FlowStateStorage
         return m;
     }
 
-    LocallySerializedContinuation serializeContinuationAccessor(Continuation state)
-    throws Exception
+    /**
+     * Enumerates all the continuations bound to a particular HTTP session. Can
+     * be used from a session listener to post-process continuations in 
+     * invalidated/expired sessions.
+     * @param session the http session
+     * @param callback a callback that will be invoked for each continuation.
+     */
+    public void forEachContinuation(HttpSession session, 
+            ContinuationCallback callback)
+    {
+        Map m = (Map)session.getAttribute(MAP_KEY);
+        if(m == null)
+        {
+            return;
+        }
+        for (Iterator iter = m.entrySet().iterator(); iter.hasNext();)
+        {
+            Map.Entry entry = (Map.Entry) iter.next();
+            String id = Long.toHexString(((Long)entry.getKey()).longValue());
+            try
+            {
+                callback.forContinuation(id, getContinuation(
+                        ((ReplicatableContinuation)entry.getValue())));
+            }
+            catch(Exception e)
+            {
+                log.warn("Failed to process continuation " + id, e);
+            }
+        }
+    }
+
+    /**
+     * Should be implemented by classes used as callbacks for 
+     * {@link HttpSessionFlowStateStorage#forEachContinuation(HttpSession, 
+     * ContinuationCallback)}
+     * @author Attila Szegedi
+     * @version $Id: $
+     */
+    public static interface ContinuationCallback
+    {
+        /**
+         * Invoked to process a particular continuation.
+         * @param id the ID of the continuation
+         * @param continuation the continuation itself
+         * @throws Exception
+         */
+        public void forContinuation(String id, Continuation continuation)
+        throws Exception;
+    }
+    
+    LocallySerializedContinuation serializeContinuationAccessor(
+            Continuation state) throws Exception
     {
         return new LocallySerializedContinuation(serializeContinuation(state, 
                 null), null);
