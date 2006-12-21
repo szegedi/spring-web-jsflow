@@ -446,8 +446,13 @@ implements InitializingBean
             {
                 if(stateExecutionInterceptor != null)
                 {
-                    stateExecutionInterceptor.aroundStateExecution(script, cx, 
-                            scope);
+                    stateExecutionInterceptor.aroundStateExecution(new Script()
+                    {
+                        public Object exec(Context cx, Scriptable scope)
+                        {
+                            return script.exec(cx, scope);
+                        }
+                    }, cx, scope);
                 }
                 else
                 {
