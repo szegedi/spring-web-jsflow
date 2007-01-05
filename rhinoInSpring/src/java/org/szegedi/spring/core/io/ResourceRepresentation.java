@@ -45,7 +45,7 @@ public abstract class ResourceRepresentation
     throws Exception
     {
         long now = System.currentTimeMillis();
-        if(now - noStaleCheckPeriod < lastChecked)
+        if(representation != null && now - noStaleCheckPeriod < lastChecked)
         {
             return representation;
         }
