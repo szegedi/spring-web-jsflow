@@ -56,6 +56,11 @@ import org.szegedi.spring.web.jsflow.support.PersistenceSupport;
  */
 public class ScriptStorage implements ResourceLoaderAware, InitializingBean
 {
+    private static final String[] lazilyNames = { "RegExp", "Packages", "java",
+        "getClass", "JavaAdapter", "JavaImporter", "XML", "XMLList", 
+        "Namespace", "QName"        
+    };
+        
     private ResourceLoader resourceLoader;
     private String prefix = "";
     private LibraryCustomizer libraryCustomizer;
@@ -159,6 +164,10 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                     cx.initStandardObjects(library);
                     libraryScript.exec(cx, library);
                     ScriptableObject.defineClass(library, HostObject.class);
+                    // Force instantiation of lazily loaded objects
+                    for (int i = 0; i < lazilyNames.length; i++) {
+                        ScriptableObject.getProperty(library, lazilyNames[i]);
+                    }
                     
                     if(libraryCustomizer != null)
                     {
