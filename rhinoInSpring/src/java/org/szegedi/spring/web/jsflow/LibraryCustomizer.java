@@ -5,7 +5,11 @@ import org.mozilla.javascript.ScriptableObject;
 
 /**
  * A class implementing this interface can hook into the initialization of the
- * global library scope and manipulate it in any way it desires.
+ * global library scope and manipulate it in any way it desires. The global
+ * library scope is the prototype for the top-level scopes of all
+ * executing flows, thus exposing some common global functions to all 
+ * flowscripts. Its contents are defined by a JavaScript program found in the 
+ * classpath under <tt>/org/szegedi/spring/web/jsflow/library.js</tt>.
  * @author Attila Szegedi
  * @version $Id: $
  */

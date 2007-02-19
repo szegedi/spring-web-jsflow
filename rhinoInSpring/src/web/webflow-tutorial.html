@@ -40,28 +40,24 @@
 
 <table border="1"><tr><td><pre><![CDATA[
     <servlet>
-        <servlet-name>dispatcher</servlet-name>
+        <servlet-name>rhinoInSpring</servlet-name>
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-        <init-param>
-            <param-name>contextConfigLocation</param-name>
-            <param-value>/WEB-INF/dispatcher-servlet.xml</param-value>
-        </init-param>
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>dispatcher</servlet-name>
+        <servlet-name>rhinoInSpring</servlet-name>
         <url-pattern>*.js</url-pattern>
     </servlet-mapping>
 ]]></pre></td></tr></table>
 
     <p>
       This sets up a Spring dispatcher servlet to be configured from the
-      <tt>dispatcher-servlet.xml</tt> bean factory and to have all requests
+      <tt>rhinoInSpring-servlet.xml</tt> bean factory and to have all requests
       ending with <tt>.js</tt> forwared to it (since our controllers are
       JavaScript programs) - a quite standard setup for a Spring controller.
     </p><p>
-      Next, the dispatcher XML. In its very simplest form, this is all you need 
-      to add to it to get the default functionality:
+      Next, the <tt>rhinoInSpring-servlet.xml</tt>. In its very simplest form, 
+      this is all you need to add to it to get the default functionality:
     </p>
       
 <table border="1"><tr><td><pre><![CDATA[
@@ -71,9 +67,9 @@
     <p>
       You will of course need to include some view resolver as well (in our
       example, we used the <a href="http://freemarker.sourceforge.net">
-      FreeMarker</a> template engine for views, because we're JSP illiterate. 
+      FreeMarker</a> template engine for views, because we're JSP illiterate.
       You can of course use JSP, Velocity, or any other view technology 
-      supported by Spring with this controller.
+      supported by Spring.
     </p><p>
       There is also a strong chance that you will need to keep the Rhino context
       used by the controller for the duration of view rendering. If you used 
@@ -322,6 +318,15 @@ for(;;)
       the "bogus" one (it has its usages, though) there is a <tt>isGoingToWait()</tt>
       function that returns true when the flow is going to wait, and false when
       it is not.
+    </p>
+    <h3>Using custom Rhino context factories</h3>
+    <p>
+      Rhino allow many aspects of its operation to be customized using a 
+      ContextFactory object. Rhino has a singleton global ContextFactory, but
+      we discourage its use, as any global singletons are by their nature bad
+      from the maintenance perspective. Rather, you can install a 
+      ContextFactory into either OpenContextInViewInterceptor or into the
+      FlowController.
     </p>
     <h3>What's in the serialized state</h3>
     <p>

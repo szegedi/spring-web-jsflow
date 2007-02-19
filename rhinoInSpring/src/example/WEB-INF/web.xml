@@ -10,16 +10,12 @@
 	</listener>
 
 	<servlet>
-		<servlet-name>dispatcher</servlet-name>
+		<servlet-name>rhinoInSpring</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-		<init-param>
-			<param-name>contextConfigLocation</param-name>
-			<param-value>/WEB-INF/dispatcher-servlet.xml</param-value>
-		</init-param>
 	</servlet>
 	
 	<servlet-mapping>
-		<servlet-name>dispatcher</servlet-name>
+		<servlet-name>rhinoInSpring</servlet-name>
 		<url-pattern>*.js</url-pattern>
 	</servlet-mapping>
 

@@ -142,6 +142,10 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     /**
      * Sets the context factory used to run the library script. If none is set
      * the global context factory {@link ContextFactory#getGlobal()} is used.
+     * If you are using a custom context factory in either 
+     * {@link FlowController} or {@link OpenContextInViewInterceptor}, you 
+     * might want to explicitly specify that factory here as well, although in
+     * majority of cases this is not necessary.
      * @param contextFactory
      */
     public void setContextFactory(ContextFactory contextFactory)

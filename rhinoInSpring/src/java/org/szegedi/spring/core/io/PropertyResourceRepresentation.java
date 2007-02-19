@@ -8,8 +8,8 @@ import org.springframework.core.io.Resource;
 
 /**
  * A resource representation that treats the resource as a Java properties file
- * and represents the resource with a Properties object initialized with those 
- * properties.
+ * and represents the resource with a {@link java.util.Properties} object 
+ * initialized with those properties.
  * @author Attila Szegedi
  * @version $Id: $
  */
