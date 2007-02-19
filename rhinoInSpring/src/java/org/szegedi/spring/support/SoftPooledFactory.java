@@ -21,7 +21,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A factory of soft-reference pooled objects.
+ * A factory of soft-reference pooled objects. While we are aware that pooling
+ * <i>in general</i> is harmful on modern VMs, we do actually have use cases - 
+ * i.e. expensively initialized cryptographical transformators - that make 
+ * sense to pool.
  * @author Attila Szegedi
  * @version $Id$
  */
