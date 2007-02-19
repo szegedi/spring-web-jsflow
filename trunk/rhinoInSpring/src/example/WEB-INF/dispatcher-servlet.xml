@@ -4,6 +4,11 @@
 <beans>
   <bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
     <property name="templateLoaderPath" value="/"/>
+    <property name="freemarkerSettings">
+      <props>
+        <prop key="object_wrapper">freemarker.ext.rhino.RhinoWrapper</prop>
+      </props>
+    </property>
   </bean>
 
   <bean id="viewResolver" class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
@@ -21,7 +26,11 @@
   </bean>
   
   <bean name="/*" class="org.szegedi.spring.web.jsflow.FlowController">
-    <property name="useServletPath"><value>true</value></property>
+    <property name="scriptSelectionStrategy">
+      <bean class="org.szegedi.spring.web.jsflow.UrlScriptSelectionStrategy">
+        <property name="useServletPath" value="true"/>
+      </bean>
+    </property>
   </bean>
   
 <!-- 
