@@ -40,14 +40,17 @@ import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
 /**
  * A Spring MVC {@link org.springframework.web.servlet.mvc.Controller} that uses
  * Rhino ECMAScript engine to implement flows. A controller requires a 
- * {@link FlowStateStorage} and a {@link ScriptStorage} to operate properly. It 
- * can be either wired (manually or autowired) by a bean factory to them, or it 
- * can discover them by itself in the application context. As a last resort, if 
- * it can not find these objects, it will create its own instances of them (it
- * will use a 
- * {@link org.szegedi.spring.web.jsflow.HttpSessionFlowStateStorage}. A single 
- * instance of controller can encapsulate a single webflow represented by a 
- * single script, or it can handle several flows represented by several scripts.
+ * {@link FlowStateStorage}, a {@link ScriptStorage}, and a 
+ * {@link ScriptSelectionStrategy} to operate properly. It can be either wired 
+ * (manually or autowired) by a bean factory to them, or it can discover them 
+ * by itself in the application context. As a last resort, if it can not find 
+ * these objects, it will create its own instances of them (it will use a 
+ * {@link HttpSessionFlowStateStorage} and a 
+ * {@link UrlScriptSelectionStrategy}). A single instance of controller can 
+ * encapsulate a single webflow represented by a single script, or it can 
+ * handle several flows represented by several scripts, depending on the script
+ * selection strategy used. The operation of the controller can be cusomized by
+ * installing various interceptors into it.
  * @author Attila Szegedi
  * @version $Id$
  */

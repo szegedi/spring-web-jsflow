@@ -33,9 +33,9 @@ public interface FlowExecutionInterceptor
      * @param cx the Rhino Context object that is used to run the terminating 
      * stage of the flow
      * @param scope the global variable scope for the flow
-     * @param cause the cause of flow execution termination. It is null if the
-     * flow execution terminated normally. The interceptor must not rethrow it,
-     * it will be retrown by the {@link FlowController} after this method 
+     * @param e the cause of flow execution termination. It is null if the flow
+     * execution terminated normally. The interceptor must not rethrow it, it 
+     * will be retrown by the {@link FlowController} after this method 
      * executed.
      * @throws Exception
      */

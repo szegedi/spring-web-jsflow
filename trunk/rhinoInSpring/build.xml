@@ -68,7 +68,7 @@
 	
 	<target name="javadoc" depends="init">
 		<mkdir dir="build/web/javadoc"/>
-		<javadoc sourcepath="src/java" author="true" 
+		<javadoc sourcepath="src/java" author="true" use="true"
 			classpathref="build.class.path" packagenames="org.szegedi.*"
 			doctitle="Rhino in Spring" destdir="build/web/javadoc"/>
 	</target>

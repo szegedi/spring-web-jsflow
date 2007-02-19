@@ -94,13 +94,4 @@ public class CompressionCodec implements BinaryStateCodec
             }
         };
     }
-    
-    public static void main(String[] args) throws Exception
-    {
-        CompressionCodec c = new CompressionCodec();
-        byte[] b = new byte[4567];
-        Random r = new Random();
-        r.nextBytes(b);
-        c.createDecoder().code(c.createEncoder().code(b));
-    }
 }

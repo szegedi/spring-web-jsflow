@@ -10,12 +10,12 @@ import org.springframework.core.io.Resource;
 
 /**
  * A resource representation that treats the resource as a Java properties file
- * and represents the resource with a bean bean initialized with those 
- * properties.
+ * and represents the resource with a bean initialized with those properties.
  * @author Attila Szegedi
  * @version $Id: $
  */
-public abstract class BeanResourceRepresentation extends ResourceRepresentation
+public abstract class BeanResourceRepresentation extends 
+PropertyResourceRepresentation
 {
     protected BeanResourceRepresentation(Resource resource)
     {
@@ -30,8 +30,7 @@ public abstract class BeanResourceRepresentation extends ResourceRepresentation
     
     protected Object loadRepresentation(InputStream in) throws IOException
     {
-        Properties props = new Properties();
-        props.load(in);
+        Properties props = (Properties)super.loadRepresentation(in);
         Object bean = instantiateBean();
         new BeanWrapperImpl(bean).setPropertyValues(new MutablePropertyValues(
                 props), false);
