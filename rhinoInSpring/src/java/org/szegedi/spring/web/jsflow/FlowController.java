@@ -203,6 +203,7 @@ implements InitializingBean
             {
                 scriptStorage = new ScriptStorage();
                 scriptStorage.setResourceLoader(ctx);
+                scriptStorage.afterPropertiesSet();
             }
         }
         if(flowStateStorage == null)
