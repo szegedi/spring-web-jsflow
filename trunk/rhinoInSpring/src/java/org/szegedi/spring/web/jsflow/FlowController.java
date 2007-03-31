@@ -59,6 +59,7 @@ implements InitializingBean
 {
     static final String STATEID_KEY = "stateId";
     public static final String HOST_PROPERTY = "__host__";
+    public static final String SCRIPT_DIR_PROPERTY = "__scriptDirectory__";
     private static final String REQUEST_PROPERTY = "request";
     private static final String RESPONSE_PROPERTY = "response";
     private static final String SERVLETCONTEXT_PROPERTY = "servletContext";
@@ -425,6 +426,11 @@ implements InitializingBean
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return null;
             }
+            String scriptDirectory = HostObject.getDirectoryForScript(
+                    scriptPath); 
+            hostObject.setCurrentScriptDirectory(scriptDirectory);
+            ScriptableObject.defineProperty(scope, SCRIPT_DIR_PROPERTY, 
+                    scriptDirectory, UNMODIFIABLE);
             final Script script;
             try
             {
@@ -470,6 +476,8 @@ implements InitializingBean
         }
         else
         {
+            hostObject.setCurrentScriptDirectory(String.valueOf(
+                    ScriptableObject.getProperty(scope, SCRIPT_DIR_PROPERTY)));
             try
             {
                 if(stateExecutionInterceptor != null)
