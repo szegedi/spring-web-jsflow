@@ -40,16 +40,10 @@ public class HostObject extends ScriptableObject
     private Scriptable model;
     private String viewName;
     private int includeLevel;
-    private String currentScriptDirectory;
     
     public HostObject()
     {
         scriptStorage = null;
-    }
-    
-    void setCurrentScriptDirectory(String currentScriptDirectory)
-    {
-        this.currentScriptDirectory = currentScriptDirectory;
     }
     
     void setScriptStorage(ScriptStorage scriptStorage)
@@ -106,29 +100,6 @@ public class HostObject extends ScriptableObject
     throws Exception
     {
         Context cx = Context.getCurrentContext();
-        if(scriptName.charAt(0) != '/')
-        {
-            // relative script name -- resolve it against currently executing 
-            // script's directory
-            String pathPrefix = currentScriptDirectory;
-            while(scriptName.startsWith("../"))
-            {
-                int lastSlash = pathPrefix.lastIndexOf('/');
-                if(lastSlash == -1)
-                {
-                    throw new FileNotFoundException("script:" + 
-                            currentScriptDirectory + '/' + scriptName);
-                }
-                scriptName = scriptName.substring(3);
-                pathPrefix = pathPrefix.substring(0, lastSlash);
-            }
-            scriptName = pathPrefix + '/' + scriptName;
-        }
-        else
-        {
-            // strip off leading slash
-            scriptName = scriptName.substring(1);
-        }
         Script script = scriptStorage.getScript(scriptName);
         if(script == null)
         {
@@ -137,26 +108,11 @@ public class HostObject extends ScriptableObject
         ++includeLevel;
         try
         {
-            String oldScriptDirectory = currentScriptDirectory;
-            currentScriptDirectory = getDirectoryForScript(scriptName);
-            try
-            {
-                script.exec(cx, scope);
-            }
-            finally
-            {
-                currentScriptDirectory = oldScriptDirectory;
-            }
+            script.exec(cx, scope);
         }
         finally
         {
             --includeLevel;
         }
-    }
-
-    static String getDirectoryForScript(String scriptName)
-    {
-        int lastSlash = scriptName.lastIndexOf('/');
-        return lastSlash == -1 ? "" : scriptName.substring(0, lastSlash);
     }
 }
