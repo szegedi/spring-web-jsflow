@@ -5,6 +5,6 @@
 	<classpathentry kind="lib" path="lib/js.jar" sourcepath="/Rhino/src"/>
 	<classpathentry kind="lib" path="lib/javax.servlet.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
-	<classpathentry kind="lib" path="lib/spring.jar" sourcepath="/Users/aszegedi.noenc/download/spring-framework-2.0/src"/>
+	<classpathentry kind="lib" path="lib/spring.jar" sourcepath="/Users/aszegedi.noenc/sw/spring-framework-2.0.2/dist/spring-src.zip"/>
 	<classpathentry kind="output" path="build/eclipse"/>
 </classpath>
