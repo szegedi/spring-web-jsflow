@@ -277,7 +277,12 @@ for(;;)
       There is a built-in function named <tt>include()</tt> that takes one 
       string as a parameter, interprets it as a path to a script, and executes
       that script in place. It is very handy for creating libraries of reusable
-      functions that you can include from any other script.
+      functions that you can include from any other script. A path starting 
+      with <tt>/</tt> character is interpreted as an absolute path (relative to
+      the root of the utilized resource loader, that is), while a path starting
+      with any other character is a path relative to the including script, and
+      can start with any number of <tt>../</tt> components to ascend to parent
+      directories.
     </p>
     <h3>Sharing data</h3>
     <p>

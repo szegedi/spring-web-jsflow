@@ -276,9 +276,18 @@ implements InitializingBean
      * <table border="1" valign="top">
      *   <tr><th>Function</th><th>Purpose</th></tr>
      *   <tr><td><tt>include(<i>path</i>)</tt></td><td>includes a script 
-     *     referenced with the specified absolute path as if it was executed at 
-     *     the point of inclusion. You can use it to conveniently include 
-     *     reusable function modules.</td></tr>
+     *     referenced with the specified path as if it was executed at the 
+     *     point of inclusion. You can use it to conveniently include reusable 
+     *     function modules. For absolute pathnames (relative to the root of 
+     *     the namespace of the resource loader configured in the associated 
+     *     script storage), start the path with <tt>/</tt>. 
+     *     Otherwise, the paths are interpreted as relative to the including 
+     *     script. In relative paths, you can use any number of <tt>../</tt> 
+     *     components at the start of the path to refer to parent directories. 
+     *     Relative paths were introduced in 1.1.1 release. For compatibility 
+     *     with older releases that only supported absolute paths, if a 
+     *     relative path can not be resolved to an existing script, the system 
+     *     will also try to resolve it as an old-format absolute path.</td></tr>
      *   <tr><td><tt>respond(<i>viewName</i>, <i>model</i>)</tt></td><td>respond
      *     to the actual HTTP request with the specified view name and the 
      *     specified model. The view is resolved using the Spring's view 
