@@ -79,7 +79,8 @@ implements InitializingBean
      * Sets the flow state storage used to store flow states between a HTTP
      * response and the next HTTP request. If not set, the controller will 
      * attempt to look up an instance of it by type in the application context 
-     * during initialization.
+     * during initialization. If none is found, the controller will create an 
+     * internal default instance of {@link HttpSessionFlowStateStorage}.
      * @param flowStateStorage
      */
     public void setFlowStateStorage(FlowStateStorage flowStateStorage)
@@ -90,7 +91,8 @@ implements InitializingBean
     /**
      * Sets the script storage used to load scripts. If not set, the 
      * controller will attempt to look up an instance of it by type in the 
-     * application context during initialization.
+     * application context during initialization. If none is found, it will
+     * create an internal default instance.
      * @param scriptStorage
      */
     public void setScriptStorage(ScriptStorage scriptStorage)
@@ -173,10 +175,12 @@ implements InitializingBean
     }
     
     /**
-     * Sets the flow state initializer used to initialize an instance of a
-     * flow. If not set, the controller will attempt to look up an instance of
-     * it by type in the application context during initialization. If none is
-     * found, no custom flow initialization will be performed.
+     * Sets the flow execution interceptor used to custom initialize an 
+     * instance of a flow before it first executes, as well as perform any 
+     * cleanup after an instance of a flow terminates. If not set, the 
+     * controller will attempt to look up an instance of it by type in the 
+     * application context during initialization. If none is found, no custom 
+     * flow initialization will be performed.
      * @param flowExecutionInterceptor
      */
     public void setFlowExecutionInterceptor(
@@ -185,6 +189,14 @@ implements InitializingBean
         this.flowExecutionInterceptor = flowExecutionInterceptor;
     }
     
+    /**
+     * Sets the flow state interceptor used to provide "around" advice around
+     * each state execution of each flow. If not set, the controller will 
+     * attempt to look up an instance of it by type in the application context 
+     * during initialization. If none is found, no custom state interception 
+     * will be performed.
+     * @param flowExecutionInterceptor
+     */
     public void setStateExecutionInterceptor(
             StateExecutionInterceptor stateExecutionInterceptor)
     {
@@ -193,12 +205,16 @@ implements InitializingBean
     
     public void afterPropertiesSet() throws Exception
     {
-        // Try to autodiscover a script cache, flow state storage, and flow 
-        // state initializer in the context if they're not explicitly set.
+        // Try to autodiscover a script storage, flow state storage, flow 
+        // execution interceptor, and flow state interceptor in the context if 
+        // they're not explicitly set. Create default instances of script 
+        // storage and flow state storage if none found.
         ApplicationContext ctx = getApplicationContext();
         if(scriptStorage == null)
         {
-            scriptStorage = (ScriptStorage)BeanFactoryUtilsEx.beanOfTypeIncludingAncestors(ctx, ScriptStorage.class);
+            scriptStorage = (ScriptStorage)
+                BeanFactoryUtilsEx.beanOfTypeIncludingAncestors(ctx, 
+                        ScriptStorage.class);
             if(scriptStorage == null)
             {
                 scriptStorage = new ScriptStorage();
@@ -208,8 +224,9 @@ implements InitializingBean
         }
         if(flowStateStorage == null)
         {
-            flowStateStorage = (FlowStateStorage)BeanFactoryUtilsEx.beanOfTypeIncludingAncestors(ctx, 
-                    FlowStateStorage.class);
+            flowStateStorage = (FlowStateStorage)
+                BeanFactoryUtilsEx.beanOfTypeIncludingAncestors(ctx, 
+                        FlowStateStorage.class);
             if(flowStateStorage == null)
             {
                 flowStateStorage = new HttpSessionFlowStateStorage();
@@ -220,8 +237,9 @@ implements InitializingBean
         }
         if(flowExecutionInterceptor == null)
         {
-            flowExecutionInterceptor = (FlowExecutionInterceptor)BeanFactoryUtilsEx.beanOfTypeIncludingAncestors(ctx, 
-                    FlowExecutionInterceptor.class);
+            flowExecutionInterceptor = (FlowExecutionInterceptor)
+                BeanFactoryUtilsEx.beanOfTypeIncludingAncestors(ctx, 
+                        FlowExecutionInterceptor.class);
         }
         if(scriptSelectionStrategy == null)
         {
