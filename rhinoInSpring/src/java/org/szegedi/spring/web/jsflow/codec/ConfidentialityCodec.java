@@ -25,7 +25,7 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
 
 /**
  * A codec that will encrypt the flowstate when encoding, and decrypt it upon 
- * decoding. If the. It can be used with 
+ * decoding. It can be used with 
  * {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage} when there 
  * is a concern that confidential information might be contained in the flow 
  * state. If you use it, then it is recommended to put it into a 
