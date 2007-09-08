@@ -370,7 +370,6 @@ implements InitializingBean
             {
                 public Object run(Context cx)
                 {
-                    cx.setOptimizationLevel(-1);
                     try
                     {
                         return handleRequestInContext(request, response, 
