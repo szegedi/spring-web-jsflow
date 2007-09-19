@@ -301,6 +301,13 @@ public class ScriptStorage implements ApplicationContextAware,
         this.appContext = appContext;
     }
     
+    /**
+     * Sets the replication ID for this storage. When used with Terracotta
+     * replication, this ID is used to distinguish different storage instances.
+     * If not explicitly set, "servletContextName:servletName:scriptStorageBeanName"
+     * will be used automatically.
+     * @param replicationId the replication ID for this storage.
+     */
     public void setReplicationId(String replicationId)
     {
         this.replicationId = replicationId;
@@ -437,7 +444,18 @@ public class ScriptStorage implements ApplicationContextAware,
                     throw new BeanInitializationException(
                             "Can't access servlet config of " + wctx.getClass().getName());
                 }
-                return contextName + scfg.getServletName();
+                String beanName = "";
+                String[] names = ctx.getBeanNamesForType(ScriptStorage.class);
+                for (int i = 0; i < names.length; i++)
+                {
+                    String name = names[i];
+                    if(ctx.getBean(name) == this)
+                    {
+                        beanName = name;
+                        break;
+                    }
+                }
+                return contextName + ":" + scfg.getServletName() + ":" + beanName;
             }
             ctx = ctx.getParent();
         }
