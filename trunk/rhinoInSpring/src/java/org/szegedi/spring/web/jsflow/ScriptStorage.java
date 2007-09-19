@@ -27,7 +27,11 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+
+import javax.servlet.ServletConfig;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextAction;
@@ -37,11 +41,18 @@ import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.debug.DebuggableScript;
 import org.mozilla.javascript.serialize.ScriptableOutputStream;
+import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.AbstractRefreshableWebApplicationContext;
+import org.springframework.web.context.support.StaticWebApplicationContext;
 import org.szegedi.spring.core.io.ResourceRepresentation;
 import org.szegedi.spring.web.jsflow.support.PersistenceSupport;
 
@@ -54,25 +65,139 @@ import org.szegedi.spring.web.jsflow.support.PersistenceSupport;
  * @author Attila Szegedi
  * @version $Id$
  */
-public class ScriptStorage implements ResourceLoaderAware, InitializingBean
+public class ScriptStorage implements ApplicationContextAware, 
+    ResourceLoaderAware, InitializingBean, DisposableBean
 {
     private static final String[] lazilyNames = { "RegExp", "Packages", "java",
         "getClass", "JavaAdapter", "JavaImporter", "XML", "XMLList", 
         "Namespace", "QName"        
     };
-        
+    
+    /**
+     * This is used as a replication root when used with Terracotta. Makes the
+     * code of JavaScript functions shared.
+     */
+    private static final Map replicatedDataMap = new HashMap();
+    
+    private ApplicationContext appContext;
+    private String replicationId;
+    private ReplicatedData replicatedData;
     private ResourceLoader resourceLoader;
     private String prefix = "";
     private LibraryCustomizer libraryCustomizer;
+    private List libraryScripts;
     private SecurityDomainFactory securityDomainFactory;
     private ContextFactory contextFactory;
     private long noStaleCheckPeriod = 10000;
     private final Map scripts = new HashMap();
-    private Map functionsToStubs = Collections.EMPTY_MAP;
-    private Map stubsToFunctions = Collections.EMPTY_MAP;
-    private final Object lock = new Object();
 
-    private final ScriptableObject library = new NativeObject();
+    private static final class ReplicatedData
+    {
+        private Map functionsToStubs = Collections.EMPTY_MAP;
+        private Map stubsToFunctions = Collections.EMPTY_MAP;
+        private final ScriptableObject library = new NativeObject();
+        private int refCount;
+        
+        void addRef()
+        {
+            refCount++;
+        }
+        
+        boolean release()
+        {
+            return --refCount == 0;
+        }
+        
+        public Object getFunctionStub(Object function)
+        {
+            if(function instanceof DebuggableScript)
+            {
+                Object stub = functionsToStubs.get(function);
+                if(stub == null)
+                {
+                    synchronized(this)
+                    {
+                        return functionsToStubs.get(function);
+                    }
+                }
+                return stub;
+            }
+            return null;
+        }
+
+        public Object resolveFunctionStub(Object stub, ScriptStorage storage)
+        throws Exception {
+            if(stub instanceof FunctionStub) {
+                Object function = stubsToFunctions.get(stub);
+                if(function == null) {
+                    synchronized(this) {
+                        function = stubsToFunctions.get(stub);
+                    }
+                    if(function == null) {
+                        // trigger script loading
+                        storage.getScript(((FunctionStub)stub).scriptName);
+                        // try again
+                        function = stubsToFunctions.get(stub);
+                        if(function == null) {
+                            synchronized(this) {
+                                function = stubsToFunctions.get(stub);
+                            }
+                            if(function == null) {
+                                throw new InvalidObjectException(stub + " not found");
+                            }
+                        }
+                    }
+                }
+                return function;
+            }
+            return null;
+        }
+
+        void createFunctionStubs(String path, Script script)
+        {
+            new FunctionStubFactory(path).createStubs(script);
+        }
+        
+        private class FunctionStubFactory
+        {
+            private final String scriptName;
+            private final Map newStubsToFunctions = new HashMap();
+            private final Map newFunctionsToStubs = new IdentityHashMap();
+            
+            public FunctionStubFactory(String scriptName)
+            {
+                this.scriptName = scriptName;
+            }
+            
+            void createStubs(Script script)
+            {
+                createStubs("", Context.getDebuggableView(script));
+                synchronized(ReplicatedData.this)
+                {
+                    newStubsToFunctions.putAll(stubsToFunctions);
+                    newFunctionsToStubs.putAll(functionsToStubs);
+                    stubsToFunctions = newStubsToFunctions;
+                    functionsToStubs = newFunctionsToStubs;
+                }
+            }
+            
+            private void createStubs(String prefix, DebuggableScript fnOrScript)
+            {
+                FunctionStub stub = new FunctionStub(scriptName, prefix);
+                newStubsToFunctions.put(stub, fnOrScript);
+                newFunctionsToStubs.put(fnOrScript, stub);
+                int l = fnOrScript.getFunctionCount();
+                for(int i = 0; i < l; ++i)
+                {
+                    createStubs(prefix + i + ".", fnOrScript.getFunction(i));
+                }
+            }
+        }
+
+        public ScriptableObject getLibrary() {
+            return library;
+        }
+    }
     
     /**
      * Sets the resource loader for this storage. The resource loader will be 
@@ -120,12 +245,30 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     /**
      * Sets a library customizer. A library customizer is an optional object
      * that is given the chance to customize the global "library" scope that
-     * is the prototype of all conversation scopes.
+     * is the prototype of all conversation scopes. If you simply wish to 
+     * execute further scripts that define globally available functions, you'd
+     * rather want to use {@link #setLibraryScripts(List)}, as that will also
+     * cause the functions defined in those scripts to be properly stubbed for
+     * serialization and other clustered replication mechanisms. The customizer
+     * is invoked after all library scripts have already been run.
      * @param libraryCustomizer
      */
-    public void setLibraryCustomizer(LibraryCustomizer libraryCustomizer)
-    {
+    public void setLibraryCustomizer(LibraryCustomizer libraryCustomizer) {
         this.libraryCustomizer = libraryCustomizer;
+    }
+    
+    /**
+     * Sets a list of library scripts. These scripts will be executed in the
+     * context of the global "library" scope that is the prototype of all 
+     * conversation scopes.
+     * @param libraryScripts the list of additional library scripts. Each 
+     * element can be a string (will resolve to a path as per 
+     * {@link #setResourceLoader(ResourceLoader)} and {@link #setPrefix(String)}),
+     * a {@link Resource}, or a {@link Script}. 
+     */
+    public void setLibraryScripts(List libraryScripts)
+    {
+        this.libraryScripts = libraryScripts;
     }
     
     /**
@@ -153,7 +296,39 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         this.contextFactory = contextFactory;
     }
     
+    public void setApplicationContext(ApplicationContext appContext)
+    {
+        this.appContext = appContext;
+    }
+    
+    public void setReplicationId(String replicationId)
+    {
+        this.replicationId = replicationId;
+    }
+    
     public void afterPropertiesSet() throws Exception
+    {
+        if(replicationId == null)
+        {
+            replicationId = createReplicationId();
+        }
+
+        synchronized(replicatedDataMap)
+        {
+            replicatedData = 
+                (ReplicatedData)replicatedDataMap.get(
+                        replicationId);
+            if(replicatedData == null)
+            {
+                replicatedData = new ReplicatedData();
+                initializeLibrary();
+                replicatedDataMap.put(replicationId, replicatedData);
+            }
+            replicatedData.addRef();
+        }
+    }
+    
+    private void initializeLibrary()
     {
         ContextAction ca = new ContextAction()
         {
@@ -165,6 +340,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                     // Run the built-in library script
                     Script libraryScript = loadScript(new ClassPathResource(
                             "library.js", ScriptStorage.class), "~library.js");
+                    ScriptableObject library = replicatedData.getLibrary();
                     cx.initStandardObjects(library);
                     libraryScript.exec(cx, library);
                     ScriptableObject.defineClass(library, HostObject.class);
@@ -173,11 +349,44 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                         ScriptableObject.getProperty(library, lazilyNames[i]);
                     }
                     
-                    if(libraryCustomizer != null)
-                    {
-                        libraryCustomizer.customizeLibrary(cx, library);
+                    if(libraryScripts != null) {
+                        int i = 0;
+                        for (Iterator iter = libraryScripts.iterator(); iter.hasNext(); ++i) {
+                            Object scriptSpec = iter.next();
+                            Script s;
+                            String path;
+                            if(scriptSpec instanceof String) {
+                                path = (String)scriptSpec; 
+                                s = getScript(path);
+                            }
+                            else if(scriptSpec instanceof Resource) {
+                                Resource r = (Resource)scriptSpec;
+                                try {
+                                    path = r.getURL().toExternalForm();
+                                }
+                                catch(FileNotFoundException e) {
+                                    path = "~libraryScript[" + i + "].js";
+                                }
+                                s = loadScript(r, path);
+                            }
+                            else if(scriptSpec instanceof Script) {
+                                s = (Script)scriptSpec;
+                                path = "~libraryScript[" + i + "].js";
+                                replicatedData.createFunctionStubs(path, s);
+                            }
+                            else {
+                                throw new IllegalArgumentException(
+                                        "libraryScripts[" + i + "] is " + 
+                                        scriptSpec.getClass().getName());
+                            }
+                            s.exec(cx, library);
+                        }
                     }
                     
+                    if(libraryCustomizer != null) {
+                        libraryCustomizer.customizeLibrary(cx, library);
+                    }
+                        
                     // bit of a hack to initialize all lazy objects that 
                     // ScriptableOutputStream would initialize, so we can then
                     // safely seal it
@@ -186,16 +395,13 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                     // Finally seal the library scope
                     library.sealObject();
                 }
-                catch(RuntimeException e)
-                {
+                catch(RuntimeException e) {
                     throw e;
                 }
-                catch(Error e)
-                {
+                catch(Error e) {
                     throw e;
                 }
-                catch(Throwable t)
-                {
+                catch(Throwable t) {
                     throw new UndeclaredThrowableException(t);
                 }
                 return null;
@@ -211,6 +417,46 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         }
     }
     
+    private String createReplicationId()
+    {
+        ApplicationContext ctx = appContext;
+        while(ctx != null)
+        {
+            if(ctx instanceof WebApplicationContext)
+            {
+                WebApplicationContext wctx = ((WebApplicationContext)ctx);
+                String contextName = wctx.getServletContext().getServletContextName();
+                ServletConfig scfg;
+                if(wctx instanceof AbstractRefreshableWebApplicationContext) {
+                    scfg = ((AbstractRefreshableWebApplicationContext)wctx).getServletConfig();
+                }
+                else if(wctx instanceof StaticWebApplicationContext) {
+                    scfg = ((StaticWebApplicationContext)wctx).getServletConfig();
+                }
+                else {
+                    throw new BeanInitializationException(
+                            "Can't access servlet config of " + wctx.getClass().getName());
+                }
+                return contextName + scfg.getServletName();
+            }
+            ctx = ctx.getParent();
+        }
+        throw new IllegalArgumentException(
+                "ScriptStorage instance without explicit replicationId " +
+                "must have a WebApplicationContext in its ApplicationContext chain");
+    }
+
+    public void destroy() throws Exception
+    {
+        synchronized(replicatedDataMap)
+        {
+            if(replicatedData.release())
+            {
+                replicatedDataMap.remove(replicationId);
+            }
+        }
+    }
+    
     /**
      * Returns an object implementing support functionality for persistent flow
      * state storage. Not usable by client applications, this is meant to be 
@@ -223,59 +469,17 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         {
             protected ScriptableObject getLibrary()
             {
-                return library;
+                return replicatedData.getLibrary();
             }
             
             protected Object getFunctionStub(Object function)
             {
-                if(function instanceof DebuggableScript)
-                {
-                    Object stub = functionsToStubs.get(function);
-                    if(stub == null)
-                    {
-                        synchronized(lock)
-                        {
-                            return functionsToStubs.get(function);
-                        }
-                    }
-                    return stub;
-                }
-                return null;
+                return replicatedData.getFunctionStub(function);
             }
 
             protected Object resolveFunctionStub(Object stub) throws Exception
             {
-                if(stub instanceof FunctionStub)
-                {
-                    Object function = stubsToFunctions.get(stub);
-                    if(function == null)
-                    {
-                        synchronized(lock)
-                        {
-                            function = stubsToFunctions.get(stub);
-                        }
-                        if(function == null)
-                        {
-                            // trigger script loading
-                            getScript(((FunctionStub)stub).scriptName);
-                            // try again
-                            function = stubsToFunctions.get(stub);
-                            if(function == null)
-                            {
-                                synchronized(lock)
-                                {
-                                    function = stubsToFunctions.get(stub);
-                                }
-                                if(function == null)
-                                {
-                                    throw new InvalidObjectException(stub + " not found");
-                                }
-                            }
-                        }
-                    }
-                    return function;
-                }
-                return null;
+                return replicatedData.resolveFunctionStub(stub, ScriptStorage.this);
             }
         };
     }
@@ -313,6 +517,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     
     ScriptableObject createNewTopLevelScope(Context cx)
     {
+        ScriptableObject library = replicatedData.getLibrary();
         ScriptableObject scope = (ScriptableObject)cx.newObject(library);
         scope.setPrototype(library);
         scope.setParentScope(null);
@@ -344,7 +549,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                 securityDomainFactory.createSecurityDomain(resource);
             Script script = Context.getCurrentContext().compileReader(r, 
                     resource.getDescription(), 1, securityDomain);
-            new FunctionStubFactory(path).createStubs(script);
+            replicatedData.createFunctionStubs(path, script);
             return script;
         }
         catch(FileNotFoundException e)
@@ -360,43 +565,6 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
             throw e;
         }
     }
-    
-    private class FunctionStubFactory
-    {
-        private final String scriptName;
-        private final Map newStubsToFunctions = new HashMap();
-        private final Map newFunctionsToStubs = new IdentityHashMap();
-        
-        public FunctionStubFactory(String scriptName)
-        {
-            this.scriptName = scriptName;
-        }
-        
-        void createStubs(Script script)
-        {
-            createStubs("", Context.getDebuggableView(script));
-            synchronized(lock)
-            {
-                newStubsToFunctions.putAll(stubsToFunctions);
-                newFunctionsToStubs.putAll(functionsToStubs);
-                stubsToFunctions = newStubsToFunctions;
-                functionsToStubs = newFunctionsToStubs;
-            }
-        }
-        
-        private void createStubs(String prefix, DebuggableScript fnOrScript)
-        {
-            FunctionStub stub = new FunctionStub(scriptName, prefix);
-            newStubsToFunctions.put(stub, fnOrScript);
-            newFunctionsToStubs.put(fnOrScript, stub);
-            int l = fnOrScript.getFunctionCount();
-            for(int i = 0; i < l; ++i)
-            {
-                createStubs(prefix + i + ".", fnOrScript.getFunction(i));
-            }
-        }
-    }
-
     
     private static class FunctionStub implements Serializable
     {

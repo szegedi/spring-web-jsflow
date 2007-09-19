@@ -1,0 +1,14 @@
+<!-- $Id: terracotta.xml,v 1.3 2007/09/14 13:08:18 szegedia Exp $ -->
+<xml-fragment>
+  <instrumented-classes>
+    <include>
+      <class-expression>org.mozilla.javascript..*</class-expression>
+      <class-expression>org.szegedi.spring.web.jsflow.HttpSessionSingleFlowStateStorage$ContinuationHolder</class-expression>
+      <class-expression>org.szegedi.spring.web.jsflow.ScriptStorage$ReplicatedData</class-expression>
+    </include>
+  </instrumented-classes>
+  
+  <roots>
+    <root>org.szegedi.spring.web.jsflow.ScriptStorage.replicatedDataMap</root>
+  </roots>
+</xml-fragment>
