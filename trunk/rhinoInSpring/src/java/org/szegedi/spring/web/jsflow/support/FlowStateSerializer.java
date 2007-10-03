@@ -37,6 +37,7 @@ import org.springframework.beans.factory.BeanFactoryUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.szegedi.spring.web.jsflow.FlowController;
 import org.szegedi.spring.web.jsflow.HostObject;
 import org.szegedi.spring.web.jsflow.ScriptStorage;
 
@@ -46,7 +47,7 @@ import org.szegedi.spring.web.jsflow.ScriptStorage;
  * @author Attila Szegedi
  * @version $Id: $
  */
-public class FlowStateSerializer implements ApplicationContextAware, InitializingBean
+public abstract class FlowStateSerializer implements ApplicationContextAware, InitializingBean
 {
     private ScriptStorage scriptStorage;
     private PersistenceSupport persistenceSupport;
@@ -57,10 +58,7 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
     public void setScriptStorage(ScriptStorage scriptStorage)
     {
         this.scriptStorage = scriptStorage;
-        if(scriptStorage != null)
-        {
-            persistenceSupport = scriptStorage.getPersistenceSupport();
-        }
+        persistenceSupport = scriptStorage.getPersistenceSupport();
     }
     
     public ScriptStorage getScriptStorage()
@@ -75,6 +73,10 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
     
     public void afterPropertiesSet() throws Exception
     {
+        if(scriptStorage == null)
+        {
+            scriptStorage = FlowController.createDefaultScriptStorage(applicationContext);
+        }
         createStubInfo();
     }
     
@@ -109,11 +111,11 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
      * @throws Exception
      */
     protected byte[] serializeContinuation(Continuation state, 
-            Map stubbedFunctions) throws Exception
+            Map stubbedFunctions, StubProvider stubProvider) throws Exception
     {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         ObjectOutputStream out = new ContinuationOutputStream(bout, 
-                state, stubbedFunctions);
+                state, stubbedFunctions, stubProvider);
         out.writeObject(FunctionFingerprintManager.getFingerprints(state));
         out.writeObject(state);
         out.close();
@@ -134,11 +136,11 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
      * @return the deserialized continuation
      * @throws Exception
      */
-    protected Continuation deserializeContinuation(byte[] b, Map stubbedFunctions)
+    protected Continuation deserializeContinuation(byte[] b, StubResolver stubResolver)
     throws Exception
     {
         ObjectInputStream in = new ContinuationInputStream(
-                new ByteArrayInputStream(b), stubbedFunctions);
+                new ByteArrayInputStream(b), stubResolver);
         Object fingerprints = in.readObject();
         Continuation cont = (Continuation)in.readObject();
         FunctionFingerprintManager.checkFingerprints(cont, fingerprints);
@@ -147,13 +149,13 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
     
     private class ContinuationInputStream extends ScriptableInputStream
     {
-        private final Map stubbedFunctions;
+        private final StubResolver stubResolver;
         
-        public ContinuationInputStream(InputStream in, Map stubbedFunctions) 
+        public ContinuationInputStream(InputStream in, StubResolver stubResolver) 
         throws IOException
         {
             super(in, persistenceSupport.getLibrary());
-            this.stubbedFunctions = stubbedFunctions;
+            this.stubResolver = stubResolver;
         }
 
         protected Object resolveObject(Object obj)
@@ -178,9 +180,9 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
             else
             {
                 Object robj;
-                if(stubbedFunctions != null)
+                if(stubResolver != null)
                 {
-                    robj = stubbedFunctions.get(obj);
+                    robj = stubResolver.resolveStub(obj);
                     if(robj != null)
                     {
                         return robj;
@@ -214,23 +216,38 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
     private class ContinuationOutputStream extends ScriptableOutputStream
     {
         private final Map stubbedFunctions;
+        private final StubProvider stubProvider;
 
         public ContinuationOutputStream(OutputStream out, Continuation cont,
-                Map stubbedFunctions) throws IOException
+                Map stubbedFunctions, StubProvider stubProvider) throws IOException
         {
             super(out, ScriptableObject.getTopLevelScope(cont).getPrototype());
             addExcludedName(HostObject.CLASS_NAME);
             addExcludedName(HostObject.CLASS_NAME + ".prototype");
             this.stubbedFunctions = stubbedFunctions;
+            this.stubProvider = stubProvider;
         }
         
         protected Object replaceObject(Object obj) throws IOException
         {
+            // App context
             Object stub = beansToStubs.get(obj);
             if(stub != null)
             {
                 return stub;
             }
+            
+            // Thread context
+            if(stubProvider != null)
+            {
+                stub = stubProvider.getStub(obj);
+                if(stub != null)
+                {
+                    return stub;
+                }
+            }
+            
+            // Functions
             stub = persistenceSupport.getFunctionStub(obj);
             if(stub != null)
             {
@@ -273,5 +290,41 @@ public class FlowStateSerializer implements ApplicationContextAware, Initializin
         {
             return "stub:" + beanName;
         }
+    }
+    
+    /**
+     * An interface that can be implemented to provide further context-specific
+     * stubs.
+     * @author Attila Szegedi
+     * @version $Id: $
+     */
+    public static interface StubProvider
+    {
+        /**
+         * Return a stub for an object.
+         * @param obj the object to stub
+         * @return the stub for the object, or null if the provider can not
+         * stub the object.
+         */
+        Object getStub(Object obj);
+    }
+    
+    /**
+     * An interface that can be implemented to resolve further context-specific
+     * stubs.
+     * @author Attila Szegedi
+     * @version $Id: $
+     */
+    public static interface StubResolver
+    {
+        /**
+         * Resolves a stub into an object.
+         * @param stub the stub to resolve
+         * @return the resolved object, or null if the resolved does not 
+         * recognize the object as a stub.
+         * @throws InvalidObjectException if the resolver recognizes the stub,
+         * but is unable to provide the resolved object
+         */
+        Object resolveStub(Object stub) throws InvalidObjectException;
     }
 }
