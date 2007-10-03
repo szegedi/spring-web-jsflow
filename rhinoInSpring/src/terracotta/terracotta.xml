@@ -2,13 +2,10 @@
 <xml-fragment>
   <instrumented-classes>
     <include>
-      <class-expression>org.mozilla.javascript..*</class-expression>
-      <class-expression>org.szegedi.spring.web.jsflow.HttpSessionSingleFlowStateStorage$ContinuationHolder</class-expression>
-      <class-expression>org.szegedi.spring.web.jsflow.ScriptStorage$ReplicatedData</class-expression>
+      <class-expression>org.szegedi.spring.web.jsflow.HttpSessionFlowStateStorage$LocallySerializedContinuation</class-expression>
+    </include>
+    <include>
+      <class-expression>org.szegedi.spring.web.jsflow.HttpSessionFlowStateStorage$SizeLimitedLinkedHashMap</class-expression>
     </include>
   </instrumented-classes>
-  
-  <roots>
-    <root>org.szegedi.spring.web.jsflow.ScriptStorage.replicatedDataMap</root>
-  </roots>
 </xml-fragment>
