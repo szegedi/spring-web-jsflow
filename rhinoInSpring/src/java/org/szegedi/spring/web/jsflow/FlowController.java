@@ -30,7 +30,9 @@ import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.continuations.Continuation;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.ModelAndViewDefiningException;
 import org.springframework.web.servlet.mvc.AbstractController;
@@ -212,15 +214,7 @@ implements InitializingBean
         ApplicationContext ctx = getApplicationContext();
         if(scriptStorage == null)
         {
-            scriptStorage = (ScriptStorage)
-                BeanFactoryUtilsEx.beanOfTypeIncludingAncestors(ctx, 
-                        ScriptStorage.class);
-            if(scriptStorage == null)
-            {
-                scriptStorage = new ScriptStorage();
-                scriptStorage.setResourceLoader(ctx);
-                scriptStorage.afterPropertiesSet();
-            }
+            scriptStorage = createDefaultScriptStorage(ctx);
         }
         if(flowStateStorage == null)
         {
@@ -230,9 +224,10 @@ implements InitializingBean
             if(flowStateStorage == null)
             {
                 flowStateStorage = new HttpSessionFlowStateStorage();
-                ((HttpSessionFlowStateStorage)flowStateStorage).setApplicationContext(
-                        getApplicationContext());
-                ((HttpSessionFlowStateStorage)flowStateStorage).afterPropertiesSet();
+                HttpSessionFlowStateStorage hflowStateStorage = (HttpSessionFlowStateStorage)flowStateStorage; 
+                hflowStateStorage.setApplicationContext(getApplicationContext());
+                hflowStateStorage.setScriptStorage(scriptStorage);
+                hflowStateStorage.afterPropertiesSet();
             }
         }
         if(flowExecutionInterceptor == null)
@@ -264,6 +259,25 @@ implements InitializingBean
                         "Persistent state storage uses a different script storage");
             }
         }
+    }
+
+    public static ScriptStorage createDefaultScriptStorage(ApplicationContext ctx) throws Exception
+    {
+        ScriptStorage scriptStorage = (ScriptStorage)
+            BeanFactoryUtilsEx.beanOfTypeIncludingAncestors(ctx, 
+                    ScriptStorage.class);
+        if(scriptStorage == null)
+        {
+            scriptStorage = new ScriptStorage();
+            scriptStorage.setResourceLoader(ctx);
+            scriptStorage.afterPropertiesSet();
+            if(ctx instanceof ConfigurableApplicationContext)
+            {
+                ConfigurableListableBeanFactory bf = ((ConfigurableApplicationContext)ctx).getBeanFactory();
+                bf.registerSingleton("scriptStorage", scriptStorage);
+            }
+        }
+        return scriptStorage;
     }
 
     /**
