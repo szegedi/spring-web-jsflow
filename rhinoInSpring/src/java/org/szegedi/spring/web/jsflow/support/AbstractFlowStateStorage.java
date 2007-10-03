@@ -106,7 +106,7 @@ implements FlowStateStorage
     {
         try
         {
-            byte[] b = serializeContinuation(state, null);
+            byte[] b = serializeContinuation(state, null, null);
             if(binaryStateCodec != null)
             {
                 b = binaryStateCodec.createEncoder().code(b);
