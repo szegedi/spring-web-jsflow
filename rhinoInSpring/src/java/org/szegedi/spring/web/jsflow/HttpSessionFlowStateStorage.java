@@ -1,5 +1,5 @@
 /*
-   Copyright 2006 Attila Szegedi
+   Copyright 2006 2007 Attila Szegedi
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,11 +15,8 @@
 */
 package org.szegedi.spring.web.jsflow;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InvalidObjectException;
 import java.io.Serializable;
-import java.lang.reflect.UndeclaredThrowableException;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,11 +41,7 @@ import org.szegedi.spring.web.jsflow.support.RandomFlowStateIdGenerator;
  * privately to HTTP sessions, no crossover between sessions is possible 
  * (requesting a state from a session it doesn't belong to won't work, and it 
  * is also possible to have identical flowstate ids in two sessions without any 
- * interference). The implementation is aware of HTTP session persistence 
- * through serialization. States stored in a HTTP session that is serialized 
- * and later deserialized will work as expected. If your HTTP session 
- * replication uses Terracotta, you can consider using either 
- * {@link HttpSessionSingleFlowStateStorage} or 
+ * interference).
  * @author Attila Szegedi
  * @version $Id$
  */
@@ -58,7 +51,9 @@ implements FlowStateStorage
     private static final Log log = LogFactory.getLog(
             HttpSessionFlowStateStorage.class);
     
-    private static final String MAP_KEY = HttpSessionFlowStateStorage.class.getName(); 
+    private static final String STUB_PROVIDER_KEY = "provider#" + HttpSessionFlowStateStorage.class.getName(); 
+    private static final String STUB_RESOLVER_KEY = "resolver#" + HttpSessionFlowStateStorage.class.getName(); 
+    private static final String MAP_KEY = "map#" + HttpSessionFlowStateStorage.class.getName(); 
 
     private int maxStates = 100;
     private FlowStateIdGenerator flowStateIdGenerator;
@@ -112,37 +107,51 @@ implements FlowStateStorage
         }
     }
     
+    /**
+     * Binds a stub provider into the HttpSession. Client code can use this
+     * provider to provide serialization stubs for various session-related 
+     * objects
+     * @param session the HttpSession to bind the provider into
+     * @param provider the provider
+     */
+    public static void bindStubProvider(HttpSession session, StubProvider provider)
+    {
+        session.setAttribute(STUB_PROVIDER_KEY, provider);
+    }
+    
+    /**
+     * Binds a stub resolver into the HttpSession. Client code can use this
+     * resolver to resolve serialization stubs for various session-related 
+     * objects
+     * @param session the HttpSession to bind the resolver into
+     * @param resolver the resolver
+     */
+    public static void bindStubResolver(HttpSession session, StubResolver resolver)
+    {
+        session.setAttribute(STUB_RESOLVER_KEY, resolver);
+    }
+
     public String storeState(HttpServletRequest request, Continuation state)
     {
         Long id;
         Map stateMap = getStateMap(request, true);
-        Object objState;
-        if(maxStates > 1)
+        byte[] serialized;
+        // Must serialize the continuation so it is deep-copied. If we 
+        // didn't do this, we couldn't keep multiple independent states.
+        Map stubsToFunctions = new HashMap();
+        try
         {
-            // Must serialize the continuation so it is deep-copied. If we 
-            // didn't do this, we couldn't keep multiple independent states.
-            Map stubsToFunctions = new HashMap();
-            try
-            {
-                objState = new LocallySerializedContinuation(
-                        serializeContinuation(state, stubsToFunctions), 
-                        stubsToFunctions);
-            }
-            catch(RuntimeException e)
-            {
-                throw e;
-            }
-            catch(Exception e)
-            {
-                throw new FlowStateStorageException("Failed to store state", e);
-            }
+            serialized = serializeContinuation(state, stubsToFunctions, 
+                    (StubProvider)request.getSession().getAttribute(
+                            STUB_PROVIDER_KEY));
         }
-        else
+        catch(RuntimeException e)
         {
-            // Optimization for maxStates == 1. Since it is not possible to go
-            // back to an earlier continuation, there is no need to serialize
-            // it solely for purposes of deep copying
-            objState = state;
+            throw e;
+        }
+        catch(Exception e)
+        {
+            throw new FlowStateStorageException("Failed to store state", e);
         }
         synchronized(stateMap)
         {
@@ -156,8 +165,8 @@ implements FlowStateStorage
                 if(flowStateIdGenerator.dependsOnContinuation() || 
                         !stateMap.containsKey(id))
                 {
-                    stateMap.put(id, new ReplicatableContinuation(this, 
-                            objState));
+                    stateMap.put(id, new LocallySerializedContinuation(
+                            serialized, stubsToFunctions));
                     break;
                 }
             }
@@ -174,16 +183,17 @@ implements FlowStateStorage
         }
         try
         {
-            ReplicatableContinuation rc;
+            LocallySerializedContinuation serialized;
             synchronized(stateMap)
             {
-                rc = (ReplicatableContinuation)stateMap.get(Long.valueOf(id, 16));
+                serialized = (LocallySerializedContinuation)stateMap.get(
+                        Long.valueOf(id, 16));
             }
-            if(rc == null)
+            if(serialized == null)
             {
                 return null;
             }
-            return getContinuation(rc);
+            return getContinuation(serialized, request.getSession(false));
         }
         catch(RuntimeException e)
         {
@@ -196,29 +206,38 @@ implements FlowStateStorage
         }
     }
 
-    private Continuation getContinuation(ReplicatableContinuation rc) 
+    private Continuation getContinuation(LocallySerializedContinuation lsc, HttpSession session) 
     throws Exception, AssertionError
     {
-        synchronized(rc)
-        {
-            Object oc = rc.getContinuation();
-            if(oc instanceof Continuation)
-            {
-                return ((Continuation)oc);
-            }
-            else if(oc instanceof LocallySerializedContinuation)
-            {
-                LocallySerializedContinuation lsc = (LocallySerializedContinuation)oc;
-                Continuation c = deserializeContinuation(
-                        lsc.serializedState, lsc.stubsToFunctions);
-                rc.setContinuation(this, c);
-                return c;
-            }
-            else
-            {
-                throw new AssertionError();
+        final Map stubsToFunctions = lsc.stubsToFunctions;
+        StubResolver stubResolver;
+        if(session != null) {
+            stubResolver = (StubResolver)session.getAttribute(STUB_RESOLVER_KEY);
+        }
+        else {
+            stubResolver = null;
+        }
+        
+        if(stubResolver != null) {
+            if(stubsToFunctions != null && !stubsToFunctions.isEmpty()) {
+                final StubResolver fstubResolver = stubResolver;
+                stubResolver = new StubResolver() {
+                    public Object resolveStub(Object stub) throws InvalidObjectException {
+                        Object obj = stubsToFunctions.get(stub);
+                        return obj != null ? obj : fstubResolver.resolveStub(stub);
+                    }
+                };
             }
         }
+        else if(stubsToFunctions != null && !stubsToFunctions.isEmpty()) {
+            stubResolver = new StubResolver() {
+                public Object resolveStub(Object stub) throws InvalidObjectException {
+                    return stubsToFunctions.get(stub);
+                }
+            };
+        }
+        
+        return deserializeContinuation(lsc.serializedState, stubResolver);
     }
     
     private Map getStateMap(HttpServletRequest request, boolean create)
@@ -249,7 +268,7 @@ implements FlowStateStorage
         }
         return m;
     }
-
+    
     /**
      * Enumerates all the continuations bound to a particular HTTP session. Can
      * be used from a session listener to post-process continuations in 
@@ -272,7 +291,7 @@ implements FlowStateStorage
             try
             {
                 callback.forContinuation(id, getContinuation(
-                        ((ReplicatableContinuation)entry.getValue())));
+                        ((LocallySerializedContinuation)entry.getValue()), session));
             }
             catch(Exception e)
             {
@@ -298,88 +317,6 @@ implements FlowStateStorage
          */
         public void forContinuation(String id, Continuation continuation)
         throws Exception;
-    }
-    
-    LocallySerializedContinuation serializeContinuationAccessor(
-            Continuation state) throws Exception
-    {
-        return new LocallySerializedContinuation(serializeContinuation(state, 
-                null), null);
-    }
-    
-    /**
-     * This class can serialize the continuation as a properly stubbed byte
-     * array. This is important in HTTP session replication scenarios, as it
-     * will allow the continuation to be transferred to another servlet 
-     * container and appropriately deserialized.
-     * @author Attila Szegedi
-     * @version $Id: $
-     */
-    private static class ReplicatableContinuation implements Serializable
-    {
-        private static final long serialVersionUID = 1L;
-
-        private transient HttpSessionFlowStateStorage storage;
-        private transient Object state;
-
-        ReplicatableContinuation(HttpSessionFlowStateStorage storage, 
-                Object state)
-        {
-            setContinuation(storage, state);
-        }
-        
-        void setContinuation(HttpSessionFlowStateStorage storage, 
-                Object state)
-        {
-            this.storage = storage;
-            this.state = state;
-        }
-        
-        Object getContinuation()
-        {
-            return state;
-        }
-        
-        private void readObject(ObjectInputStream in) throws IOException, 
-        ClassNotFoundException
-        {
-            state = in.readObject();
-        }
-        
-        private void writeObject(ObjectOutputStream out) throws IOException
-        {
-            if(state instanceof LocallySerializedContinuation)
-            {
-                // Already serialized -- just write it as is
-                out.writeObject(state);
-            }
-            else if(state instanceof Continuation)
-            {
-                try
-                {
-                    // Not serialized yet -- use the storage to serialize it
-                    // first
-                    out.writeObject(storage.serializeContinuationAccessor(
-                            (Continuation)state));
-                }
-                catch(IOException e)
-                {
-                    throw e;
-                }
-                catch(RuntimeException e)
-                {
-                    throw e;
-                }
-                catch(Exception e)
-                {
-                    throw new UndeclaredThrowableException(e);
-                }
-            }
-            else
-            {
-                throw new AssertionError();
-            }
-        }
     }
     
     private static class LocallySerializedContinuation implements Serializable
