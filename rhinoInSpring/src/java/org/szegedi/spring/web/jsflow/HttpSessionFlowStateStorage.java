@@ -243,30 +243,35 @@ implements FlowStateStorage
     private Map getStateMap(HttpServletRequest request, boolean create)
     {
         HttpSession session = request.getSession(create);
-        if(session == null)
-        {
+        if(session == null) {
             return null;
         }
         Map m = (Map)session.getAttribute(MAP_KEY);
-        if(m == null)
-        {
-            synchronized(session)
-            {
+        if(m == null) {
+            synchronized(session) {
                 m = (Map)session.getAttribute(MAP_KEY);
-                if(m == null)
-                {
-                    m = new LinkedHashMap(maxStates * 4 / 3, .75f, true)
-                    {
-                        protected boolean removeEldestEntry(Entry eldest)
-                        {
-                            return size() > maxStates;
-                        }
-                    };
+                if(m == null) {
+                    m = new SizeLimitedLinkedHashMap(maxStates);
                     session.setAttribute(MAP_KEY, m);
                 }
             }
         }
         return m;
+    }
+    
+    private static class SizeLimitedLinkedHashMap extends LinkedHashMap
+    {
+        private static final long serialVersionUID = 1L;
+        private final int maxSize;
+        
+        public SizeLimitedLinkedHashMap(int maxSize) {
+            super(maxSize * 4 / 3, .75f, true);
+            this.maxSize = maxSize;
+        }
+
+        protected boolean removeEldestEntry(Entry eldest) {
+            return size() > maxSize;
+        }
     }
     
     /**
