@@ -17,7 +17,7 @@
 <!-- $Id$ -->
 
 <project basedir="." default="jar" name="rhino-in-spring">
-    <property name="version" value="1.1.1"/>
+    <property name="version" value="1.1.2"/>
 
     <path id="build.class.path">
         <pathelement path="src"/>
@@ -36,7 +36,7 @@
 
     <target name="compile" depends="init">
         <mkdir dir="build/classes"/>
-        <javac srcdir="src" destdir="build/classes" classpathref="build.class.path" debug="true"/>
+        <javac srcdir="src/java" excludes="org/szegedi/spring/webflow/*.java" destdir="build/classes" classpathref="build.class.path" debug="true"/>
     </target>
 
     <target name="jar" depends="compile">
@@ -49,8 +49,19 @@
         <jar basedir="build/classes" jarfile="${jarfile}">
             <manifest>
                 <attribute name="Implementation-Title" value="Rhino in Spring"/>
-                <attribute name="Implementation-Version" value="1.0"/>
+                <attribute name="Implementation-Version" value="${version}"/>
                 <attribute name="Implementation-Vendor" value="Attila Szegedi"/>
+            </manifest>
+        </jar>
+        <property name="tc-jarfile" location="build/rhinoInSpring-tc-config-${version}.jar"/>
+        <jar basedir="src/terracotta" jarfile="${tc-jarfile}">
+            <manifest>
+            	<attribute name="Bundle-Description" value="Terracotta configuration module for Rhino-in-Spring"/>
+            	<attribute name="Bundle-DocURL" value="http://rhinoinspring.sourceforge.net/terracotta/configModule.html"/>
+            	<attribute name="Bundle-Name" value="TC config_module for Rhino-in-Spring"/>
+            	<attribute name="Bundle-SymbolicName" value="org.szegedi.spring.jsflow.terracotta.config_module"/>
+            	<attribute name="Bundle-Vendor" value="Attila Szegedi"/>
+            	<attribute name="Bundle-Version" value="${version}"/>
             </manifest>
         </jar>
     </target>
