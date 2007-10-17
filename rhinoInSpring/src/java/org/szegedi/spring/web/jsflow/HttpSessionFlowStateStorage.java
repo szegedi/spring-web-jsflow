@@ -167,6 +167,14 @@ implements FlowStateStorage
                 {
                     stateMap.put(id, new LocallySerializedContinuation(
                             serialized, stubsToFunctions));
+                    // NOTE: this works because stateMap is a LinkedHashMap.
+                    // Ordinarily, we'd subclass it and override 
+                    // removeEldestEntry(). Unfortunately, subclassing 
+                    // logically managed classes and overriding their protected
+                    // methods is disallowed in Terracotta
+                    while(stateMap.size() > maxStates) {
+                        stateMap.entrySet().iterator().remove();
+                    }
                     break;
                 }
             }
@@ -251,27 +259,12 @@ implements FlowStateStorage
             synchronized(session) {
                 m = (Map)session.getAttribute(MAP_KEY);
                 if(m == null) {
-                    m = new SizeLimitedLinkedHashMap(maxStates);
+                    m = new LinkedHashMap(maxStates);
                     session.setAttribute(MAP_KEY, m);
                 }
             }
         }
         return m;
-    }
-    
-    private static class SizeLimitedLinkedHashMap extends LinkedHashMap
-    {
-        private static final long serialVersionUID = 1L;
-        private final int maxSize;
-        
-        public SizeLimitedLinkedHashMap(int maxSize) {
-            super(maxSize * 4 / 3, .75f, true);
-            this.maxSize = maxSize;
-        }
-
-        protected boolean removeEldestEntry(Entry eldest) {
-            return size() > maxSize;
-        }
     }
     
     /**
