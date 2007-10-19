@@ -4,9 +4,6 @@
     <include>
       <class-expression>org.szegedi.spring.web.jsflow.HttpSessionFlowStateStorage$LocallySerializedContinuation</class-expression>
     </include>
-    <include>
-      <class-expression>org.szegedi.spring.web.jsflow.HttpSessionFlowStateStorage$SizeLimitedLinkedHashMap</class-expression>
-    </include>
   </instrumented-classes>
   <transient-fields>
     <field-name>org.szegedi.spring.web.jsflow.HttpSessionFlowStateStorage$LocallySerializedContinuation.stubsToFunctions</field-name>
