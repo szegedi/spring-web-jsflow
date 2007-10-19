@@ -119,8 +119,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
         out.writeObject(FunctionFingerprintManager.getFingerprints(state));
         out.writeObject(state);
         out.close();
-        byte[] b = bout.toByteArray();
-        return b;
+        return bout.toByteArray();
     }
     
     /**
