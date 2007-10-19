@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
-import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -217,7 +216,7 @@ implements FlowStateStorage
     private Continuation getContinuation(LocallySerializedContinuation lsc, HttpSession session) 
     throws Exception, AssertionError
     {
-        final Map stubsToFunctions = lsc.stubsToFunctions;
+        final Map stubsToFunctions = lsc.getStubsToFunctions();
         StubResolver stubResolver;
         if(session != null) {
             stubResolver = (StubResolver)session.getAttribute(STUB_RESOLVER_KEY);
@@ -245,7 +244,7 @@ implements FlowStateStorage
             };
         }
         
-        return deserializeContinuation(lsc.serializedState, stubResolver);
+        return deserializeContinuation(lsc.getSerializedState(), stubResolver);
     }
     
     private Map getStateMap(HttpServletRequest request, boolean create)
@@ -321,13 +320,23 @@ implements FlowStateStorage
     {
         private static final long serialVersionUID = 1L;
 
-        final byte[] serializedState;
-        transient final Map stubsToFunctions;
+        private final byte[] serializedState;
+        private transient final Map stubsToFunctions;
         
         LocallySerializedContinuation(byte[] serializedState, Map stubsToFunctions)
         {
             this.serializedState = serializedState;
             this.stubsToFunctions = stubsToFunctions;
+        }
+        
+        byte[] getSerializedState()
+        {
+            return serializedState;
+        }
+        
+        Map getStubsToFunctions()
+        {
+            return stubsToFunctions;
         }
     }
 }
