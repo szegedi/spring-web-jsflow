@@ -204,12 +204,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                             }
                             else if(scriptSpec instanceof Resource) {
                                 Resource r = (Resource)scriptSpec;
-                                try {
-                                    path = r.getURL().toExternalForm();
-                                }
-                                catch(FileNotFoundException e) {
-                                    path = "~libraryScript[" + i + "].js";
-                                }
+                                path = r.getDescription();
                                 s = loadScript(r, path);
                             }
                             else if(scriptSpec instanceof Script) {
