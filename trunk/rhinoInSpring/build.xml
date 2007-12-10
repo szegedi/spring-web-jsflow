@@ -37,15 +37,15 @@
     <target name="compile" depends="init">
         <mkdir dir="build/classes"/>
         <javac srcdir="src/java" excludes="org/szegedi/spring/webflow/*.java" destdir="build/classes" classpathref="build.class.path" debug="true"/>
-    </target>
-
-    <target name="jar" depends="compile">
-        <property name="jarfile" location="build/rhinoInSpring-${version}.jar"/>
         <mkdir dir="build/classes"/>
         <copy toDir="build/classes">
             <fileset dir="src/java"
             excludes="**/CVS/**,**/*.bak,**/*.java,**/package.html"/>
         </copy>
+    </target>
+
+    <target name="jar" depends="compile">
+        <property name="jarfile" location="build/rhinoInSpring-${version}.jar"/>
         <jar basedir="build/classes" jarfile="${jarfile}">
             <manifest>
                 <attribute name="Implementation-Title" value="Rhino in Spring"/>

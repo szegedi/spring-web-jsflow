@@ -112,6 +112,7 @@ implements FlowStateStorage
      * objects
      * @param session the HttpSession to bind the provider into
      * @param provider the provider
+     * @since 1.2
      */
     public static void bindStubProvider(HttpSession session, StubProvider provider)
     {
@@ -124,6 +125,7 @@ implements FlowStateStorage
      * objects
      * @param session the HttpSession to bind the resolver into
      * @param resolver the resolver
+     * @since 1.2
      */
     public static void bindStubResolver(HttpSession session, StubResolver resolver)
     {

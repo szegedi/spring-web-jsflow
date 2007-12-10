@@ -81,6 +81,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
      * Sets the character encoding used to load scripts' source code. Defaults
      * to the value of the system property <code>file.encoding</code>.
      * @param scriptCharacterEncoding
+     * @since 1.2 
      */
     public void setScriptCharacterEncoding(String scriptCharacterEncoding)
     {
@@ -137,7 +138,8 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
      * @param libraryScripts the list of additional library scripts. Each 
      * element can be a string (will resolve to a path as per 
      * {@link #setResourceLoader(ResourceLoader)} and {@link #setPrefix(String)}),
-     * a {@link Resource}, or a {@link Script}. 
+     * a {@link Resource}, or a {@link Script}.
+     * @since 1.2 
      */
     public void setLibraryScripts(List libraryScripts)
     {

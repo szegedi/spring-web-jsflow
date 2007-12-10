@@ -2,6 +2,13 @@ RHINO-IN-SPRING CHANGELOG
 =========================
 http://rhinoinspring.sourceforge.net
 
+Changes in version 1.2 (??.??.200?)
+
+* Rhino-in-Spring can now be used in web applications load-balanced using Terracotta  
+* Added setScriptCharacterEncoding method to ScriptStorage to allow for explicit charsets when loading scripts
+* Added setLibraryScripts method to ScriptStorage for easier library customization
+* Added support for application-specific serialization stubs, see bindStubProvider() and bindStubResolver() methods in HttpSessionFlowStateStorage
+ 
 Changes in version 1.1.1 (30.03.2007)
 -------------------------------------
 Package org.szegedi.spring.web.jsflow
