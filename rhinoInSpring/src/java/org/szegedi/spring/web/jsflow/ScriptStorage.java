@@ -74,8 +74,18 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     private Map functionsToStubs = Collections.EMPTY_MAP;
     private Map stubsToFunctions = Collections.EMPTY_MAP;
     private final Object lock = new Object();
-
+    private String scriptCharacterEncoding = System.getProperty("file.encoding");
     private final ScriptableObject library = new NativeObject();
+    
+    /**
+     * Sets the character encoding used to load scripts' source code. Defaults
+     * to the value of the system property <code>file.encoding</code>.
+     * @param scriptCharacterEncoding
+     */
+    public void setScriptCharacterEncoding(String scriptCharacterEncoding)
+    {
+        this.scriptCharacterEncoding = scriptCharacterEncoding;
+    }
     
     /**
      * Sets the resource loader for this storage. The resource loader will be 
@@ -381,7 +391,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
             String path)
     throws IOException
     {
-        final Reader r = new InputStreamReader(in);
+        final Reader r = new InputStreamReader(in, scriptCharacterEncoding);
         try
         {
             Object securityDomain = securityDomainFactory == null ? null : 
