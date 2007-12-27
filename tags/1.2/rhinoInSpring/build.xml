@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Copyright 2006 Attila Szegedi
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<!-- $Id$ -->
+
+<project basedir="." default="jar" name="rhino-in-spring">
+    <property name="version" value="1.2"/>
+
+    <path id="build.class.path">
+        <pathelement path="src"/>
+        <fileset dir="lib">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="clean">
+        <delete dir="build" excludes="build/eclipse/**/*"/>
+    </target>
+
+    <target name="init">
+        <mkdir dir="build"/>
+    </target>
+
+    <target name="compile" depends="init">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src/java" excludes="org/szegedi/spring/webflow/*.java" destdir="build/classes" classpathref="build.class.path" debug="true"/>
+        <mkdir dir="build/classes"/>
+        <copy toDir="build/classes">
+            <fileset dir="src/java"
+            excludes="**/CVS/**,**/*.bak,**/*.java,**/package.html"/>
+        </copy>
+    </target>
+
+    <target name="jar" depends="compile">
+        <property name="jarfile" location="build/rhinoInSpring-${version}.jar"/>
+        <jar basedir="build/classes" jarfile="${jarfile}">
+            <manifest>
+                <attribute name="Implementation-Title" value="Rhino in Spring"/>
+                <attribute name="Implementation-Version" value="${version}"/>
+                <attribute name="Implementation-Vendor" value="Attila Szegedi"/>
+            </manifest>
+        </jar>
+        <property name="tc-jarfile" location="build/rhinoInSpring-tc-config-${version}.jar"/>
+        <jar basedir="src/terracotta" jarfile="${tc-jarfile}">
+            <manifest>
+            	<attribute name="Bundle-Description" value="Terracotta configuration module for Rhino-in-Spring"/>
+            	<attribute name="Bundle-DocURL" value="http://rhinoinspring.sourceforge.net/terracotta/configModule.html"/>
+            	<attribute name="Bundle-Name" value="TC config_module for Rhino-in-Spring"/>
+            	<attribute name="Bundle-SymbolicName" value="org.szegedi.spring.jsflow.terracotta.config_module"/>
+            	<attribute name="Bundle-Vendor" value="Attila Szegedi"/>
+            	<attribute name="Bundle-Version" value="${version}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <target name="example" depends="jar">
+        <mkdir dir="build/example"/>
+        <copy toDir="build/example">
+            <fileset dir="src/example" excludes="**/CVS/**,**/*.bak"/>
+        </copy>
+        <copy toDir="build/example/WEB-INF/lib">
+            <fileset dir="lib" excludes="javax.servlet.jar"/>
+        </copy>
+        <copy toDir="build/example/WEB-INF/lib" file="${jarfile}"/>
+    </target>
+
+    <target name="javadoc" depends="init">
+        <mkdir dir="build/web/javadoc"/>
+        <javadoc sourcepath="src/java" author="true" use="true"
+            classpathref="build.class.path" packagenames="org.szegedi.*"
+            doctitle="Rhino in Spring" destdir="build/web/javadoc"/>
+    </target>
+
+    <target name="web" depends="javadoc">
+        <copy toDir="build/web">
+            <fileset dir="src/web" excludes="**/CVS/**,**/*.bak"/>
+        </copy>
+    	<copy toDir="build/web" file="changelog.txt"/>
+    </target>
+
+    <target name="dist" depends="clean,jar,web">
+        <property name="distdir" location="build/rhinoInSpring-${version}"/>
+        <mkdir dir="${distdir}/src"/>
+        <copy toDir="${distdir}" file="changelog.txt"/>
+        <copy toDir="${distdir}" file="LICENSE.txt"/>
+        <copy toDir="${distdir}" file="build.xml"/>
+        <copy toDir="${distdir}/src">
+            <fileset dir="src" excludes="**/CVS/**,**/*.bak"/>
+        </copy>
+        <mkdir dir="${distdir}/build"/>
+        <copy toDir="${distdir}/build" file="${jarfile}"/>
+        <copy toDir="${distdir}/build" file="${tc-jarfile}"/>
+        <mkdir dir="${distdir}/web"/>
+        <copy toDir="${distdir}/web">
+            <fileset dir="build/web" excludes="**/CVS/**,**/*.bak"/>
+        </copy>
+        <mkdir dir="${distdir}/lib"/>
+        <copy toDir="${distdir}/lib">
+            <fileset dir="lib" excludes="**/CVS/**,**/*.bak,**/spring-webflow*"/>
+        </copy>
+        <tar destfile="build/rhinoInSpring-${version}.tgz" compression="gzip" 
+            basedir="build" includes="rhinoInSpring-${version}/**"/>
+        <tar destfile="build/web.tgz" compression="gzip" basedir="build/web"/>
+    </target>
+
+    <target name="dist-nodep" depends="dist">
+        <tar destfile="build/rhinoInSpring-nodep-${version}.tgz" compression="gzip" 
+            basedir="build" includes="rhinoInSpring-${version}/**/*" 
+            excludes="
+                rhinoInSpring-${version}/lib/javax.servlet.jar
+                rhinoInSpring-${version}/lib/spring*.jar 
+                rhinoInSpring-${version}/src/example/WEB-INF/lib/freemarker.jar"/>
+    </target>
+</project>

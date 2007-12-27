@@ -1,0 +1,394 @@
+<html>
+  <head>
+    <title>JavaScript Web Flow for Spring</title>
+  </head>
+  <body>
+    <table width="100%" border="0">
+      <tr>
+        <td valign="top">
+          <table border=0 cellspacing=1 cellpadding=2>
+            <tr><td bgcolor="#70B070"><a href="index.html">About</a></td></tr>
+            <tr><td bgcolor="#90D090">&nbsp;&nbsp;<a href="index.html#whatIsIt">What&nbsp;is&nbsp;it?</a></td></tr>
+            <tr><td bgcolor="#90D090">&nbsp;&nbsp;<a href="index.html#availableComponents">Available&nbsp;components</a></td></tr>
+            <tr><td bgcolor="#B0F0B0">&nbsp;&nbsp;&nbsp;&nbsp;<a href="webflow.html">JavaScript&nbsp;Web&nbsp;Flow&nbsp;for&nbsp;Spring</a></td></tr>
+            <tr><td bgcolor="#BFFFBF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="webflow-tutorial.html">Webflow tutorial</a></td></tr>
+            <tr><td bgcolor="#90D090">&nbsp;&nbsp;<a href="index.html#download">Download</a></td></tr>
+            <tr><td bgcolor="#90D090">&nbsp;&nbsp;<a href="javadoc/index.html">JavaDoc</a></td></tr>
+            <tr><td bgcolor="#90D090">&nbsp;&nbsp;<a href="index.html#licensing">Licensing</a></td></tr>
+            <tr><td bgcolor="#90D090">&nbsp;&nbsp;<a href="index.html#whoWeAre">Who&nbsp;we&nbsp;are</a></td></tr>
+
+            <tr><td bgcolor="#70B070"><a href="http://sourceforge.net/projects/rhinoinspring/">SourceForge&nbsp;project&nbsp;page</a></td></tr>
+          </table>
+        </td>
+        <td>
+    <h1>JavaScript Web Flow Tutorial</h1>
+    <h2>Prerequisites</h2>
+    <p>
+      You are expected to be familiar with Spring MVC and JavaScript. To build
+      the example, you need to download the Rhino in Spring distribution, and
+      build it running <tt>"ant example"</tt> from its root directory. You will
+      find the built web application inside the <tt>build/example</tt> 
+      directory. 
+    </p> 
+    <h2>Configuring the web application</h2>
+    <p>
+      In its simplest setup, you need to add an instance of the Spring's default
+      dispatch servlet to your web application, just as you would with any
+      Spring based web application. The relevant section of our example 
+      <tt>web.xml</tt> looks like this: 
+    </p>   
+
+<table border="1"><tr><td><pre>
+&lt;servlet>
+    &lt;servlet-name>rhinoInSpring&lt;/servlet-name>
+    &lt;servlet-class>org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class>
+&lt;/servlet>
+
+&lt;servlet-mapping>
+    &lt;servlet-name>rhinoInSpring&lt;/servlet-name>
+    &lt;url-pattern>*.js&lt;/url-pattern>
+&lt;/servlet-mapping>
+</pre></td></tr></table>
+
+    <p>
+      This sets up a Spring dispatcher servlet to be configured from the
+      <tt>rhinoInSpring-servlet.xml</tt> bean factory and to have all requests
+      ending with <tt>.js</tt> forwared to it (since our controllers are
+      JavaScript programs) - a quite standard setup for a Spring controller.
+    </p><p>
+      Next, the <tt>rhinoInSpring-servlet.xml</tt>. In its very simplest form, 
+      this is all you need to add to it to get the default functionality:
+    </p>
+      
+<table border="1"><tr><td><pre>
+  &lt;bean name="/*" class="org.szegedi.spring.web.jsflow.FlowController"/>
+</pre></td></tr></table>
+
+    <p>
+      You will of course need to include some view resolver as well (in our
+      example, we used the <a href="http://freemarker.sourceforge.net">
+      FreeMarker</a> template engine for views, because we're JSP illiterate.
+      You can of course use JSP, Velocity, or any other view technology 
+      supported by Spring.
+    </p><p>
+      There is also a strong chance that you will need to keep the Rhino context
+      used by the controller for the duration of view rendering. If you used 
+      Spring with Hibernate, you are already familiar with the concept - it is 
+      named "OpenSessionInViewInterceptor" there, and our equivalent is 
+      "OpenContextInViewInterceptor". To add it to your dispatcher XML, you need
+      to copy these lines:
+    </p>
+      
+<table border="1"><tr><td><pre>
+&lt;bean name="handlerMapping" class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
+  &lt;property name="interceptors">
+    &lt;list>
+      &lt;bean class="org.szegedi.spring.web.jsflow.OpenContextInViewInterceptor"/>
+    &lt;/list>
+  &lt;/property>
+&lt;/bean>
+</pre></td></tr></table>
+
+    <p>
+      (Of course, if you have a more complex Spring application, you might 
+      already have interceptors set up - then just add this one to the list).
+    </p>
+    <h2>Writing scripts and views</h2>
+    <p>
+      With this setup, you can place a <tt>.js</tt> file anywhere in your web
+      application, and if you point your browser at it, it'll start running. 
+      Let's take a look at <tt>calculator.js</tt> in the example directory. It 
+      looks like this (with interesting pieces in red):
+    </p>
+      
+<table border="1"><tr><td><pre>
+var tape = new Array();
+tape[0] = 0;
+for(;;)
+{
+    <font color="red">respondAndWait("calculator", { tape: tape });</font>
+    var operand1 = tape[tape.length - 1];
+    try
+    {
+        var operation = 
+            <font color="red">request.getParameter("operator") + " " + 
+            request.getParameter("operand");</font>
+           
+        tape[tape.length] = "&nbsp;&nbsp;" + operation;
+        tape[tape.length] = eval(operand1 + " " + operation);
+    }
+    catch(e)
+    {
+        tape[tape.length] = "&nbsp;&nbsp;Error: " + e.message;
+        tape[tape.length] = operand1;
+    }
+}
+</pre></td></tr></table>
+
+    <p>
+      This is basically an infinite loop that keeps adding numbers to a list 
+      named "tape", thus emulating an old type calculator that kept the trail
+      of the whole calculation on a roll of paper. The <tt>respondAndWait()</tt>
+      function will send a response to the user's browser. Here, we're telling
+      it to send back the view named "calculator" (this gets mapped by our
+      FreeMarker view resolver to "calculator.ftl", but if you used JSP, it'd
+      get mapped to "calculator.jsp"), and send it a data model - a map, 
+      essentially - with a single element named "tape" whose value is the tape
+      variable. Then the <tt>respondAndWait()</tt> will stop and wait for the
+      next request to come in from the browser. The currently processed 
+      HttpServletRequest object is always available in the "request" variable.
+      Let's take a look at the view now. (Apologies if you don't read 
+      FreeMarker Template Language, but there really isn't much of it in there,
+      it's mostly HTML):
+    </p>
+
+<table border="1"><tr><td><pre>
+&lt;html>
+  &lt;head>
+    &lt;title>Tape calculator&lt;/title>
+  &lt;/head>
+  &lt;body>
+    &lt;center>
+    &lt;h1>Tape calculator&lt;/h1>
+    &lt;p>Emulates a calculator that prints each operation on a tape. Enter an 
+    operation and a number. You can use the browser's back button
+    to step back as far as you want and continue from there, or you can 
+    duplicate browser windows to split the calculation into multiple independent
+    calculations as you wish.&lt;/p>
+    &lt;hr>
+<font color="red">    [#foreach item in tape]
+    &lt;p>${item}&lt;/p>
+    [/#foreach]</font>
+    &lt;hr>
+    &lt;form method="POST" <font color="red">action="calculator.js"</font>>
+<font color="red">      &lt;input type="hidden" name="stateId" value="${stateId}"></font>
+      &lt;table border="0">
+        &lt;tr>&lt;td>Operation:&lt;/td>&lt;td>
+          &lt;select <font color="red">name="operator"></font>
+            &lt;option>+&lt;/option>
+            &lt;option>-&lt;/option>
+            &lt;option>*&lt;/option>
+            &lt;option>/&lt;/option>
+          &lt;/select>&lt;/td>&lt;/tr>
+        &lt;tr>&lt;td>Number:&lt;/td>&lt;td>&lt;input type="text" <font color="red">name="operand"</font>>&lt;/td>&lt;/tr>
+        &lt;tr>&lt;td colspan="2">&lt;input type="submit" value="Calculate">&lt;/td>&lt;/tr>
+      &lt;/table>
+    &lt;/form>
+    &lt;/center>
+  &lt;/body>
+&lt;/html> </pre></td></tr></table>
+
+    <p>
+      First, you see a FreeMarker "foreach" directive that'll list all the items
+      in the tape on a separate line. Our flow controller takes proper care to
+      let the views see JavaScript native arrays as Java Lists and JavaScript 
+      native objects as Maps. JavaScript numbers and booleans show up as Java
+      Double and Boolean instances, JavaScript strings as Java Strings. It is 
+      all rather intuitive. Also, if you somehow create or get a Java object 
+      inside your script and pass it to the view, it'll go through unchanged.
+      Next, we see how you are expected to create the next request. You see that
+      we are sending to the same script - the action of the form element is the 
+      same <tt>"calculator.js"</tt>. However, there is a hiden field named 
+      <tt>"stateId"</tt> whose value is passed to the view as a data model 
+      variable with the identical name (hence <tt>${stateId}</tt> will render
+      it in FreeMarker into the output HTML page). This state ID is what 
+      connects this page with the script state on the server. Also, the script
+      uses two request parameters named <tt>"operator"</tt> and 
+      <tt>"operand"</tt> , they're created as a drop-down select and a text 
+      field respectively. When the user submits the request, the script state
+      on the server wakes up and returns from the <tt>respondAndWait()</tt> 
+      call. Let's continue examining the script now.
+    </p><p>
+      Now, it is stunningly simple, really. It retrieves the two request 
+      parameters, builds a string concatenating the last entry on the tape with
+      the new operator and new operand, and uses JavaScript <tt>eval()</tt>
+      function to evaluate the new expression. Then it appends the new operation
+      as well as the result to the end of the tape, and loops back to 
+      <tt>respondAndWait()</tt>. If an error occurs, it appends the error 
+      message to the tape, and also appends the last good value. That's all!
+    </p>
+    <h2>The real fun begins - Running it all</h2>
+    <p>
+      By now, you have hopefully built the example, and mapped the 
+      <tt>build/example</tt> directory to your servlet container of choice. Go
+      and point your browser at the <tt>calculator.js</tt>, and enter few 
+      values through several request/response cycles.
+    </p><p>
+      Now the fun begins.
+    </p><p>
+      Go back a few steps using your browser's back button, and continue from 
+      there. It works from the point where you backed to. Note: you didn't have
+      to take care of synchronizing the browser state and the server state, by
+      providing custom "back" links or buttons. Your users can freely use the 
+      browser's back button.
+    </p><p>
+      Open a new window from an existing state ("File->New Window" in IE or 
+      Fireox, or "Window->Duplicate" in Opera), and continue from there. Now
+      return to the original window and contine from there. See how each window
+      correctly has its own state - common up to the point of the duplication,
+      but separate after that. Play with the back button and new windows freely
+      as you wish, and see how the server always catches up with the correct
+      state in each window, no matter how many times you split the calculation
+      in two again (by duplicating a window) or roll back the calculation (by
+      going back with the browser's back button).
+    </p><p>
+      And now realize that you didn't do anything special to support the user
+      wandering through your webapp in multiple windows, going back and forth in
+      them. For all you know, you just coded a single, linearly executing 
+      infinite loop!
+    </p>
+    <h2>Advanced concepts</h2>
+    <h3>State storage</h3>
+    <p>
+      By default, the flowstates between two requests are stored in a map
+      that is bound to the HTTP session. This is implemented by the class
+      <tt><a href="javadoc/org/szegedi/spring/web/jsflow/HttpSessionFlowStateStorage.html">HttpSessionFlowStateStorage</a></tt>
+      but you needn't specify it as it is the default created by the flow 
+      controller when no other is found in the dispatch XML. By default, the 
+      states for the 100 most recent request for every session are being stored.
+    </p><p>
+      Another option is to store the states in a JDBC database. For this to 
+      work, you will have to explicitly create an instance of
+      <tt><a href="javadoc/org/szegedi/spring/web/jsflow/JdbcFlowStateStorage.html">JdbcFlowStateStorage</a></tt>.
+      There is a commented-out one in the dispatch XML of the example web 
+      application - you can use it to get started, although you'll probably 
+      want to replace the data source with some connection pooling 
+      implementation such as Apache DBCP for a real-world application.
+     </p><p>
+       Yet another option is to store the states in the HTML page generated in
+       the response. This is achieved by using an instance of 
+      <tt><a href="javadoc/org/szegedi/spring/web/jsflow/ClientSideFlowStateStorage.html">ClientSideFlowStateStorage</a></tt>.
+      In this case, the <tt>stateId</tt> variable available to views is not an 
+      ID at all, but rather it is a full (textually encoded) representation of 
+      the state! It achieves unparalleled scalability, as <i>zero</i> state has
+      to be stored on the server! Of course, entrusting the client to store the
+      state can have potential security implications, so we provide full 
+      support for compression, encryption, and digital signing of the flow 
+      states to prevent the clients from tampering with them - you can employ 
+      any, all, or none of these features, of course. You can find several 
+      commented examples in the example dispatcher XML for it. One thing to pay
+      attention to is that you should really use HTML forms with POST method to
+      send the next request to the server with client-side state storage - you 
+      don't want few kilobytes worth of an encoded state showing up in the 
+      query string of the URL.
+    </p>
+    <h3>Includes</h3>
+    <p>
+      There is a built-in function named <tt>include()</tt> that takes one 
+      string as a parameter, interprets it as a path to a script, and executes
+      that script in place. It is very handy for creating libraries of reusable
+      functions that you can include from any other script. A path starting 
+      with <tt>/</tt> character is interpreted as an absolute path (relative to
+      the root of the utilized resource loader, that is), while a path starting
+      with any other character is a path relative to the including script, and
+      can start with any number of <tt>../</tt> components to ascend to parent
+      directories.
+    </p>
+    <h3>Sharing data</h3>
+    <p>
+      The natural way to share data across different flowstates is the 
+      progression of local variables from one flowstate to the one(s) that 
+      continue(s) it. All variables are deeply copied from one state to the 
+      other, by virtue of whole state being serialized and then deserialized,
+      so i.e. changing an array element in a later flowstate doesn't affect the 
+      earlier flowstate at all - if you go back to it using the browser's back
+      button and progress from there, it'll be as it ever was. There are 
+      situations where you need to share data with other flowstates, either in
+      the same or in different scripts. I.e. backing to and continuing from 
+      halfway of a checkout process in a webshop after it was already completed 
+      once might be a bad idea. When writing such an application, you'll want to
+      check after each wakeup from <tt>respondAndWait()</tt> whether certain 
+      assumptions still hold (i.e. basket is not yet purchased). For this, you
+      can use any of the usual venues: HTTP session attributes, servlet context
+      attributes, beans in the Spring application context, or maybe the best of
+      all, queries against a relational database (either JDBC or some ORM, say
+      Hibernate).
+    </p>
+    <h3>Context demarcation</h3>
+    <p>
+      If you're using interceptors or servlet filters to govern JDBC connection,
+      Hibernate session, or some similar resource's lifetime, you must be aware
+      when you code your scripts that your connections/sessions/etc. will get
+      closed (flushed/committed/rolled back based on how everything's externally
+      configured)  whenever you invoke <tt>wait()</tt> or <tt>respondAndWait()</tt>,
+      and newly reopened when the call returns with a new request. Just remember
+      to structure your code accordingly.
+    </p>
+    <h3>finally blocks</h3>
+    <p>
+      In Rhino, all open <tt>finally</tt> blocks execute even when the execution
+      temporarily suspends because of a <tt>wait()</tt> or 
+      <tt>respondAndWait()</tt> invocation. To help you differentiate in your
+      <tt>finally</tt> blocks between the real final execution of the block and
+      the "bogus" one (it has its usages, though) there is a <tt>isGoingToWait()</tt>
+      function that returns true when the flow is going to wait, and false when
+      it is not.
+    </p>
+    <h3>Using custom Rhino context factories</h3>
+    <p>
+      Rhino allow many aspects of its operation to be customized using a 
+      ContextFactory object. Rhino has a singleton global ContextFactory, but
+      we discourage its use, as any global singletons are by their nature bad
+      from the maintenance perspective. Rather, you can install a 
+      ContextFactory into either OpenContextInViewInterceptor or into the
+      FlowController.
+    </p>
+    <a name="terracotta"><h3>Clustering with Terracotta</h3></a>
+    <p>
+      Starting with version 1.2, Rhino-in-Spring's HTTP session storage is 
+      fully clusterable using <a href="http://www.terracotta.org">Terracotta</a>.
+      The distribution includes a <code>rhinoInSpring-tc-config-1.2.jar</code>
+      that is a Terracotta configuration module - you just need to reference it
+      from your Terracotta configuration file, and it is ready to go. No 
+      further setup is necessary.
+    </p>
+    <h3>What's in the serialized state</h3>
+    <p>
+      You might wonder what is stored in the serialized flowstate. In short, 
+      every variable that is reachable from the script's global scope, as well 
+      as all local variables in all call frames currently on the stack. There 
+      are few exceptions though. The system recognizes several objects that are
+      considered shared, and during serialization these objects are replaced 
+      with stubs. Then, when the flowstate is deserialized (because it received
+      the next request), the stubs are resolved back to the shared objects, 
+      avoiding duplication. The following objects are stubbed:
+      <ul>
+        <li>the application context object</li>
+        <li>all named beans in the application context object and its ancestors</li>
+        <li>all objects representing JavaScript functions</li>
+        <li>all standard JavaScript global objects (Number, String, RegExp, etc.)</li>
+      </ul>
+      This means that even if you keep a reference to, say, 
+      <tt>applicationContext.getBean("foo")</tt> in a local variable between 
+      waits, it won't get duplicated, but rather it won't be serialized at all
+      and will be rebound to the correct bean next time it is deserialized.
+      However, it is important to notice that no other objects are stubbed, 
+      including the following:
+      <ul>
+        <li>HTTP session or its attributes</li>
+        <li>HTTP servlet context or its attributes (although the variable 
+        "servletContext" is specially managed - it'll work okay, but don't 
+        assign it to a variable with some other name)</li>
+        <li>Any other objects that you can obtain from any of the otherwise
+        stubbed object, i.e. application context's parents, or unmanaged objects
+        in general returned by various methods of stubbed beans. I.e. in <br />
+        <tt>var x = applicationContext.getBean("foo").getBaz()</tt><br />
+        the object bound to <tt>x</tt> won't be stubbed. Notice it's okay for it
+        to merely exist within the "foo" bean - as the "foo" bean is stubbed, 
+        serialization graph will stop at it and none of its internal objects 
+        will get serialized either. You just shouldn't forget a reference to it 
+        in a local variable, as that new reference will cause it to become 
+        directly reachable beyond stub and serialized. In best case, this'll
+        lead to duplication of objects upon deserialization. In worst case, the
+        newly reachable object isn't serializable at all and throws an exception.
+        </li>
+      </ul>
+      However, starting with version 1.2, you can add application-specific stub
+      providers and resolvers to the HTTP session, using the <code>bindStubProvider</code>
+      and <code>bindStubResolver</code> methods on the <code>HttpSessionFlowStateStorage</code>.
+      By using these objects, you can provide the stubbing functionality for 
+      any further application-specific objects.
+    </p>
+     </td></tr></table>
+  </body>
+</html>

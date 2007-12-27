@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/js.jar" sourcepath="/Rhino/src"/>
+	<classpathentry kind="lib" path="lib/javax.servlet.jar"/>
+	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
+	<classpathentry kind="lib" path="lib/spring.jar" sourcepath="/Users/aszegedi.noenc/sw/spring-framework-2.0.6/dist/spring-src.zip"/>
+	<classpathentry kind="lib" path="/Users/aszegedi.noenc/sw/spring-webflow-1.0.4/spring-webflow-1.0.4.jar" sourcepath="/Users/aszegedi.noenc/sw/spring-webflow-1.0.4/spring-webflow-src-1.0.4.zip"/>
+	<classpathentry kind="output" path="build/eclipse"/>
+</classpath>
