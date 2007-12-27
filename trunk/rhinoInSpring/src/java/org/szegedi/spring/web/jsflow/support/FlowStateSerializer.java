@@ -296,6 +296,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
      * stubs.
      * @author Attila Szegedi
      * @version $Id: $
+     * @since 1.2
      */
     public static interface StubProvider
     {
@@ -313,6 +314,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
      * stubs.
      * @author Attila Szegedi
      * @version $Id: $
+     * @since 1.2
      */
     public static interface StubResolver
     {

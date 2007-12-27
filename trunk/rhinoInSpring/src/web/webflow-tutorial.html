@@ -38,17 +38,17 @@
       <tt>web.xml</tt> looks like this: 
     </p>   
 
-<table border="1"><tr><td><pre><![CDATA[
-    <servlet>
-        <servlet-name>rhinoInSpring</servlet-name>
-        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-    </servlet>
+<table border="1"><tr><td><pre>
+&lt;servlet>
+    &lt;servlet-name>rhinoInSpring&lt;/servlet-name>
+    &lt;servlet-class>org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class>
+&lt;/servlet>
 
-    <servlet-mapping>
-        <servlet-name>rhinoInSpring</servlet-name>
-        <url-pattern>*.js</url-pattern>
-    </servlet-mapping>
-]]></pre></td></tr></table>
+&lt;servlet-mapping>
+    &lt;servlet-name>rhinoInSpring&lt;/servlet-name>
+    &lt;url-pattern>*.js&lt;/url-pattern>
+&lt;/servlet-mapping>
+</pre></td></tr></table>
 
     <p>
       This sets up a Spring dispatcher servlet to be configured from the
@@ -60,9 +60,9 @@
       this is all you need to add to it to get the default functionality:
     </p>
       
-<table border="1"><tr><td><pre><![CDATA[
-  <bean name="/*" class="org.szegedi.spring.web.jsflow.FlowController"/>
-]]></pre></td></tr></table>
+<table border="1"><tr><td><pre>
+  &lt;bean name="/*" class="org.szegedi.spring.web.jsflow.FlowController"/>
+</pre></td></tr></table>
 
     <p>
       You will of course need to include some view resolver as well (in our
@@ -79,15 +79,15 @@
       to copy these lines:
     </p>
       
-<table border="1"><tr><td><pre><![CDATA[
-  <bean name="handlerMapping" class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
-    <property name="interceptors">
-      <list>
-        <bean class="org.szegedi.spring.web.jsflow.OpenContextInViewInterceptor"/>
-      </list>
-    </property>
-  </bean>
-]]></pre></td></tr></table>
+<table border="1"><tr><td><pre>
+&lt;bean name="handlerMapping" class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
+  &lt;property name="interceptors">
+    &lt;list>
+      &lt;bean class="org.szegedi.spring.web.jsflow.OpenContextInViewInterceptor"/>
+    &lt;/list>
+  &lt;/property>
+&lt;/bean>
+</pre></td></tr></table>
 
     <p>
       (Of course, if you have a more complex Spring application, you might 
@@ -333,6 +333,15 @@ for(;;)
       ContextFactory into either OpenContextInViewInterceptor or into the
       FlowController.
     </p>
+    <a name="terracotta"><h3>Clustering with Terracotta</h3></a>
+    <p>
+      Starting with version 1.2, Rhino-in-Spring's HTTP session storage is 
+      fully clusterable using <a href="http://www.terracotta.org">Terracotta</a>.
+      The distribution includes a <code>rhinoInSpring-tc-config-1.2.jar</code>
+      that is a Terracotta configuration module - you just need to reference it
+      from your Terracotta configuration file, and it is ready to go. No 
+      further setup is necessary.
+    </p>
     <h3>What's in the serialized state</h3>
     <p>
       You might wonder what is stored in the serialized flowstate. In short, 
@@ -374,6 +383,11 @@ for(;;)
         newly reachable object isn't serializable at all and throws an exception.
         </li>
       </ul>
+      However, starting with version 1.2, you can add application-specific stub
+      providers and resolvers to the HTTP session, using the <code>bindStubProvider</code>
+      and <code>bindStubResolver</code> methods on the <code>HttpSessionFlowStateStorage</code>.
+      By using these objects, you can provide the stubbing functionality for 
+      any further application-specific objects.
     </p>
      </td></tr></table>
   </body>
