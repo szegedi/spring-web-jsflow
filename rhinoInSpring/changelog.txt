@@ -2,7 +2,7 @@ RHINO-IN-SPRING CHANGELOG
 =========================
 http://rhinoinspring.sourceforge.net
 
-Changes in version 1.2 (??.??.200?)
+Changes in version 1.2 (27.12.2007)
 -----------------------------------
 * Rhino-in-Spring (with HTTP session flowstate storage) can now be used in web applications load-balanced using Terracotta  
 * Added setScriptCharacterEncoding method to ScriptStorage to allow for explicit specification of character encoding when loading scripts
