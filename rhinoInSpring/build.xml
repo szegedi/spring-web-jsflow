@@ -17,7 +17,7 @@
 <!-- $Id$ -->
 
 <project basedir="." default="jar" name="rhino-in-spring">
-    <property name="version" value="1.1.2"/>
+    <property name="version" value="1.2"/>
 
     <path id="build.class.path">
         <pathelement path="src"/>
@@ -102,13 +102,14 @@
         </copy>
         <mkdir dir="${distdir}/build"/>
         <copy toDir="${distdir}/build" file="${jarfile}"/>
+        <copy toDir="${distdir}/build" file="${tc-jarfile}"/>
         <mkdir dir="${distdir}/web"/>
         <copy toDir="${distdir}/web">
             <fileset dir="build/web" excludes="**/CVS/**,**/*.bak"/>
         </copy>
         <mkdir dir="${distdir}/lib"/>
         <copy toDir="${distdir}/lib">
-            <fileset dir="lib" excludes="**/CVS/**,**/*.bak"/>
+            <fileset dir="lib" excludes="**/CVS/**,**/*.bak,**/spring-webflow*"/>
         </copy>
         <tar destfile="build/rhinoInSpring-${version}.tgz" compression="gzip" 
             basedir="build" includes="rhinoInSpring-${version}/**"/>
