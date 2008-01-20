@@ -17,7 +17,7 @@
 <!-- $Id$ -->
 
 <project basedir="." default="jar" name="rhino-in-spring">
-    <property name="version" value="1.2"/>
+    <property name="version" value="1.2.1"/>
 
     <path id="build.class.path">
         <pathelement path="src"/>
