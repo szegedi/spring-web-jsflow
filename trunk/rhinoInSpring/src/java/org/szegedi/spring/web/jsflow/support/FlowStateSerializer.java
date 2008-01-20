@@ -75,7 +75,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
     {
         if(scriptStorage == null)
         {
-            scriptStorage = FlowController.createDefaultScriptStorage(applicationContext);
+            setScriptStorage(FlowController.createDefaultScriptStorage(applicationContext));
         }
         createStubInfo();
     }
