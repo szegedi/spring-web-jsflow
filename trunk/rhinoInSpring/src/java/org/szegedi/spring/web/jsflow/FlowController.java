@@ -24,10 +24,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextAction;
 import org.mozilla.javascript.ContextFactory;
+import org.mozilla.javascript.ContinuationPending;
+import org.mozilla.javascript.NativeContinuation;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.continuations.Continuation;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
@@ -374,7 +375,7 @@ implements InitializingBean
             final HttpServletRequest request, final HttpServletResponse response) 
     throws Exception
     {
-        final Continuation continuation = getState(request);
+        final NativeContinuation continuation = getState(request);
         Context cx = Context.getCurrentContext();
         if(cx == null)
         {
@@ -420,7 +421,7 @@ implements InitializingBean
         }
     }
 
-    private Continuation getState(HttpServletRequest request)
+    private NativeContinuation getState(HttpServletRequest request)
     {
         String strId = request.getParameter(STATEID_KEY);
         if(strId == null)
@@ -433,7 +434,7 @@ implements InitializingBean
     private ModelAndView handleRequestInContext(
             final HttpServletRequest request, 
             final HttpServletResponse response, 
-            final Continuation continuation, final Context cx) throws Exception
+            final NativeContinuation continuation, final Context cx) throws Exception
     {
         final ScriptableObject scope;
         if(continuation == null)
@@ -458,6 +459,7 @@ implements InitializingBean
         ScriptableObject.defineProperty(scope, APPLICATIONCONTEXT_PROPERTY, 
                 getApplicationContext(), UNMODIFIABLE);
         cx.setOptimizationLevel(-1);
+        NativeContinuation newContinuation = null;
         if(continuation == null)
         {
             String scriptPath = scriptSelectionStrategy.getScriptPath(request);
@@ -500,14 +502,19 @@ implements InitializingBean
                     {
                         public Object exec(Context cx, Scriptable scope)
                         {
-                            return script.exec(cx, scope);
+                            return cx.executeScriptWithContinuations(script, 
+                                    scope);
                         }
                     }, cx, scope);
                 }
                 else
                 {
-                    script.exec(cx, scope);
+                    cx.executeScriptWithContinuations(script, scope);
                 }
+            }
+            catch(ContinuationPending e)
+            {
+                newContinuation = (NativeContinuation)e.getContinuation();
             }
             catch(Exception e)
             {
@@ -527,15 +534,19 @@ implements InitializingBean
                     {
                         public Object exec(Context cx, Scriptable scope)
                         {
-                            return continuation.call(cx, scope, null, 
-                                    new Object[] { null });
+                            return cx.resumeContinuation(continuation, scope, 
+                                    null);
                         }
                     }, cx, scope);
                 }
                 else
                 {
-                    continuation.call(cx, scope, null, new Object[] { null });
+                    cx.resumeContinuation(continuation, scope, null);
                 }
+            }
+            catch(ContinuationPending e)
+            {
+                newContinuation = (NativeContinuation)e.getContinuation();
             }
             catch(Exception e)
             {
@@ -548,7 +559,6 @@ implements InitializingBean
         deleteProperty(scope, RESPONSE_PROPERTY);
         deleteProperty(scope, REQUEST_PROPERTY);
         deleteProperty(scope, HOST_PROPERTY);
-        Continuation newContinuation = hostObject.getContinuation();
         Object id;
         if(newContinuation != null)
         {

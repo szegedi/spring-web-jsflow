@@ -2,6 +2,15 @@ RHINO-IN-SPRING CHANGELOG
 =========================
 http://rhinoinspring.sourceforge.net
 
+Changes in version 1.3 (1.12.2009)
+----------------------------------
+* Updated bundled Rhino to 1.7R2. It now doesn't run with older Rhino versions due to change in Rhino continuations API.
+
+Changes in version 1.2.2 (12.10.2008)
+-------------------------------------
+* Updated bundled Rhino to 1.7R1
+* 
+
 Changes in version 1.2.1 (19.01.2008)
 -------------------------------------
 * Fixes a single bug with autocreation of implicit components not explicitly created in an app context

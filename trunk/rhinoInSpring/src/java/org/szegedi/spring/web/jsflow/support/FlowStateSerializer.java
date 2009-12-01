@@ -29,8 +29,8 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+import org.mozilla.javascript.NativeContinuation;
 import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.continuations.Continuation;
 import org.mozilla.javascript.serialize.ScriptableInputStream;
 import org.mozilla.javascript.serialize.ScriptableOutputStream;
 import org.springframework.beans.factory.BeanFactoryUtils;
@@ -110,7 +110,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
      * @return the serialized form
      * @throws Exception
      */
-    protected byte[] serializeContinuation(Continuation state, 
+    protected byte[] serializeContinuation(NativeContinuation state, 
             Map stubbedFunctions, StubProvider stubProvider) throws Exception
     {
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
@@ -135,13 +135,13 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
      * @return the deserialized continuation
      * @throws Exception
      */
-    protected Continuation deserializeContinuation(byte[] b, StubResolver stubResolver)
+    protected NativeContinuation deserializeContinuation(byte[] b, StubResolver stubResolver)
     throws Exception
     {
         ObjectInputStream in = new ContinuationInputStream(
                 new ByteArrayInputStream(b), stubResolver);
         Object fingerprints = in.readObject();
-        Continuation cont = (Continuation)in.readObject();
+        NativeContinuation cont = (NativeContinuation)in.readObject();
         FunctionFingerprintManager.checkFingerprints(cont, fingerprints);
         return cont;
     }
@@ -217,7 +217,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
         private final Map stubbedFunctions;
         private final StubProvider stubProvider;
 
-        public ContinuationOutputStream(OutputStream out, Continuation cont,
+        public ContinuationOutputStream(OutputStream out, NativeContinuation cont,
                 Map stubbedFunctions, StubProvider stubProvider) throws IOException
         {
             super(out, ScriptableObject.getTopLevelScope(cont).getPrototype());

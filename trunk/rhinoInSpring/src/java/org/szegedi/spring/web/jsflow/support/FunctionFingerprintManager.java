@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-import org.mozilla.javascript.continuations.Continuation;
+import org.mozilla.javascript.NativeContinuation;
 
 /**
  * A class capable of calculating MD5 fingerprint sequences for continuations.
@@ -85,7 +85,7 @@ class FunctionFingerprintManager
         return f;
     }
     
-    static Object getFingerprints(Continuation c) throws Exception
+    static Object getFingerprints(NativeContinuation c) throws Exception
     {
         Object callFrame = c.getImplementation();
         List l = new ArrayList();
@@ -97,7 +97,7 @@ class FunctionFingerprintManager
         return l.toArray(new long[l.size()][]);
     }
     
-    static void checkFingerprints(Continuation c, Object objfingerprints) 
+    static void checkFingerprints(NativeContinuation c, Object objfingerprints) 
     throws Exception
     {
         long[][] fingerprints = (long[][])objfingerprints;
@@ -108,9 +108,7 @@ class FunctionFingerprintManager
             Object idata = CALL_FRAME_IDATA.get(callFrame);
             if(!Arrays.equals(fingerprints[i++], getFingerprint(idata)))
             {
-                throw new InvalidObjectException("The function " + 
-                        IDATA_ITS_NAME.get(idata) + " in script " + 
-                        IDATA_ITS_SOURCE_FILE.get(idata) + " has changed");
+                throw new InvalidObjectException(getIdataDescription(idata) + " has changed");
             }
             callFrame = CALL_FRAME_PARENT.get(callFrame);
         }
@@ -143,5 +141,24 @@ class FunctionFingerprintManager
             fingerprints = newFingerprints;
         }
         return fingerprint;
+    }
+    
+    static String listContinuationStack(NativeContinuation c) throws Exception
+    {
+        StringBuffer buf = new StringBuffer();
+        Object callFrame = c.getImplementation();
+        while(callFrame != null)
+        {
+            buf.append(getIdataDescription(CALL_FRAME_IDATA.get(callFrame)));
+            buf.append("\n");
+            callFrame = CALL_FRAME_PARENT.get(callFrame);
+        }
+        return buf.toString();
+    }
+    
+    private static final String getIdataDescription(Object idata) throws Exception
+    {
+        return "The function " + IDATA_ITS_NAME.get(idata) + " in script " + 
+            IDATA_ITS_SOURCE_FILE.get(idata);
     }
 }

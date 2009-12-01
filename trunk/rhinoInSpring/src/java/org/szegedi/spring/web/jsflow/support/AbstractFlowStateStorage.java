@@ -17,7 +17,7 @@ package org.szegedi.spring.web.jsflow.support;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.mozilla.javascript.continuations.Continuation;
+import org.mozilla.javascript.NativeContinuation;
 import org.szegedi.spring.web.jsflow.FlowStateStorage;
 import org.szegedi.spring.web.jsflow.FlowStateStorageException;
 import org.szegedi.spring.web.jsflow.codec.BinaryStateCodec;
@@ -67,7 +67,7 @@ implements FlowStateStorage
         this.binaryStateCodec = binaryStateCodec;
     }
     
-    public Continuation getState(HttpServletRequest request, String id)
+    public NativeContinuation getState(HttpServletRequest request, String id)
     {
         try
         {
@@ -102,7 +102,7 @@ implements FlowStateStorage
      */
     protected abstract byte[] getSerializedState(HttpServletRequest request, String id) throws Exception;
 
-    public String storeState(HttpServletRequest request, Continuation state)
+    public String storeState(HttpServletRequest request, NativeContinuation state)
     {
         try
         {

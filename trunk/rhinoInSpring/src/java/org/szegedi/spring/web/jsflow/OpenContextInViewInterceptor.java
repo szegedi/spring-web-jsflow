@@ -59,7 +59,7 @@ public class OpenContextInViewInterceptor implements HandlerInterceptor
         }
         else
         {
-            cx = contextFactory.enter();
+            cx = contextFactory.enterContext();
         }
         if(cx.getOptimizationLevel() != -1)
         {
@@ -72,14 +72,7 @@ public class OpenContextInViewInterceptor implements HandlerInterceptor
             HttpServletResponse response, Object handler, Exception ex)
             throws Exception
     {
-        if(contextFactory == null)
-        {
-            Context.exit();
-        }
-        else
-        {
-            contextFactory.exit();
-        }
+        Context.exit();
     }
     
     public void postHandle(HttpServletRequest request,

@@ -29,7 +29,7 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.mozilla.javascript.continuations.Continuation;
+import org.mozilla.javascript.NativeContinuation;
 import org.szegedi.spring.web.jsflow.support.FlowStateIdGenerator;
 import org.szegedi.spring.web.jsflow.support.FlowStateSerializer;
 import org.szegedi.spring.web.jsflow.support.RandomFlowStateIdGenerator;
@@ -132,7 +132,7 @@ implements FlowStateStorage
         session.setAttribute(STUB_RESOLVER_KEY, resolver);
     }
 
-    public String storeState(HttpServletRequest request, Continuation state)
+    public String storeState(HttpServletRequest request, NativeContinuation state)
     {
         Long id;
         Map stateMap = getStateMap(request, true);
@@ -183,7 +183,7 @@ implements FlowStateStorage
         return Long.toHexString(id.longValue());
     }
     
-    public Continuation getState(HttpServletRequest request, String id)
+    public NativeContinuation getState(HttpServletRequest request, String id)
     {
         Map stateMap = getStateMap(request, false);
         if(stateMap == null)
@@ -215,7 +215,7 @@ implements FlowStateStorage
         }
     }
 
-    private Continuation getContinuation(LocallySerializedContinuation lsc, HttpSession session) 
+    private NativeContinuation getContinuation(LocallySerializedContinuation lsc, HttpSession session) 
     throws Exception, AssertionError
     {
         final Map stubsToFunctions = lsc.getStubsToFunctions();
@@ -304,7 +304,7 @@ implements FlowStateStorage
      * {@link HttpSessionFlowStateStorage#forEachContinuation(HttpSession, 
      * ContinuationCallback)}
      * @author Attila Szegedi
-     * @version $Id: $
+     * @version $Id$
      */
     public static interface ContinuationCallback
     {
@@ -314,7 +314,7 @@ implements FlowStateStorage
          * @param continuation the continuation itself
          * @throws Exception
          */
-        public void forContinuation(String id, Continuation continuation)
+        public void forContinuation(String id, NativeContinuation continuation)
         throws Exception;
     }
     
