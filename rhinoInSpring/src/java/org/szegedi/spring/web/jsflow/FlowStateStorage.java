@@ -17,7 +17,7 @@ package org.szegedi.spring.web.jsflow;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.mozilla.javascript.continuations.Continuation;
+import org.mozilla.javascript.NativeContinuation;
 
 /**
  * A storage for interim flow states. It is sufficient (and recommended) to have
@@ -38,7 +38,7 @@ public interface FlowStateStorage
      * @return an identifier for the state. The identifier is unique at least in
      * the scope of the current HTTP request's session.
      */
-    public String storeState(HttpServletRequest request, Continuation state);
+    public String storeState(HttpServletRequest request, NativeContinuation state);
 
     /**
      * Retrieves the state associated with a request
@@ -46,5 +46,5 @@ public interface FlowStateStorage
      * @param id the unique identifier for the flow state
      * @return the flow state, or null if it couldn't be resolved
      */
-    public Continuation getState(HttpServletRequest request, String id);
+    public NativeContinuation getState(HttpServletRequest request, String id);
 }

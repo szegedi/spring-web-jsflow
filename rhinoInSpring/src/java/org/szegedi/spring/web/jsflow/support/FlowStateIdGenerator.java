@@ -15,7 +15,7 @@
 */
 package org.szegedi.spring.web.jsflow.support;
 
-import org.mozilla.javascript.continuations.Continuation;
+import org.mozilla.javascript.NativeContinuation;
 import org.szegedi.spring.web.jsflow.FlowStateStorage;
 
 /**
@@ -31,7 +31,7 @@ public interface FlowStateIdGenerator
      * @param state
      * @return the new ID. Must not be negative.
      */
-    public Long generateStateId(Continuation state);
+    public Long generateStateId(NativeContinuation state);
     
     /**
      * Returns true if the return value of {@link #generateStateId(Continuation)}

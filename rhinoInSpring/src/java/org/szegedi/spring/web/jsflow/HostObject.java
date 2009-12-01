@@ -21,7 +21,6 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.continuations.Continuation;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -36,7 +35,7 @@ public class HostObject extends ScriptableObject
 
     private static final long serialVersionUID = 1L;
     private ScriptStorage scriptStorage;
-    private Continuation continuation;
+    private boolean isGoingToWait;
     private Scriptable model;
     private String viewName;
     private int includeLevel;
@@ -73,18 +72,15 @@ public class HostObject extends ScriptableObject
         this.model = model;
     }
 
-    public void jsFunction_wait(Continuation continuation)
+    public void jsFunction_wait()
     {
-        if(includeLevel > 0)
-        {
-            throw new IllegalStateException("Cannot wait from include");
-        }
-        this.continuation = continuation;
+        isGoingToWait = true;
+        throw Context.getCurrentContext().captureContinuation();
     }
 
-    public boolean jsGet_hasContinuation()
+    public boolean jsGet_isGoingToWait()
     {
-        return continuation != null;
+        return isGoingToWait;
     }
 
     ModelAndView getModelAndView(Object continuationId)
@@ -95,11 +91,6 @@ public class HostObject extends ScriptableObject
         }
         return viewName == null ? null : new ModelAndView(viewName, 
                 new ScriptableMap(model));
-    }
-    
-    Continuation getContinuation()
-    {
-        return continuation;
     }
     
     public void jsFunction_include(Scriptable scope, String scriptName)

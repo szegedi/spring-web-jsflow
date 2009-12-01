@@ -18,8 +18,6 @@
  * @version $Id$
  */
 
-var __terminate_interpreter__ = new Continuation();
-
 function respondAndWait(viewName, model)
 {
     this.respond(viewName, model);
@@ -33,8 +31,7 @@ function respond(viewName, model)
 
 function wait()
 {
-    this.__host__.wait(new Continuation());
-    this.__terminate_interpreter__(null);
+    this.__host__.wait();
 }
 
 /**
@@ -59,7 +56,7 @@ function wait()
  */
 function isGoingToWait()
 {
-    return this.__host__.hasContinuation;
+    return this.__host__.isGoingToWait;
 }
 
 function include(scriptPath)

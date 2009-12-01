@@ -17,7 +17,7 @@ package org.szegedi.spring.web.jsflow.support;
 
 import java.util.Random;
 
-import org.mozilla.javascript.continuations.Continuation;
+import org.mozilla.javascript.NativeContinuation;
 
 /**
  * Default implementation of flow state id generator that uses a random number
@@ -34,7 +34,7 @@ public class RandomFlowStateIdGenerator implements FlowStateIdGenerator
         this.random = random;
     }
     
-    public Long generateStateId(Continuation c)
+    public Long generateStateId(NativeContinuation c)
     {
         return new Long(random.nextLong() & Long.MAX_VALUE);
     }
