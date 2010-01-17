@@ -1,0 +1,45 @@
+RHINO-IN-SPRING CHANGELOG
+=========================
+http://rhinoinspring.sourceforge.net
+
+Changes in version 1.3 (1.12.2009)
+----------------------------------
+* Updated bundled Rhino to 1.7R2. It now doesn't run with older Rhino versions due to change in Rhino continuations API.
+
+Changes in version 1.2.2 (12.10.2008)
+-------------------------------------
+* Updated bundled Rhino to 1.7R1
+
+Changes in version 1.2.1 (19.01.2008)
+-------------------------------------
+* Fixes a single bug with autocreation of implicit components not explicitly created in an app context
+
+Changes in version 1.2 (27.12.2007)
+-----------------------------------
+* Rhino-in-Spring (with HTTP session flowstate storage) can now be used in web applications load-balanced using Terracotta  
+* Added setScriptCharacterEncoding method to ScriptStorage to allow for explicit specification of character encoding when loading scripts
+* Added setLibraryScripts method to ScriptStorage for easier library customization
+* Added support for application-specific serialization stubs, see bindStubProvider() and bindStubResolver() methods in HttpSessionFlowStateStorage
+ 
+Changes in version 1.1.1 (30.03.2007)
+-------------------------------------
+* Added support for relative pathnames in include(), with backward compatible lookup of absolute pathnames
+* Fixed bug when an implicitly created ScriptStorage wasn't properly initialized
+
+Changes in version 1.1 (19.02.2007)
+-----------------------------------
+
+* Added support for detection and automatic reloading of changed scripts in ScriptStorage, see method setNoStaleCheckPeriod()
+* Added ScriptSelectionStrategy interface to allow applications to customize the selection of the script to be run on the start of a conversation
+* Added UrlScriptSelectionStrategy as the default implementation of the ScriptSelectionStrategy
+* Deprecated FlowController methods setResourcePath(), setUseServletPath() and setUsePathInfo() in favor of explicitly using a ScriptSelectionStrategy.
+* Added FlowExecutionInterceptor interface that allows applications to preprocess the initiation of a multi-request conversation as well as to clean up after it
+* Added StateExecutionInterceptor that allows implementation of "around" advice for exeuction of a single state
+* Added LibraryCustomizer interface that allows applications to customize the global library script scope
+* Throwing FileNotFoundException from ScriptStorage.getScript() will cause the FlowController to return HTTP 404
+* Added SecurityDomainFactory interface to allow customized creation of Rhino security domain objects for scripts
+* Added support for custom ContextFactory objects in both FlowController and OpenContextInViewInterceptor.
+* Fixed a bug that stopped propagation of ModelAndViewDefiningException
+
+Initial release 1.0 (16.06.2006)
+--------------------------------

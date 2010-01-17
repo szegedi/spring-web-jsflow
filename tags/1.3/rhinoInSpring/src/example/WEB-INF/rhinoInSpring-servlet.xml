@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+  <bean id="freemarkerConfig" class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+    <property name="templateLoaderPath" value="/"/>
+    <property name="freemarkerSettings">
+      <props>
+        <prop key="object_wrapper">freemarker.ext.rhino.RhinoWrapper</prop>
+      </props>
+    </property>
+  </bean>
+
+  <bean id="viewResolver" class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+    <property name="cache" value="true"/>
+    <property name="prefix" value=""/>
+    <property name="suffix" value=".ftl"/>
+    <property name="contentType" value="text/html"/>
+  </bean>
+
+  <bean name="handlerMapping" class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping">
+    <property name="interceptors">
+      <list>
+        <bean class="org.szegedi.spring.web.jsflow.OpenContextInViewInterceptor"/>
+      </list>
+    </property>
+  </bean>
+  
+  <bean name="/*" class="org.szegedi.spring.web.jsflow.FlowController">
+    <property name="scriptSelectionStrategy">
+      <bean class="org.szegedi.spring.web.jsflow.UrlScriptSelectionStrategy">
+        <property name="useServletPath" value="true"/>
+      </bean>
+    </property>
+  </bean>
+  
+<!-- 
+  Uncomment to enable JDBC persistence of states. Make sure the JDBC URL, 
+  username, and password are okay. Also make sure your JDBC driver JAR file is
+  accessible in the webapp's classpath. When you set it up, try running an 
+  example then restart the servlet container, and see that it gets picked up
+  where it left!
+-->
+<!--  
+  <bean name="flowStateStorage" class="org.szegedi.spring.web.jsflow.JdbcFlowStateStorage">
+    <property name="jdbcOperations">
+      <bean class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource">
+          <bean class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+            <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+            <property name="url" value="jdbc:mysql://localhost/jsflow"/>
+            <property name="username" value="someUser"/>
+            <property name="password" value="someSecret"/>
+          </bean>
+        </property>
+      </bean>
+    </property>
+  </bean>
+-->
+
+<!-- 
+  Uncomment to enable client-side persistence of states. Note that this is the
+  simplest setup, where we use no compression, or confidentiality or integrity
+  protection. The clients can modify the state as they wish and send it back to
+  us modified and we'll accept it. See below for more secure setups.
+-->
+<!--
+  <bean name="flowStateStorage" class="org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage"/>
+-->
+
+<!-- 
+  Here's a typical setup with an integrity codec that adds digital signatures to
+  the serialized flowstates. Clients can see what's in the serialized state, but
+  if they try to change it and send this changed state to use, we'll reject it 
+  as it'll no longer match the digital signature. Note that it is wrapped in a 
+  pooled codec to further enhance performance. Also note that we're using a 
+  GeneratedKeyPairFactory, which will generate a new private/public RSA keypair 
+  on each startup, thus invalidating all currently existing flowstates at 
+  clients. In real-world applications, you'd create a permanent keystore file 
+  using the JDK "keytool" command-line tool and use the KeyStoreKeyPairFactory
+  instead, so that client-side flowstates remain valid across server restarts.
+-->
+<!--
+  <bean name="flowStateStorage" class="org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage">
+    <property name="binaryStateCodec">
+      <bean class="org.szegedi.spring.web.jsflow.codec.PooledCodec">
+        <property name="binaryStateCodec">
+          <bean class="org.szegedi.spring.web.jsflow.codec.IntegrityCodec">
+            <property name="keyPair">
+              <bean class="org.szegedi.spring.crypto.GeneratedKeyPairFactory">
+                <property name="algorithm" value="RSA"/>
+                <property name="keySize" value="1024"/>
+              </bean>
+            </property>
+          </bean>
+        </property>
+      </bean>
+    </property>
+  </bean>
+-->
+
+<!-- 
+  Here's a full-blown setup for paranoid: a compression, confidentiality, and 
+  integrity codec added. See how we use the CompositeCodec to chain several 
+  codecs into one. Note that it is wrapped in a pooled codec to further enhance 
+  performance. Also note that we're using a GeneratedKeyPairFactory, which will 
+  generate a new private/public RSA keypair on each startup, thus invalidating 
+  all currently existing flowstates at clients. In real-world applications, 
+  you'd create a permanent keystore file using the JDK "keytool" command-line 
+  tool and use the KeyStoreKeyPairFactory instead, so that you use the same key
+  across server restarts. In a similar fashiom, for confidentiality controls 
+  we're using a secret AES key that is newly generated on each startup. Again, 
+  in real world applications, you'd have a permanent key that you'd load using a
+  KeySpecSecretKeyFactory or some homegrown mechanism, thus preserving the 
+  validity of client-side flowstates across server restarts.
+-->
+
+  <bean name="flowStateStorage" class="org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage">
+    <property name="binaryStateCodec">
+      <bean class="org.szegedi.spring.web.jsflow.codec.PooledCodec">
+        <property name="binaryStateCodec">
+          <bean class="org.szegedi.spring.web.jsflow.codec.CompositeCodec">
+            <property name="codecs">
+              <list>
+              
+                <bean class="org.szegedi.spring.web.jsflow.codec.CompressionCodec"/>
+              
+                <bean class="org.szegedi.spring.web.jsflow.codec.ConfidentialityCodec">
+                  <property name="secretKey">
+                    <bean class="org.szegedi.spring.crypto.GeneratedSecretKeyFactory">
+                      <property name="algorithm" value="AES"/>
+                      <property name="keySize" value="128"/>
+                    </bean>
+                  </property>
+                </bean>
+              
+                <bean class="org.szegedi.spring.web.jsflow.codec.IntegrityCodec">
+                  <property name="keyPair">
+                    <bean class="org.szegedi.spring.crypto.GeneratedKeyPairFactory">
+                      <property name="algorithm" value="RSA"/>
+                      <property name="keySize" value="1024"/>
+                    </bean>
+                  </property>
+                </bean>
+              
+              </list>
+            </property>
+          </bean>
+        </property>
+      </bean>
+    </property>
+  </bean>
+
+</beans>
