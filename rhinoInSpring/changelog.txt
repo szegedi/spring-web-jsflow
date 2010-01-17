@@ -9,7 +9,6 @@ Changes in version 1.3 (1.12.2009)
 Changes in version 1.2.2 (12.10.2008)
 -------------------------------------
 * Updated bundled Rhino to 1.7R1
-* 
 
 Changes in version 1.2.1 (19.01.2008)
 -------------------------------------
