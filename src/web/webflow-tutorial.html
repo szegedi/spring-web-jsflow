@@ -40,23 +40,23 @@
 
 <table border="1"><tr><td><pre>
 &lt;servlet>
-    &lt;servlet-name>rhinoInSpring&lt;/servlet-name>
+    &lt;servlet-name>spring-webmvc-jsflow&lt;/servlet-name>
     &lt;servlet-class>org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class>
 &lt;/servlet>
 
 &lt;servlet-mapping>
-    &lt;servlet-name>rhinoInSpring&lt;/servlet-name>
+    &lt;servlet-name>spring-webmvc-jsflow&lt;/servlet-name>
     &lt;url-pattern>*.js&lt;/url-pattern>
 &lt;/servlet-mapping>
 </pre></td></tr></table>
 
     <p>
       This sets up a Spring dispatcher servlet to be configured from the
-      <tt>rhinoInSpring-servlet.xml</tt> bean factory and to have all requests
+      <tt>spring-webmvc-jsflow-servlet.xml</tt> bean factory and to have all requests
       ending with <tt>.js</tt> forwared to it (since our controllers are
       JavaScript programs) - a quite standard setup for a Spring controller.
     </p><p>
-      Next, the <tt>rhinoInSpring-servlet.xml</tt>. In its very simplest form, 
+      Next, the <tt>spring-webmvc-jsflow-servlet.xml</tt>. In its very simplest form, 
       this is all you need to add to it to get the default functionality:
     </p>
       
@@ -337,7 +337,7 @@ for(;;)
     <p>
       Starting with version 1.2, Rhino-in-Spring's HTTP session storage is 
       fully clusterable using <a href="http://www.terracotta.org">Terracotta</a>.
-      The distribution includes a <code>rhinoInSpring-tc-config-1.2.jar</code>
+      The distribution includes a <code>spring-webmvc-jsflow-tc-config-1.2.jar</code>
       that is a Terracotta configuration module - you just need to reference it
       from your Terracotta configuration file, and it is ready to go. No 
       further setup is necessary.

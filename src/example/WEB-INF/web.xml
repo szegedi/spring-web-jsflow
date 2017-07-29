@@ -10,12 +10,12 @@
 	</listener>
 
 	<servlet>
-		<servlet-name>rhinoInSpring</servlet-name>
+		<servlet-name>spring-webmvc-jsflow</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
 	</servlet>
 	
 	<servlet-mapping>
-		<servlet-name>rhinoInSpring</servlet-name>
+		<servlet-name>spring-webmvc-jsflow</servlet-name>
 		<url-pattern>*.js</url-pattern>
 	</servlet-mapping>
 

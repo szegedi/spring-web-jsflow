@@ -16,7 +16,7 @@
 -->
 <!-- $Id$ -->
 
-<project basedir="." default="jar" name="rhino-in-spring">
+<project basedir="." default="jar" name="spring-webmvc-jsflow">
     <property name="version" value="1.3"/>
 
     <path id="build.class.path">
@@ -45,15 +45,15 @@
     </target>
 
     <target name="jar" depends="compile">
-        <property name="jarfile" location="build/rhinoInSpring-${version}.jar"/>
+        <property name="jarfile" location="build/spring-webmvc-jsflow-${version}.jar"/>
         <jar basedir="build/classes" jarfile="${jarfile}">
             <manifest>
-                <attribute name="Implementation-Title" value="Rhino in Spring"/>
+                <attribute name="Implementation-Title" value="JSFlow for Spring Web MVC"/>
                 <attribute name="Implementation-Version" value="${version}"/>
                 <attribute name="Implementation-Vendor" value="Attila Szegedi"/>
             </manifest>
         </jar>
-        <property name="tc-jarfile" location="build/rhinoInSpring-tc-config-${version}.jar"/>
+        <property name="tc-jarfile" location="build/spring-webmvc-jsflow-tc-config-${version}.jar"/>
         <jar basedir="src/terracotta" jarfile="${tc-jarfile}">
             <manifest>
             	<attribute name="Bundle-Description" value="Terracotta configuration module for Rhino-in-Spring"/>
@@ -92,7 +92,7 @@
     </target>
 
     <target name="dist" depends="clean,jar,web">
-        <property name="distdir" location="build/rhinoInSpring-${version}"/>
+        <property name="distdir" location="build/spring-webmvc-jsflow-${version}"/>
         <mkdir dir="${distdir}/src"/>
         <copy toDir="${distdir}" file="changelog.txt"/>
         <copy toDir="${distdir}" file="LICENSE.txt"/>
@@ -111,17 +111,17 @@
         <copy toDir="${distdir}/lib">
             <fileset dir="lib" excludes="**/CVS/**,**/*.bak,**/spring-webflow*"/>
         </copy>
-        <tar destfile="build/rhinoInSpring-${version}.tgz" compression="gzip" 
-            basedir="build" includes="rhinoInSpring-${version}/**"/>
+        <tar destfile="build/spring-webmvc-jsflow-${version}.tgz" compression="gzip" 
+            basedir="build" includes="spring-webmvc-jsflow-${version}/**"/>
         <tar destfile="build/web.tgz" compression="gzip" basedir="build/web"/>
     </target>
 
     <target name="dist-nodep" depends="dist">
-        <tar destfile="build/rhinoInSpring-nodep-${version}.tgz" compression="gzip" 
-            basedir="build" includes="rhinoInSpring-${version}/**/*" 
+        <tar destfile="build/spring-webmvc-jsflow-nodep-${version}.tgz" compression="gzip" 
+            basedir="build" includes="spring-webmvc-jsflow-${version}/**/*" 
             excludes="
-                rhinoInSpring-${version}/lib/javax.servlet.jar
-                rhinoInSpring-${version}/lib/spring*.jar 
-                rhinoInSpring-${version}/src/example/WEB-INF/lib/freemarker.jar"/>
+                spring-webmvc-jsflow-${version}/lib/javax.servlet.jar
+                spring-webmvc-jsflow-${version}/lib/spring*.jar 
+                spring-webmvc-jsflow-${version}/src/example/WEB-INF/lib/freemarker.jar"/>
     </target>
 </project>
