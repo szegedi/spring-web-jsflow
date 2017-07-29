@@ -17,10 +17,8 @@ package org.szegedi.spring.web.jsflow;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.UndeclaredThrowableException;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextAction;
 import org.mozilla.javascript.ContextFactory;

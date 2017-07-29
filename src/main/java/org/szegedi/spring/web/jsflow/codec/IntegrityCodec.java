@@ -18,7 +18,6 @@ package org.szegedi.spring.web.jsflow.codec;
 import java.security.KeyPair;
 import java.security.Signature;
 import java.util.Random;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.szegedi.spring.web.jsflow.FlowStateStorageException;
 import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;

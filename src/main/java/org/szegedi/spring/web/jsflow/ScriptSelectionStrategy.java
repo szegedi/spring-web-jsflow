@@ -1,7 +1,6 @@
 package org.szegedi.spring.web.jsflow;
 
 import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.web.servlet.ModelAndViewDefiningException;
 
 /**

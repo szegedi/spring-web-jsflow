@@ -16,11 +16,8 @@
 package org.szegedi.spring.web.jsflow;
 
 import java.io.IOException;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
-
 import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 

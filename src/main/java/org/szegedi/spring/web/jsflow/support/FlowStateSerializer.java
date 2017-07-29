@@ -28,7 +28,6 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Map;
-
 import org.mozilla.javascript.NativeContinuation;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.serialize.ScriptableInputStream;

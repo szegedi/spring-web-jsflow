@@ -16,7 +16,6 @@
 package org.szegedi.spring.web.jsflow;
 
 import java.util.AbstractList;
-
 import org.mozilla.javascript.Scriptable;
 
 /**

@@ -16,7 +16,6 @@
 package org.szegedi.spring.web.jsflow.support;
 
 import java.util.Random;
-
 import org.mozilla.javascript.NativeContinuation;
 
 /**

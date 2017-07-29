@@ -18,7 +18,6 @@ package org.szegedi.spring.core.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.core.io.Resource;

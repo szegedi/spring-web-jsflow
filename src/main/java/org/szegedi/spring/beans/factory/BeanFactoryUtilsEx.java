@@ -16,7 +16,6 @@
 package org.szegedi.spring.beans.factory;
 
 import java.util.Map;
-
 import org.springframework.beans.factory.ListableBeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 

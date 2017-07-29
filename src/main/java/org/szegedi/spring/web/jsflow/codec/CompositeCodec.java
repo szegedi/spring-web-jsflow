@@ -16,7 +16,6 @@
 package org.szegedi.spring.web.jsflow.codec;
 
 import java.util.List;
-
 import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
 
 /**

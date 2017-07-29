@@ -17,9 +17,7 @@ package org.szegedi.spring.web.jsflow.codec;
 
 import java.security.AlgorithmParameters;
 import java.security.Key;
-
 import javax.crypto.Cipher;
-
 import org.springframework.beans.factory.InitializingBean;
 import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
 

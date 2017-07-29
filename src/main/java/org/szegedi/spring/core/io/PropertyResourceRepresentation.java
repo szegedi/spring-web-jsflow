@@ -18,7 +18,6 @@ package org.szegedi.spring.core.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-
 import org.springframework.core.io.Resource;
 
 /**

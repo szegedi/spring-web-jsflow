@@ -16,10 +16,8 @@
 package org.szegedi.spring.crypto;
 
 import java.security.spec.KeySpec;
-
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
-
 import org.szegedi.spring.crypto.support.ProviderBasedFactory;
 
 /**

@@ -16,7 +16,6 @@
 package org.szegedi.spring.web.jsflow.support;
 
 import javax.servlet.http.HttpServletRequest;
-
 import org.mozilla.javascript.NativeContinuation;
 import org.szegedi.spring.web.jsflow.FlowStateStorage;
 import org.szegedi.spring.web.jsflow.FlowStateStorageException;

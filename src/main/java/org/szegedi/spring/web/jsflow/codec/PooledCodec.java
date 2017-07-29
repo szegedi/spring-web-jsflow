@@ -16,7 +16,6 @@
 package org.szegedi.spring.web.jsflow.codec;
 
 import java.lang.ref.Reference;
-
 import org.szegedi.spring.support.SoftPooledFactory;
 import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
 

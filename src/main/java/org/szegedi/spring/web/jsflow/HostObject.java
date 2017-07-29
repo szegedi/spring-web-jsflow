@@ -16,7 +16,6 @@
 package org.szegedi.spring.web.jsflow;
 
 import java.io.FileNotFoundException;
-
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;

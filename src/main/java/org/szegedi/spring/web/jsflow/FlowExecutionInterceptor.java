@@ -1,7 +1,6 @@
 package org.szegedi.spring.web.jsflow;
 
 import javax.servlet.http.HttpServletRequest;
-
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 

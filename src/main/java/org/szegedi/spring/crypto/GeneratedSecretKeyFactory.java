@@ -16,10 +16,8 @@
 package org.szegedi.spring.crypto;
 
 import java.security.SecureRandom;
-
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-
 import org.szegedi.spring.crypto.support.ProviderBasedFactory;
 
 /**

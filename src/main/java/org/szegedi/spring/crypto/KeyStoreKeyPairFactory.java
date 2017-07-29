@@ -20,7 +20,6 @@ import java.net.URL;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
-
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.ResourceLoader;
 import org.szegedi.spring.crypto.support.ProviderBasedFactory;

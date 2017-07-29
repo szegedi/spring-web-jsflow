@@ -16,7 +16,6 @@
 package org.szegedi.spring.crypto;
 
 import java.security.SecureRandom;
-
 import org.szegedi.spring.crypto.support.ProviderBasedFactory;
 
 /**

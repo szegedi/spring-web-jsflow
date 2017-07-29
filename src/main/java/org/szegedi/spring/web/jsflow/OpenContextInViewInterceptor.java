@@ -17,7 +17,6 @@ package org.szegedi.spring.web.jsflow;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
 import org.springframework.web.servlet.HandlerInterceptor;
