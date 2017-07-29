@@ -32,12 +32,12 @@ public class RandomFlowStateIdGenerator implements FlowStateIdGenerator
     {
         this.random = random;
     }
-    
+
     public Long generateStateId(final NativeContinuation c)
     {
         return new Long(random.nextLong() & Long.MAX_VALUE);
     }
-    
+
     public boolean dependsOnContinuation()
     {
         return false;

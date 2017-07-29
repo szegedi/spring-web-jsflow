@@ -15,7 +15,7 @@ public interface FlowExecutionInterceptor
     /**
      * Executed before the flow's script starts running. Typically, this method
      * will populate the scope based on data from the HTTP request.
-     * @param request the HTTP request that initiated the flow. 
+     * @param request the HTTP request that initiated the flow.
      * @param scriptPath the pathname of the script that will be executed
      * @param cx the Rhino Context object that is used to run the initial stage
      * of the flow
@@ -23,21 +23,21 @@ public interface FlowExecutionInterceptor
      * be manipulated by this method.
      * @throws Exception
      */
-    public void beforeFlowExecution(HttpServletRequest request, 
+    public void beforeFlowExecution(HttpServletRequest request,
             String scriptPath, Context cx, Scriptable scope) throws Exception;
 
     /**
      * Executed after the flow's script ended runnnig.
-     * @param request the HTTP request that concluded the flow. 
-     * @param cx the Rhino Context object that is used to run the terminating 
+     * @param request the HTTP request that concluded the flow.
+     * @param cx the Rhino Context object that is used to run the terminating
      * stage of the flow
      * @param scope the global variable scope for the flow
      * @param e the cause of flow execution termination. It is null if the flow
-     * execution terminated normally. The interceptor must not rethrow it, it 
-     * will be retrown by the {@link FlowController} after this method 
+     * execution terminated normally. The interceptor must not rethrow it, it
+     * will be retrown by the {@link FlowController} after this method
      * executed.
      * @throws Exception
      */
-    public void afterFlowExecution(HttpServletRequest request, Context cx, 
+    public void afterFlowExecution(HttpServletRequest request, Context cx,
             Scriptable scope, Exception e) throws Exception;
 }

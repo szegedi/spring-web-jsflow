@@ -34,12 +34,12 @@ import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
  * <p>
  * A flow state storage that operates against a JDBC data source. The name of
  * the table and the columns are configurable, by default, it assumes one
- * autoincrementing, unique constrained, indexed column named "id", and one 
+ * autoincrementing, unique constrained, indexed column named "id", and one
  * column capable of storing a byte array (i.e. a BLOB) named "state" in a table
  * named "webflowstates". Additionally, a column named "random" is used to store
  * a nonunique but random 32-bit number. This makes it harder for attackers to
  * guess valid flowstate IDs. Note that no mechanism for purging "old" states is
- * provided. You need to write your own periodical task to delete the states 
+ * provided. You need to write your own periodical task to delete the states
  * that are considered old. Adding a timestamp column to the table that defaults
  * to the time of insert is advised. I.e. a MySQL table definition would look
  * like
@@ -61,7 +61,7 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage
     private String selectQuery;
     private String insertQuery;
     private Random random;
-    
+
     public void setJdbcOperations(final JdbcOperations jdbcOperations)
     {
         this.jdbcOperations = jdbcOperations;
@@ -71,27 +71,27 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage
     {
         this.idColumnName = idColumnName;
     }
-    
+
     public void setRandom(final Random random)
     {
         this.random = random;
     }
-    
+
     public void setRandomColumnName(final String randomColumnName)
     {
         this.randomColumnName = randomColumnName;
     }
-    
+
     public void setStateColumnName(final String stateColumnName)
     {
         this.stateColumnName = stateColumnName;
     }
-    
+
     public void setTableName(final String tableName)
     {
         this.tableName = tableName;
     }
-    
+
     public void afterPropertiesSet() throws Exception
     {
         super.afterPropertiesSet();
@@ -99,12 +99,12 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage
         {
             random = new SecureRandom();
         }
-        selectQuery = "SELECT " + stateColumnName + " FROM " + tableName + 
+        selectQuery = "SELECT " + stateColumnName + " FROM " + tableName +
             " WHERE " + idColumnName + "=? AND " + randomColumnName + "=?";
         insertQuery = "INSERT INTO " + tableName + " (" + stateColumnName +
             ", " + randomColumnName + ") VALUES(?,?)";
     }
-    
+
     private static final ResultSetExtractor EXTRACTOR = new ResultSetExtractor()
     {
         public Object extractData(final ResultSet rs) throws SQLException
@@ -116,13 +116,13 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage
             return null;
         }
     };
-    
+
     protected byte[] getSerializedState(final HttpServletRequest request, final String id) throws Exception
     {
         return (byte[])jdbcOperations.query(
                 new PreparedStatementCreator()
                 {
-                    public PreparedStatement createPreparedStatement(final Connection con) 
+                    public PreparedStatement createPreparedStatement(final Connection con)
                     throws SQLException
                     {
                         final PreparedStatement statement = con.prepareStatement(
@@ -134,7 +134,7 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage
                     };
                 }, EXTRACTOR);
     }
-    
+
     protected String storeSerializedState(final HttpServletRequest request, final byte[] state) throws Exception
     {
         final int rnd = random.nextInt();

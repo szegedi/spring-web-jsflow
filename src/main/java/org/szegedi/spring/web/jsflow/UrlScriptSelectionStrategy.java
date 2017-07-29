@@ -13,16 +13,16 @@ public class UrlScriptSelectionStrategy implements ScriptSelectionStrategy
     private String resourcePath = "";
     private boolean usePathInfo;
     private boolean useServletPath;
-    
+
     /**
      * Sets the resource path. If neither path info nor servlet path are used,
-     * then this strategy will always select a single script, the resource 
-     * path of its source file being specified in this property. If either 
-     * servlet path or path info (or both) are used, then the strategy will 
-     * select multiple scripts selected by servlet path and/or path info, and 
-     * the path specified here will be used as a common prefix for the resource 
-     * paths of script source files. Defaults to empty string, which is a handy 
-     * value in case no prefix is required and either servlet path or path info 
+     * then this strategy will always select a single script, the resource
+     * path of its source file being specified in this property. If either
+     * servlet path or path info (or both) are used, then the strategy will
+     * select multiple scripts selected by servlet path and/or path info, and
+     * the path specified here will be used as a common prefix for the resource
+     * paths of script source files. Defaults to empty string, which is a handy
+     * value in case no prefix is required and either servlet path or path info
      * are used. Be aware that this prefix can be further prefixed by a prefix
      * specified using {@link ScriptStorage#setPrefix(String)}) ScriptStorage
      * class.
@@ -36,13 +36,13 @@ public class UrlScriptSelectionStrategy implements ScriptSelectionStrategy
         }
         this.resourcePath = resourcePath;
     }
-    
+
     /**
      * Whether to use the path info portion of the request URI when selecting a
      * script to run. If true, the name of the script to run will be determined
-     * by concatenating resource path + (optionally servlet path) + path info. 
-     * If false, the name of the selected script will be determined by 
-     * concatenating resource path + (optionally servlet path). Defaults to 
+     * by concatenating resource path + (optionally servlet path) + path info.
+     * If false, the name of the selected script will be determined by
+     * concatenating resource path + (optionally servlet path). Defaults to
      * false.
      * @param usePathInfo
      */
@@ -52,9 +52,9 @@ public class UrlScriptSelectionStrategy implements ScriptSelectionStrategy
     }
 
     /**
-     * Whether to use the servlet path portion of the request URI when looking 
-     * up the script to run. If true, the name of the script to run will be 
-     * determined by concatenating resource path + servlet path + (optionally 
+     * Whether to use the servlet path portion of the request URI when looking
+     * up the script to run. If true, the name of the script to run will be
+     * determined by concatenating resource path + servlet path + (optionally
      * path info). If false, the name of the script to run will be determined by
      * concatenating resource path + (optionally path info). Defaults to false.
      * @param useServletPath
@@ -63,7 +63,7 @@ public class UrlScriptSelectionStrategy implements ScriptSelectionStrategy
     {
         this.useServletPath = useServletPath;
     }
-    
+
     public String getScriptPath(final HttpServletRequest request)
     {
         if(!(usePathInfo || useServletPath))

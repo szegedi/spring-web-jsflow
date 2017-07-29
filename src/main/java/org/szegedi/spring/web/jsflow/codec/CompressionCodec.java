@@ -24,35 +24,35 @@ import java.util.zip.InflaterInputStream;
 import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
 
 /**
- * A codec that will compress the serialized flowstate upon encoding and 
+ * A codec that will compress the serialized flowstate upon encoding and
  * decompress it upon decoding. In particular useful as
- * part of a {@link org.szegedi.spring.web.jsflow.codec.CompositeCodec}, in 
+ * part of a {@link org.szegedi.spring.web.jsflow.codec.CompositeCodec}, in
  * front of a {@link org.szegedi.spring.web.jsflow.codec.ConfidentialityCodec},
- * as compression improves the security of the encryption. 
+ * as compression improves the security of the encryption.
  * @author Attila Szegedi
  * @version $Id$
  */
 public class CompressionCodec implements BinaryStateCodec
 {
     private int compressionLevel = Deflater.DEFAULT_COMPRESSION;
-    
+
     /**
-     * Sets the compression level - see {@link Deflater} compression level 
+     * Sets the compression level - see {@link Deflater} compression level
      * constants.
-     * @param compressionLevel a compression level. Defaults to 
+     * @param compressionLevel a compression level. Defaults to
      * {@link Deflater#DEFAULT_COMPRESSION}.
      */
     public void setCompressionLevel(final int compressionLevel)
     {
         this.compressionLevel = compressionLevel;
     }
-    
+
     public OneWayCodec createDecoder() throws Exception
     {
         return new OneWayCodec()
         {
             private final Inflater inflater = new Inflater();
-            
+
             public byte[] code(final byte[] data) throws Exception
             {
                 inflater.reset();
@@ -73,22 +73,22 @@ public class CompressionCodec implements BinaryStateCodec
             }
         };
     }
-    
+
     public OneWayCodec createEncoder() throws Exception
     {
         return new OneWayCodec()
         {
             private final Deflater deflater = new Deflater(compressionLevel);
-            
+
             public byte[] code(final byte[] data) throws Exception
             {
                 deflater.reset();
                 final ByteArrayOutputStream bout = new ByteArrayOutputStream(data.length / 2);
-                final DeflaterOutputStream out = new DeflaterOutputStream(bout, 
+                final DeflaterOutputStream out = new DeflaterOutputStream(bout,
                         deflater);
                 out.write(data);
                 out.close();
-                return bout.toByteArray(); 
+                return bout.toByteArray();
             }
         };
     }

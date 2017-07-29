@@ -22,6 +22,6 @@ public interface ScriptSelectionStrategy
      * throw an instance of Spring's {@link ModelAndViewDefiningException} to
      * indicate failure.
      */
-    public String getScriptPath(HttpServletRequest request) 
+    public String getScriptPath(HttpServletRequest request)
     throws ModelAndViewDefiningException;
 }

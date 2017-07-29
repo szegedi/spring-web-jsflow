@@ -23,11 +23,11 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
- * A Spring handler interceptor that opens a Rhino context and associates it 
- * with the current thread for the complete duration of the handling, including 
- * view rendering. In most situations, you will not need a live Rhino Context 
- * object during view rendering, so you need not use this interceptor. However, 
- * if you receive an exception saying there is no current Rhino context during 
+ * A Spring handler interceptor that opens a Rhino context and associates it
+ * with the current thread for the complete duration of the handling, including
+ * view rendering. In most situations, you will not need a live Rhino Context
+ * object during view rendering, so you need not use this interceptor. However,
+ * if you receive an exception saying there is no current Rhino context during
  * view rendering, you will need to use the interceptor.
  * @author Attila Szegedi
  * @version $Id$
@@ -35,11 +35,11 @@ import org.springframework.web.servlet.ModelAndView;
 public class OpenContextInViewInterceptor implements HandlerInterceptor
 {
     private ContextFactory contextFactory;
-    
+
     /**
      * Sets the Rhino context factory to use. If not set, the global context
      * factory returned by {@link ContextFactory#getGlobal()} will be used.
-     * Note that this feature (customized context factory in the interceptor) 
+     * Note that this feature (customized context factory in the interceptor)
      * requires at least Rhino 1.6R3.
      * @param contextFactory
      */
@@ -47,7 +47,7 @@ public class OpenContextInViewInterceptor implements HandlerInterceptor
     {
         this.contextFactory = contextFactory;
     }
-    
+
     public boolean preHandle(final HttpServletRequest request,
             final HttpServletResponse response, final Object handler) throws Exception
     {
@@ -66,14 +66,14 @@ public class OpenContextInViewInterceptor implements HandlerInterceptor
         }
         return true;
     }
-    
+
     public void afterCompletion(final HttpServletRequest request,
             final HttpServletResponse response, final Object handler, final Exception ex)
             throws Exception
     {
         Context.exit();
     }
-    
+
     public void postHandle(final HttpServletRequest request,
             final HttpServletResponse response, final Object handler,
             final ModelAndView modelAndView) throws Exception

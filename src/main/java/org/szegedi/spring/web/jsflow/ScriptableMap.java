@@ -26,8 +26,8 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 /**
- * A Map interface for Scriptables. Used to convert a Scriptable model into a 
- * Map, as Spring MVC expects models to be Maps.  
+ * A Map interface for Scriptables. Used to convert a Scriptable model into a
+ * Map, as Spring MVC expects models to be Maps.
  * @author Attila Szegedi
  * @version $Id$
  */
@@ -36,12 +36,12 @@ class ScriptableMap extends AbstractMap
     private final Scriptable s;
     private Set keys;
     private Set entries;
-    
+
     public ScriptableMap(final Scriptable s)
     {
         this.s = s;
     }
-    
+
     public boolean containsKey(final Object key)
     {
         if(key instanceof Number)
@@ -59,7 +59,7 @@ class ScriptableMap extends AbstractMap
         }
         return entries;
     }
-    
+
     private Set createEntrySet()
     {
         return new AbstractSet()
@@ -68,18 +68,18 @@ class ScriptableMap extends AbstractMap
             {
                 return keySet().size();
             }
-            
+
             public Iterator iterator()
             {
                 return new Iterator()
                 {
                     private final Iterator i = keySet().iterator();
-                    
+
                     public boolean hasNext()
                     {
                         return i.hasNext();
                     }
-                    
+
                     public Object next()
                     {
                         final Object key = i.next();
@@ -89,17 +89,17 @@ class ScriptableMap extends AbstractMap
                             {
                                 return key;
                             }
-                            
+
                             public Object getValue()
                             {
                                 return ScriptableMap.this.get(key);
                             }
-                            
+
                             public Object setValue(final Object value)
                             {
                                 return ScriptableMap.this.put(key, value);
                             }
-                            
+
                             public boolean equals(final Object o)
                             {
                                 if(o instanceof Map.Entry)
@@ -110,14 +110,14 @@ class ScriptableMap extends AbstractMap
                                 }
                                 return false;
                             }
-                            
+
                             public int hashCode()
                             {
                                 return key == null ? 0 : key.hashCode();
                             }
                         };
                     }
-                    
+
                     public void remove()
                     {
                         i.remove();
@@ -140,7 +140,7 @@ class ScriptableMap extends AbstractMap
         }
         return ScriptableConverter.jsToJava(retval);
     }
-    
+
     public Object put(final Object key, final Object value)
     {
         keySet().add(key);
@@ -155,14 +155,14 @@ class ScriptableMap extends AbstractMap
         }
         return oldValue;
     }
-    
+
     public Object remove(final Object key)
     {
         final Object oldValue = get(key);
         keySet().remove(key);
         return oldValue;
    }
-    
+
     public Set keySet()
     {
         if(keys == null)
@@ -170,34 +170,34 @@ class ScriptableMap extends AbstractMap
             return new AbstractSet()
             {
                 private final Set ikeys = new HashSet(Arrays.asList(s.getIds()));
-                
+
                 public boolean add(final Object o)
                 {
                     return ikeys.add(o);
                 }
-                
+
                 public boolean contains(final Object o)
                 {
                     return ikeys.contains(o);
                 }
-                
+
                 public Iterator iterator()
                 {
                     return new Iterator()
                     {
                         private final Iterator i = ikeys.iterator();
                         private Object lastKey;
-                        
+
                         public boolean hasNext()
                         {
                             return i.hasNext();
                         }
-                        
+
                         public Object next()
                         {
                             return lastKey = i.next();
                         }
-                        
+
                         public void remove()
                         {
                             i.remove();
@@ -205,14 +205,14 @@ class ScriptableMap extends AbstractMap
                         }
                     };
                 }
-                
+
                 public boolean remove(final Object key)
                 {
                     final boolean x = ikeys.remove(key);
                     removeInternal(key);
                     return x;
                 }
-                
+
                 private void removeInternal(final Object key)
                 {
                     if(key instanceof Number)
@@ -224,7 +224,7 @@ class ScriptableMap extends AbstractMap
                         ScriptableObject.deleteProperty(s, String.valueOf(key));
                     }
                 }
-                
+
                 public int size()
                 {
                     return ikeys.size();
@@ -233,7 +233,7 @@ class ScriptableMap extends AbstractMap
         }
         return keys;
     }
-    
+
     private static boolean isEqual(final Object o1, final Object o2)
     {
         if(o1 == null)

@@ -26,12 +26,12 @@ class ScriptableList extends AbstractList
 {
     private final Scriptable s;
     private int size = -1;
-    
+
     ScriptableList(final Scriptable s)
     {
         this.s = s;
     }
-    
+
     public int size()
     {
         synchronized(this)
@@ -51,7 +51,7 @@ class ScriptableList extends AbstractList
                         {
                             max = nid;
                         }
-                        
+
                     }
                 }
                 size = max + 1;
@@ -59,7 +59,7 @@ class ScriptableList extends AbstractList
         }
         return size;
     }
-    
+
     public Object get(final int index)
     {
         return ScriptableConverter.jsToJava(s.get(index, s));

@@ -18,10 +18,10 @@ package org.szegedi.spring.web.jsflow.codec;
 import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
 
 /**
- * Instances of a binary state codec can be added to any 
+ * Instances of a binary state codec can be added to any
  * {@link org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage}
  * to transform the binary representation of the serialized state.
- * Tipically, you will add codecs when using 
+ * Tipically, you will add codecs when using
  * {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage} to compress,
  * encrypt, and/or digitally sign the state before passing it to the client.
  * @author Attila Szegedi

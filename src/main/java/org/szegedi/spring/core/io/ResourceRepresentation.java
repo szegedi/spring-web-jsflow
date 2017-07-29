@@ -22,9 +22,9 @@ import java.net.URLConnection;
 import org.springframework.core.io.Resource;
 
 /**
- * Represents a class that is capable of loading and caching a parsed 
+ * Represents a class that is capable of loading and caching a parsed
  * representation of contents of a Spring resource. In case the resource has a
- * URL representation and it changes, the object will be reloaded. The code 
+ * URL representation and it changes, the object will be reloaded. The code
  * also has a special optimization for "file:" URLs. All subclasses have to do
  * is implement the {@link #loadRepresentation(InputStream)} method.
  * @author Attila Szegedi
@@ -36,7 +36,7 @@ public abstract class ResourceRepresentation
     private Object representation;
     private long lastModified;
     private long lastChecked;
-    
+
     /**
      * Constructs a new representation for the specified resource.
      * @param resource
@@ -45,14 +45,14 @@ public abstract class ResourceRepresentation
     {
         this.resource = resource;
     }
-    
+
     /**
      * Returns the representation of the resource.
      * @param noStaleCheckPeriod If the resource's timestamp was last checked
-     * no earlier than the specified number of milliseconds, it won't be 
+     * no earlier than the specified number of milliseconds, it won't be
      * checked and the cached representation will be returned instead.
      * @return the representation of the resource
-     * @throws Exception if there was an exception during loading of the 
+     * @throws Exception if there was an exception during loading of the
      * representation
      */
     public synchronized Object getRepresentation(final long noStaleCheckPeriod)
@@ -65,20 +65,20 @@ public abstract class ResourceRepresentation
         }
         return getRepresentationInternal(now);
     }
-    
+
     /**
-     * Returns the representation of the resource. Equal to 
+     * Returns the representation of the resource. Equal to
      * {@link #getRepresentation(long)} with 0 parameter, although a bit more
      * optimized.
      * @return the representation of the resource
-     * @throws Exception if there was an exception during loading of the 
+     * @throws Exception if there was an exception during loading of the
      * representation
      */
     public synchronized Object getRepresentation() throws Exception
     {
         return getRepresentationInternal(System.currentTimeMillis());
     }
-    
+
     private Object getRepresentationInternal(final long now) throws Exception
     {
         URL url;
@@ -114,7 +114,7 @@ public abstract class ResourceRepresentation
         if(representation == null || newLastModified != lastModified)
         {
             lastModified = newLastModified;
-            final InputStream in = conn == null ? resource.getInputStream() : 
+            final InputStream in = conn == null ? resource.getInputStream() :
                 conn.getInputStream();
             try
             {
@@ -131,12 +131,12 @@ public abstract class ResourceRepresentation
         }
         return representation;
     }
-    
+
     public Resource getResource()
     {
         return resource;
     }
-    
+
     /**
      * Implement in subclasses to load the representation of the resource.
      * @param in the input stream with resource bytes

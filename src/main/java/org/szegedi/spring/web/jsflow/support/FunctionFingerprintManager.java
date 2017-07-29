@@ -35,7 +35,7 @@ import org.mozilla.javascript.NativeContinuation;
  * on the continuation's stack. A MD5 fingerprint for a function is calculated
  * from the ICode for that function. As the data structures we need to reach are
  * private parts of Rhino, we're using reflection with overriding accessibility
- * to get to them. 
+ * to get to them.
  * @author Attila Szegedi
  * @version $Id$
  */
@@ -46,15 +46,15 @@ class FunctionFingerprintManager
     private static final Field IDATA_ITS_NAME;
     private static final Field IDATA_ITS_SOURCE_FILE;
     private static final Field IDATA_ITS_ICODE;
-    
+
     static
     {
         try
         {
-            final Class callFrameClass = Class.forName("org.mozilla.javascript.Interpreter$CallFrame"); 
+            final Class callFrameClass = Class.forName("org.mozilla.javascript.Interpreter$CallFrame");
             CALL_FRAME_PARENT = getField(callFrameClass, "parentFrame");
             CALL_FRAME_IDATA = getField(callFrameClass, "idata");
-            
+
             final Class idataClass = Class.forName("org.mozilla.javascript.InterpreterData");
             IDATA_ITS_NAME = getField(idataClass, "itsName");
             IDATA_ITS_SOURCE_FILE = getField(idataClass, "itsSourceFile");
@@ -69,21 +69,21 @@ class FunctionFingerprintManager
             throw new UndeclaredThrowableException(e);
         }
     }
-    
+
     private static Map fingerprints = Collections.EMPTY_MAP;
     private static final Object lock = new Object();
-    
+
     private FunctionFingerprintManager()
     {
     }
-    
+
     private static Field getField(final Class clazz, final String name) throws Exception
     {
         final Field f = clazz.getDeclaredField(name);
         f.setAccessible(true);
         return f;
     }
-    
+
     static Object getFingerprints(final NativeContinuation c) throws Exception
     {
         Object callFrame = c.getImplementation();
@@ -95,8 +95,8 @@ class FunctionFingerprintManager
         }
         return l.toArray(new long[l.size()][]);
     }
-    
-    static void checkFingerprints(final NativeContinuation c, final Object objfingerprints) 
+
+    static void checkFingerprints(final NativeContinuation c, final Object objfingerprints)
     throws Exception
     {
         final long[][] fingerprints = (long[][])objfingerprints;
@@ -112,7 +112,7 @@ class FunctionFingerprintManager
             callFrame = CALL_FRAME_PARENT.get(callFrame);
         }
     }
-    
+
     private static long[] getFingerprint(final Object idata) throws Exception
     {
         long[] fingerprint = (long[])fingerprints.get(idata);
@@ -141,7 +141,7 @@ class FunctionFingerprintManager
         }
         return fingerprint;
     }
-    
+
     static String listContinuationStack(final NativeContinuation c) throws Exception
     {
         final StringBuffer buf = new StringBuffer();
@@ -154,10 +154,10 @@ class FunctionFingerprintManager
         }
         return buf.toString();
     }
-    
+
     private static final String getIdataDescription(final Object idata) throws Exception
     {
-        return "The function " + IDATA_ITS_NAME.get(idata) + " in script " + 
+        return "The function " + IDATA_ITS_NAME.get(idata) + " in script " +
             IDATA_ITS_SOURCE_FILE.get(idata);
     }
 }

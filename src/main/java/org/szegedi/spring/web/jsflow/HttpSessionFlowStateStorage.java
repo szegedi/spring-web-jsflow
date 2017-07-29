@@ -33,28 +33,28 @@ import org.szegedi.spring.web.jsflow.support.FlowStateSerializer;
 import org.szegedi.spring.web.jsflow.support.RandomFlowStateIdGenerator;
 
 /**
- * An implementation for flow state storage that stores flow states in 
+ * An implementation for flow state storage that stores flow states in
  * the {@link javax.servlet.http.HttpSession} objects. As states are stored
- * privately to HTTP sessions, no crossover between sessions is possible 
- * (requesting a state from a session it doesn't belong to won't work, and it 
- * is also possible to have identical flowstate ids in two sessions without any 
+ * privately to HTTP sessions, no crossover between sessions is possible
+ * (requesting a state from a session it doesn't belong to won't work, and it
+ * is also possible to have identical flowstate ids in two sessions without any
  * interference).
  * @author Attila Szegedi
  * @version $Id$
  */
-public class HttpSessionFlowStateStorage extends FlowStateSerializer 
+public class HttpSessionFlowStateStorage extends FlowStateSerializer
 implements FlowStateStorage
 {
     private static final Log log = LogFactory.getLog(
             HttpSessionFlowStateStorage.class);
-    
-    private static final String STUB_PROVIDER_KEY = "provider#" + HttpSessionFlowStateStorage.class.getName(); 
-    private static final String STUB_RESOLVER_KEY = "resolver#" + HttpSessionFlowStateStorage.class.getName(); 
-    private static final String MAP_KEY = "map#" + HttpSessionFlowStateStorage.class.getName(); 
+
+    private static final String STUB_PROVIDER_KEY = "provider#" + HttpSessionFlowStateStorage.class.getName();
+    private static final String STUB_RESOLVER_KEY = "resolver#" + HttpSessionFlowStateStorage.class.getName();
+    private static final String MAP_KEY = "map#" + HttpSessionFlowStateStorage.class.getName();
 
     private int maxStates = 100;
     private FlowStateIdGenerator flowStateIdGenerator;
-    
+
     /**
      * Sets the maximum number of states per HTTP session that this manager will
      * store. If the number is exceeded, the least recently used state will be
@@ -69,9 +69,9 @@ implements FlowStateStorage
         }
         this.maxStates = maxStates;
     }
-    
+
     /**
-     * Sets a source of randomness for generating state IDs. If not explicitly 
+     * Sets a source of randomness for generating state IDs. If not explicitly
      * set, it will create and use a private instance of {@link SecureRandom}.
      * @param random
      * @deprecated use {@link #setFlowStateIdGenerator(FlowStateIdGenerator)}
@@ -81,7 +81,7 @@ implements FlowStateStorage
     {
         setRandomInternal(random);
     }
-    
+
     private void setRandomInternal(final Random random)
     {
         final RandomFlowStateIdGenerator idGen = new RandomFlowStateIdGenerator();
@@ -94,7 +94,7 @@ implements FlowStateStorage
     {
         this.flowStateIdGenerator = flowStateIdGenerator;
     }
-    
+
     public void afterPropertiesSet() throws Exception
     {
         super.afterPropertiesSet();
@@ -103,10 +103,10 @@ implements FlowStateStorage
             setRandom(new SecureRandom());
         }
     }
-    
+
     /**
      * Binds a stub provider into the HttpSession. Client code can use this
-     * provider to provide serialization stubs for various session-related 
+     * provider to provide serialization stubs for various session-related
      * objects
      * @param session the HttpSession to bind the provider into
      * @param provider the provider
@@ -116,10 +116,10 @@ implements FlowStateStorage
     {
         session.setAttribute(STUB_PROVIDER_KEY, provider);
     }
-    
+
     /**
      * Binds a stub resolver into the HttpSession. Client code can use this
-     * resolver to resolve serialization stubs for various session-related 
+     * resolver to resolve serialization stubs for various session-related
      * objects
      * @param session the HttpSession to bind the resolver into
      * @param resolver the resolver
@@ -135,12 +135,12 @@ implements FlowStateStorage
         Long id;
         final Map stateMap = getStateMap(request, true);
         byte[] serialized;
-        // Must serialize the continuation so it is deep-copied. If we 
+        // Must serialize the continuation so it is deep-copied. If we
         // didn't do this, we couldn't keep multiple independent states.
         final Map stubsToFunctions = new HashMap();
         try
         {
-            serialized = serializeContinuation(state, stubsToFunctions, 
+            serialized = serializeContinuation(state, stubsToFunctions,
                     (StubProvider)request.getSession().getAttribute(
                             STUB_PROVIDER_KEY));
         }
@@ -161,14 +161,14 @@ implements FlowStateStorage
                 {
                     throw new RuntimeException("Got negative id");
                 }
-                if(flowStateIdGenerator.dependsOnContinuation() || 
+                if(flowStateIdGenerator.dependsOnContinuation() ||
                         !stateMap.containsKey(id))
                 {
                     stateMap.put(id, new LocallySerializedContinuation(
                             serialized, stubsToFunctions));
                     // NOTE: this works because stateMap is a LinkedHashMap.
-                    // Ordinarily, we'd subclass it and override 
-                    // removeEldestEntry(). Unfortunately, subclassing 
+                    // Ordinarily, we'd subclass it and override
+                    // removeEldestEntry(). Unfortunately, subclassing
                     // logically managed classes and overriding their protected
                     // methods is disallowed in Terracotta
                     while(stateMap.size() > maxStates) {
@@ -180,7 +180,7 @@ implements FlowStateStorage
         }
         return Long.toHexString(id.longValue());
     }
-    
+
     public NativeContinuation getState(final HttpServletRequest request, final String id)
     {
         final Map stateMap = getStateMap(request, false);
@@ -213,7 +213,7 @@ implements FlowStateStorage
         }
     }
 
-    private NativeContinuation getContinuation(final LocallySerializedContinuation lsc, final HttpSession session) 
+    private NativeContinuation getContinuation(final LocallySerializedContinuation lsc, final HttpSession session)
     throws Exception, AssertionError
     {
         final Map stubsToFunctions = lsc.getStubsToFunctions();
@@ -224,7 +224,7 @@ implements FlowStateStorage
         else {
             stubResolver = null;
         }
-        
+
         if(stubResolver != null) {
             if(stubsToFunctions != null && !stubsToFunctions.isEmpty()) {
                 final StubResolver fstubResolver = stubResolver;
@@ -243,10 +243,10 @@ implements FlowStateStorage
                 }
             };
         }
-        
+
         return deserializeContinuation(lsc.getSerializedState(), stubResolver);
     }
-    
+
     private Map getStateMap(final HttpServletRequest request, final boolean create)
     {
         final HttpSession session = request.getSession(create);
@@ -265,15 +265,15 @@ implements FlowStateStorage
         }
         return m;
     }
-    
+
     /**
      * Enumerates all the continuations bound to a particular HTTP session. Can
-     * be used from a session listener to post-process continuations in 
+     * be used from a session listener to post-process continuations in
      * invalidated/expired sessions.
      * @param session the http session
      * @param callback a callback that will be invoked for each continuation.
      */
-    public void forEachContinuation(final HttpSession session, 
+    public void forEachContinuation(final HttpSession session,
             final ContinuationCallback callback)
     {
         final Map m = (Map)session.getAttribute(MAP_KEY);
@@ -298,8 +298,8 @@ implements FlowStateStorage
     }
 
     /**
-     * Should be implemented by classes used as callbacks for 
-     * {@link HttpSessionFlowStateStorage#forEachContinuation(HttpSession, 
+     * Should be implemented by classes used as callbacks for
+     * {@link HttpSessionFlowStateStorage#forEachContinuation(HttpSession,
      * ContinuationCallback)}
      * @author Attila Szegedi
      * @version $Id$
@@ -315,25 +315,25 @@ implements FlowStateStorage
         public void forContinuation(String id, NativeContinuation continuation)
         throws Exception;
     }
-    
+
     private static class LocallySerializedContinuation implements Serializable
     {
         private static final long serialVersionUID = 1L;
 
         private final byte[] serializedState;
         private transient final Map stubsToFunctions;
-        
+
         LocallySerializedContinuation(final byte[] serializedState, final Map stubsToFunctions)
         {
             this.serializedState = serializedState;
             this.stubsToFunctions = stubsToFunctions;
         }
-        
+
         byte[] getSerializedState()
         {
             return serializedState;
         }
-        
+
         Map getStubsToFunctions()
         {
             return stubsToFunctions;

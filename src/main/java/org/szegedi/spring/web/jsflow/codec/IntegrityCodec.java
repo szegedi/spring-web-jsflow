@@ -25,10 +25,10 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
 /**
  * A codec that will add a digital signature to the flowstate when encoding, and
  * check the validity of the signature (and strip it) upon decoding. If the
- * signature is not valid, it will throw a 
+ * signature is not valid, it will throw a
  * {@link org.szegedi.spring.web.jsflow.FlowStateStorageException}. It is highly
- * recommended to use this codec with 
- * {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage} as it 
+ * recommended to use this codec with
+ * {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage} as it
  * prevents the client from tampering the state.
  * @author Attila Szegedi
  * @version $Id$
@@ -38,12 +38,12 @@ public class IntegrityCodec implements BinaryStateCodec, InitializingBean
     private KeyPair keyPair;
     private String signatureAlgorithmName;
     private int signatureLength;
-    
+
     /**
-     * Sets the pair of a matching private and public key used to sign the 
+     * Sets the pair of a matching private and public key used to sign the
      * serialized webflow states and to check the signature validity. You can
      * use a {@link org.szegedi.spring.crypto.GeneratedKeyPairFactory}, or even
-     * better a {@link org.szegedi.spring.crypto.KeyStoreKeyPairFactory} to 
+     * better a {@link org.szegedi.spring.crypto.KeyStoreKeyPairFactory} to
      * obtain a key pair.
      * @param keyPair the signing/verifying keypair.
      */
@@ -51,7 +51,7 @@ public class IntegrityCodec implements BinaryStateCodec, InitializingBean
     {
         this.keyPair = keyPair;
     }
-    
+
     /**
      * Sets the name of the signature algorithm. Defaults to "SHA1With" + the
      * key algorithm name, i.e. "SHA1WithRSA".
@@ -61,43 +61,43 @@ public class IntegrityCodec implements BinaryStateCodec, InitializingBean
     {
         this.signatureAlgorithmName = signatureAlgorithmName;
     }
-    
+
     public void afterPropertiesSet() throws Exception
     {
         if(signatureAlgorithmName == null)
         {
             signatureAlgorithmName = "SHA1With" + keyPair.getPublic().getAlgorithm();
         }
-        testKeys(); 
+        testKeys();
     }
-    
+
     private void testKeys() throws Exception
     {
         final Random r = new Random();
         final byte[] b = new byte[1024];
         r.nextBytes(b);
-        
+
         final Signature sign = Signature.getInstance(signatureAlgorithmName);
         sign.initSign(keyPair.getPrivate());
         sign.update(b);
-        
+
         final Signature verify = Signature.getInstance(signatureAlgorithmName);
         verify.initVerify(keyPair.getPublic());
         verify.update(b);
-        
-        final byte[] signature = sign.sign(); 
+
+        final byte[] signature = sign.sign();
         if(!verify.verify(signature))
         {
             throw new IllegalArgumentException("Public and private key don't match");
         }
         signatureLength = signature.length;
     }
-    
+
     public OneWayCodec createDecoder() throws Exception
     {
         final Signature signature = Signature.getInstance(signatureAlgorithmName);
         signature.initVerify(keyPair.getPublic());
-        
+
         return new OneWayCodec()
         {
 
@@ -120,7 +120,7 @@ public class IntegrityCodec implements BinaryStateCodec, InitializingBean
     {
         final Signature signature = Signature.getInstance(signatureAlgorithmName);
         signature.initSign(keyPair.getPrivate());
-        
+
         return new OneWayCodec()
         {
 

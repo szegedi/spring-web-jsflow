@@ -22,35 +22,35 @@ import org.szegedi.spring.web.jsflow.FlowStateStorageException;
 import org.szegedi.spring.web.jsflow.codec.BinaryStateCodec;
 
 /**
- * <p> 
+ * <p>
  * A flow state storage that serializes the flow states. It requires access to a
- * script storage. If none is configured, then the 
- * {@link org.szegedi.spring.web.jsflow.FlowController} will pass it its own 
- * script storage - this is usually the intention. 
+ * script storage. If none is configured, then the
+ * {@link org.szegedi.spring.web.jsflow.FlowController} will pass it its own
+ * script storage - this is usually the intention.
  * </p><p>
  * When creating the serialized flowstates, it stubs all the application context
  * beans and script function objects, thus minimizing the size of the serialized
  * state. When deserializing, it will reattach the deserialized state to stubbed
- * objects, resolving them by name. This way, it is allowed to have references 
- * to application context objects in the reachability graph of the serialized 
- * state, as they will get stubbed and resolved correctly. It is however 
- * strongly not advised to have references to any other external objects in the 
- * running scripts or objects referenced by them, as they will either fail 
- * serialization, or - lacking stubbing - cause duplicate instances to be 
- * created upon deserialization. 
+ * objects, resolving them by name. This way, it is allowed to have references
+ * to application context objects in the reachability graph of the serialized
+ * state, as they will get stubbed and resolved correctly. It is however
+ * strongly not advised to have references to any other external objects in the
+ * running scripts or objects referenced by them, as they will either fail
+ * serialization, or - lacking stubbing - cause duplicate instances to be
+ * created upon deserialization.
  * </p><p>
- * As a safety feature, the MD5 fingerprint of each function's code that is on 
- * the continuation's call stack is stored along with the continuation, and 
- * matched upon retrieval, with an exception being thrown if they don't match. 
+ * As a safety feature, the MD5 fingerprint of each function's code that is on
+ * the continuation's call stack is stored along with the continuation, and
+ * matched upon retrieval, with an exception being thrown if they don't match.
  * In case that the underlying script changed since the continuation last run
- * (i.e. because you restarted the servlet context and reloaded a changed 
- * script) this causes clean fast failure, instead of unpredictable behavior 
+ * (i.e. because you restarted the servlet context and reloaded a changed
+ * script) this causes clean fast failure, instead of unpredictable behavior
  * caused by invalid return addresses in the continuation stack frames.
  * </p><p>
- * The class supports setting a 
- * {@link org.szegedi.spring.web.jsflow.codec.BinaryStateCodec}, enabling 
+ * The class supports setting a
+ * {@link org.szegedi.spring.web.jsflow.codec.BinaryStateCodec}, enabling
  * pluggable compression, encryption, and/or digital signing of the serialized
- * state. This is most useful with the 
+ * state. This is most useful with the
  * {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage} subclass
  * where the client is entrusted with storing the flowstates, so you might wish
  * to ensure they're resistant to tampering.
@@ -61,12 +61,12 @@ public abstract class AbstractFlowStateStorage extends FlowStateSerializer
 implements FlowStateStorage
 {
     private BinaryStateCodec binaryStateCodec;
-    
+
     public void setBinaryStateCodec(final BinaryStateCodec binaryStateCodec)
     {
         this.binaryStateCodec = binaryStateCodec;
     }
-    
+
     public NativeContinuation getState(final HttpServletRequest request, final String id)
     {
         try
@@ -121,7 +121,7 @@ implements FlowStateStorage
 
     /**
      * Implement in subclasses to store the serialized state.
-     * @param request the HTTP request that triggered the store operation. Can 
+     * @param request the HTTP request that triggered the store operation. Can
      * be used to implement session-private storages for states.
      * @param state byte array representing the serialized state
      * @return the id of the state

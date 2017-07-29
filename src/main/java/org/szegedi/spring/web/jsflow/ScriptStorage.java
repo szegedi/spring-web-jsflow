@@ -47,10 +47,10 @@ import org.szegedi.spring.core.io.ResourceRepresentation;
 import org.szegedi.spring.web.jsflow.support.PersistenceSupport;
 
 /**
- * A loader and in-memory storage for compiled flowscripts. It is sufficient 
+ * A loader and in-memory storage for compiled flowscripts. It is sufficient
  * (and recommended) to have exactly one script storage per application context.
- * The storage will be used by all the flow controllers in the application 
- * context. The script storage is resource loader aware, and will use the 
+ * The storage will be used by all the flow controllers in the application
+ * context. The script storage is resource loader aware, and will use the
  * resource loader it was made aware of for loading script source code.
  * @author Attila Szegedi
  * @version $Id$
@@ -58,10 +58,10 @@ import org.szegedi.spring.web.jsflow.support.PersistenceSupport;
 public class ScriptStorage implements ResourceLoaderAware, InitializingBean
 {
     private static final String[] lazilyNames = { "RegExp", "Packages", "java",
-        "getClass", "JavaAdapter", "JavaImporter", "XML", "XMLList", 
-        "Namespace", "QName"        
+        "getClass", "JavaAdapter", "JavaImporter", "XML", "XMLList",
+        "Namespace", "QName"
     };
-        
+
     private ResourceLoader resourceLoader;
     private String prefix = "";
     private LibraryCustomizer libraryCustomizer;
@@ -75,29 +75,29 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     private final Object lock = new Object();
     private String scriptCharacterEncoding = System.getProperty("file.encoding");
     private final ScriptableObject library = new NativeObject();
-    
+
     /**
      * Sets the character encoding used to load scripts' source code. Defaults
      * to the value of the system property <code>file.encoding</code>.
      * @param scriptCharacterEncoding
-     * @since 1.2 
+     * @since 1.2
      */
     public void setScriptCharacterEncoding(final String scriptCharacterEncoding)
     {
         this.scriptCharacterEncoding = scriptCharacterEncoding;
     }
-    
+
     /**
-     * Sets the resource loader for this storage. The resource loader will be 
-     * used to load script source code. As the class implements 
-     * {@link ResourceLoaderAware}, this will usually be invoked by the Spring 
+     * Sets the resource loader for this storage. The resource loader will be
+     * used to load script source code. As the class implements
+     * {@link ResourceLoaderAware}, this will usually be invoked by the Spring
      * framework to set the application context as the resource loader.
      */
     public void setResourceLoader(final ResourceLoader resourceLoader)
     {
         this.resourceLoader = resourceLoader;
     }
-    
+
     /**
      * Sets the prefix prepended to the script name to form the full path and
      * name of the resource that stores the script source code, i.e. "scripts/".
@@ -112,11 +112,11 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     /**
      * Sets the period in milliseconds during which a script resource will not
      * be checked for staleness. Defaults to 10000, that is, if upon requesting
-     * a script its file's timestamp was checked in the last 10 seconds, then 
+     * a script its file's timestamp was checked in the last 10 seconds, then
      * it won't be checked again. If it was checked earlier than 10 seconds
      * though, then its timestamp will be checked and if it changed, the script
      * will be reloaded. Setting it to nonzero improves performance, while
-     * setting it to a very large value effectively disables automatic script 
+     * setting it to a very large value effectively disables automatic script
      * reloading.
      * @param noStaleCheckPeriod the period in milliseconds during which one
      * script file's timestamp is not rechecked.
@@ -129,16 +129,16 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         }
         this.noStaleCheckPeriod = noStaleCheckPeriod;
     }
-    
+
     /**
      * Sets a list of library scripts. These scripts will be executed in the
-     * context of the global "library" scope that is the prototype of all 
+     * context of the global "library" scope that is the prototype of all
      * conversation scopes.
-     * @param libraryScripts the list of additional library scripts. Each 
-     * element can be a string (will resolve to a path as per 
+     * @param libraryScripts the list of additional library scripts. Each
+     * element can be a string (will resolve to a path as per
      * {@link #setResourceLoader(ResourceLoader)} and {@link #setPrefix(String)}),
      * a {@link Resource}, or a {@link Script}.
-     * @since 1.2 
+     * @since 1.2
      */
     public void setLibraryScripts(final List libraryScripts)
     {
@@ -148,7 +148,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     /**
      * Sets a library customizer. A library customizer is an optional object
      * that is given the chance to customize the global "library" scope that
-     * is the prototype of all conversation scopes. If you simply wish to 
+     * is the prototype of all conversation scopes. If you simply wish to
      * execute further scripts that define globally available functions, you'd
      * rather want to use {@link #setLibraryScripts(List)}, as that will also
      * cause the functions defined in those scripts to be properly stubbed for
@@ -160,7 +160,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     {
         this.libraryCustomizer = libraryCustomizer;
     }
-    
+
     /**
      * Sets a security domain factory for this script storage. It can be used
      * to associate Rhino security domain objects with scripts.
@@ -171,12 +171,12 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     {
         this.securityDomainFactory = securityDomainFactory;
     }
-    
+
     /**
      * Sets the context factory used to run the library script. If none is set
      * the global context factory {@link ContextFactory#getGlobal()} is used.
-     * If you are using a custom context factory in either 
-     * {@link FlowController} or {@link OpenContextInViewInterceptor}, you 
+     * If you are using a custom context factory in either
+     * {@link FlowController} or {@link OpenContextInViewInterceptor}, you
      * might want to explicitly specify that factory here as well, although in
      * majority of cases this is not necessary.
      * @param contextFactory
@@ -185,7 +185,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     {
         this.contextFactory = contextFactory;
     }
-    
+
     public void afterPropertiesSet() throws Exception
     {
         final ContextAction ca = new ContextAction() {
@@ -202,7 +202,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                     for (int i = 0; i < lazilyNames.length; i++) {
                         ScriptableObject.getProperty(library, lazilyNames[i]);
                     }
-                    
+
                     if(libraryScripts != null) {
                         int i = 0;
                         for (final Iterator iter = libraryScripts.iterator(); iter.hasNext(); ++i) {
@@ -210,7 +210,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                             Script s;
                             String path;
                             if(scriptSpec instanceof String) {
-                                path = (String)scriptSpec; 
+                                path = (String)scriptSpec;
                                 s = getScript(path);
                             }
                             else if(scriptSpec instanceof Resource) {
@@ -225,7 +225,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                             }
                             else {
                                 throw new IllegalArgumentException(
-                                        "libraryScripts[" + i + "] is " + 
+                                        "libraryScripts[" + i + "] is " +
                                         scriptSpec.getClass().getName());
                             }
                             s.exec(cx, library);
@@ -235,11 +235,11 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                     if(libraryCustomizer != null) {
                         libraryCustomizer.customizeLibrary(cx, library);
                     }
-                    
-                    // bit of a hack to initialize all lazy objects that 
+
+                    // bit of a hack to initialize all lazy objects that
                     // ScriptableOutputStream would initialize, so we can then
                     // safely seal it
-                    new ScriptableOutputStream(new ByteArrayOutputStream(), 
+                    new ScriptableOutputStream(new ByteArrayOutputStream(),
                             library);
                     // Finally seal the library scope
                     library.sealObject();
@@ -265,10 +265,10 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
             contextFactory.call(ca);
         }
     }
-    
+
     /**
      * Returns an object implementing support functionality for persistent flow
-     * state storage. Not usable by client applications, this is meant to be 
+     * state storage. Not usable by client applications, this is meant to be
      * used by the persistent flow state storage
      * @return the persistence support object.
      */
@@ -280,7 +280,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
             {
                 return library;
             }
-            
+
             protected Object getFunctionStub(final Object function)
             {
                 if(function instanceof DebuggableScript)
@@ -334,7 +334,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
             }
         };
     }
-    
+
     Script getScript(final String path) throws Exception
     {
         ScriptResource script;
@@ -353,19 +353,19 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     private class ScriptResource extends ResourceRepresentation
     {
         private final String path;
-        
+
         ScriptResource(final String path)
         {
             super(resourceLoader.getResource(prefix + path));
             this.path = path;
         }
-        
+
         protected Object loadRepresentation(final InputStream in) throws IOException
         {
             return loadScript(in, getResource(), path);
         }
     }
-    
+
     ScriptableObject createNewTopLevelScope(final Context cx)
     {
         final ScriptableObject scope = (ScriptableObject)cx.newObject(library);
@@ -373,7 +373,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         scope.setParentScope(null);
         return scope;
     }
-    
+
     private Script loadScript(final Resource resource, final String path)
     throws IOException
     {
@@ -387,17 +387,17 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
             in.close();
         }
     }
-    
-    private Script loadScript(final InputStream in, final Resource resource, 
+
+    private Script loadScript(final InputStream in, final Resource resource,
             final String path)
     throws IOException
     {
         final Reader r = new InputStreamReader(in, scriptCharacterEncoding);
         try
         {
-            final Object securityDomain = securityDomainFactory == null ? null : 
+            final Object securityDomain = securityDomainFactory == null ? null :
                 securityDomainFactory.createSecurityDomain(resource);
-            final Script script = Context.getCurrentContext().compileReader(r, 
+            final Script script = Context.getCurrentContext().compileReader(r,
                     resource.getDescription(), 1, securityDomain);
             createFunctionStubs(path, script);
             return script;
@@ -420,18 +420,18 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     {
         new FunctionStubFactory(path).createStubs(script);
     }
-    
+
     private class FunctionStubFactory
     {
         private final String scriptName;
         private final Map newStubsToFunctions = new HashMap();
         private final Map newFunctionsToStubs = new IdentityHashMap();
-        
+
         public FunctionStubFactory(final String scriptName)
         {
             this.scriptName = scriptName;
         }
-        
+
         void createStubs(final Script script)
         {
             createStubs("", Context.getDebuggableView(script));
@@ -443,7 +443,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                 functionsToStubs = newFunctionsToStubs;
             }
         }
-        
+
         private void createStubs(final String prefix, final DebuggableScript fnOrScript)
         {
             final FunctionStub stub = new FunctionStub(scriptName, prefix);
@@ -457,31 +457,31 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         }
     }
 
-    
+
     private static class FunctionStub implements Serializable
     {
         private static final long serialVersionUID = -6421810931770215109L;
         private final String scriptName;
         private final String functionName;
-        
+
         FunctionStub(final String scriptName, final String functionName)
         {
             this.scriptName = scriptName;
             this.functionName = functionName;
         }
-        
+
         public int hashCode()
         {
             return scriptName.hashCode() ^ functionName.hashCode();
         }
-        
+
         public boolean equals(final Object o)
         {
             if(o instanceof FunctionStub)
             {
                 final FunctionStub key = (FunctionStub)o;
-                return key.functionName.equals(functionName) && 
-                    key.scriptName.equals(scriptName); 
+                return key.functionName.equals(functionName) &&
+                    key.scriptName.equals(scriptName);
             }
             return false;
         }

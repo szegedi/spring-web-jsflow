@@ -22,16 +22,16 @@ import org.springframework.beans.factory.InitializingBean;
 import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
 
 /**
- * A codec that will encrypt the flowstate when encoding, and decrypt it upon 
- * decoding. It can be used with 
- * {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage} when there 
- * is a concern that confidential information might be contained in the flow 
- * state. If you use it, then it is recommended to put it into a 
- * {@link org.szegedi.spring.web.jsflow.codec.CompositeCodec} and precede it 
- * with a {@link org.szegedi.spring.web.jsflow.codec.CompressionCodec}, as 
- * compression improves the security of encryption. You might also want to 
- * consider enclosing it (or the composite codec) into a 
- * {@link org.szegedi.spring.web.jsflow.codec.PooledCodec} to improve 
+ * A codec that will encrypt the flowstate when encoding, and decrypt it upon
+ * decoding. It can be used with
+ * {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage} when there
+ * is a concern that confidential information might be contained in the flow
+ * state. If you use it, then it is recommended to put it into a
+ * {@link org.szegedi.spring.web.jsflow.codec.CompositeCodec} and precede it
+ * with a {@link org.szegedi.spring.web.jsflow.codec.CompressionCodec}, as
+ * compression improves the security of encryption. You might also want to
+ * consider enclosing it (or the composite codec) into a
+ * {@link org.szegedi.spring.web.jsflow.codec.PooledCodec} to improve
  * performance, especially when using some sort of password-based encryption as
  * it has high cipher initialization time requirements. Note however that if
  * you are not concerned about secrecy, but just want to prevent the client from
@@ -57,7 +57,7 @@ public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
     {
         this.secretKey = secretKey;
     }
-    
+
     /**
      * Sets any optional algorithm parameters
      * @param algorithmParameters the algorithm parameters
@@ -66,7 +66,7 @@ public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
     {
         this.algorithmParameters = algorithmParameters;
     }
-    
+
     /**
      * Sets the name of the security provider to use. If not set, the default
      * provider is used.
@@ -76,7 +76,7 @@ public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
     {
         this.provider = provider;
     }
-    
+
     /**
      * Sets the block chaining and padding mode, i.e. "CBC/PKCS5Padding". If not
      * set, the key's algorithm defaults are used.
@@ -87,7 +87,7 @@ public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
     {
         this.algorithm = chainingAndPadding;
     }
-    
+
     public void afterPropertiesSet() throws Exception
     {
         if(algorithm == null)
@@ -99,17 +99,17 @@ public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
             algorithm = secretKey.getAlgorithm() + "/" + algorithm;
         }
     }
-    
+
     public OneWayCodec createDecoder() throws Exception
     {
         return createCoder(Cipher.DECRYPT_MODE);
     }
-    
+
     public OneWayCodec createEncoder() throws Exception
     {
         return createCoder(Cipher.ENCRYPT_MODE);
     }
-    
+
     private OneWayCodec createCoder(final int mode) throws Exception
     {
         final Cipher cipher;
@@ -129,7 +129,7 @@ public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
         {
             cipher.init(mode, secretKey, algorithmParameters);
         }
-        
+
         return new OneWayCodec()
         {
             public byte[] code(final byte[] data) throws Exception

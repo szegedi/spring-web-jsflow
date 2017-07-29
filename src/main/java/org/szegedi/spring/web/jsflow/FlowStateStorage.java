@@ -21,8 +21,8 @@ import org.mozilla.javascript.NativeContinuation;
 /**
  * A storage for interim flow states. It is sufficient (and recommended) to have
  * exactly one flow state storage per application context, although you can
- * have exotic scenarios with several controllers, each with a different 
- * storage if you really have to. If you have a single storage in the 
+ * have exotic scenarios with several controllers, each with a different
+ * storage if you really have to. If you have a single storage in the
  * application context, then all flow controllers that don't have their own
  * storage set will use it.
  * @author Attila Szegedi

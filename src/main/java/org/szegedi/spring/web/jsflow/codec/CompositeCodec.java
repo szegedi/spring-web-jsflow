@@ -22,16 +22,16 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
  * A codec that composes several other codecs. You will typically use it to
  * compose a {@link org.szegedi.spring.web.jsflow.codec.CompressionCodec},
  * {@link org.szegedi.spring.web.jsflow.codec.ConfidentialityCodec} and a
- * {@link org.szegedi.spring.web.jsflow.codec.IntegrityCodec} into a single 
- * codec (in this order). Note that any of these are optional, although if you 
- * are using the {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage}, 
- * you should at least use integrity codec to prevent the client from tampering 
- * with the state. If you use the confidentiality codec to encrypt the state as 
- * well because you are concerned about leaking out any confidential 
- * information, then use the compression codec as well as compression improves 
+ * {@link org.szegedi.spring.web.jsflow.codec.IntegrityCodec} into a single
+ * codec (in this order). Note that any of these are optional, although if you
+ * are using the {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage},
+ * you should at least use integrity codec to prevent the client from tampering
+ * with the state. If you use the confidentiality codec to encrypt the state as
+ * well because you are concerned about leaking out any confidential
+ * information, then use the compression codec as well as compression improves
  * the security of the encryption. Also consider wrapping this codec into a
  * {@link org.szegedi.spring.web.jsflow.codec.PooledCodec} if you use either
- * confidentiality or integrity, as their coding operations can have high 
+ * confidentiality or integrity, as their coding operations can have high
  * initialization overhead.
  * @author Attila Szegedi
  * @version $Id$
@@ -39,9 +39,9 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
 public class CompositeCodec implements BinaryStateCodec
 {
     private BinaryStateCodec[] codecs;
-    
+
     /**
-     * Sets the component codecs of this codec - each of them instance of 
+     * Sets the component codecs of this codec - each of them instance of
      * {@link BinaryStateCodec}. The codecs are applied in the specified order
      * when encoding, and in reverse order when decoding.
      * @param codecs the component codecs.
@@ -51,7 +51,7 @@ public class CompositeCodec implements BinaryStateCodec
         this.codecs = (BinaryStateCodec[]) codecs.toArray(
                 new BinaryStateCodec[codecs.size()]);
     }
-    
+
     public OneWayCodec createDecoder() throws Exception
     {
         final OneWayCodec[] oneways = new OneWayCodec[codecs.length];
@@ -59,10 +59,10 @@ public class CompositeCodec implements BinaryStateCodec
         {
             oneways[codecs.length - i - 1] = codecs[i].createDecoder();
         }
-        
+
         return compositeOneWayCodec(oneways);
     }
-    
+
     public OneWayCodec createEncoder() throws Exception
     {
         final OneWayCodec[] oneways = new OneWayCodec[codecs.length];
@@ -70,7 +70,7 @@ public class CompositeCodec implements BinaryStateCodec
         {
             oneways[i] = codecs[i].createEncoder();
         }
-        
+
         return compositeOneWayCodec(oneways);
     }
 

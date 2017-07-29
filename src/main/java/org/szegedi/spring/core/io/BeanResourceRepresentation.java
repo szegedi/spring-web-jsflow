@@ -28,7 +28,7 @@ import org.springframework.core.io.Resource;
  * @author Attila Szegedi
  * @version $Id: $
  */
-public abstract class BeanResourceRepresentation extends 
+public abstract class BeanResourceRepresentation extends
 PropertyResourceRepresentation
 {
     protected BeanResourceRepresentation(final Resource resource)
@@ -41,7 +41,7 @@ PropertyResourceRepresentation
      * @return a new bean representing this resource.
      */
     protected abstract Object instantiateBean();
-    
+
     protected Object loadRepresentation(final InputStream in) throws IOException
     {
         final Properties props = (Properties)super.loadRepresentation(in);

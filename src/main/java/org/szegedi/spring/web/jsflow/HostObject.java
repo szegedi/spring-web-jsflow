@@ -39,32 +39,32 @@ public class HostObject extends ScriptableObject
     private String viewName;
     private int includeLevel;
     private String currentScriptDirectory;
-    
+
     public HostObject()
     {
         scriptStorage = null;
     }
-    
+
     void setCurrentScriptDirectory(final String currentScriptDirectory)
     {
         this.currentScriptDirectory = currentScriptDirectory;
     }
-    
+
     void setScriptStorage(final ScriptStorage scriptStorage)
     {
         this.scriptStorage = scriptStorage;
     }
-    
+
     public String getClassName()
     {
         return CLASS_NAME;
     }
-    
+
     public void jsFunction_inspect(final Scriptable obj)
     {
         System.out.println(obj);
     }
-    
+
     public void jsFunction_respond(final String viewName, final Scriptable model)
     {
         this.viewName = viewName == "undefined" ? null : viewName;
@@ -88,17 +88,17 @@ public class HostObject extends ScriptableObject
         {
             model.put(FlowController.STATEID_KEY, model, continuationId);
         }
-        return viewName == null ? null : new ModelAndView(viewName, 
+        return viewName == null ? null : new ModelAndView(viewName,
                 new ScriptableMap(model));
     }
-    
+
     public void jsFunction_include(final Scriptable scope, String scriptName)
     throws Exception
     {
         final Context cx = Context.getCurrentContext();
         if(scriptName.charAt(0) != '/')
         {
-            // relative script name -- resolve it against currently executing 
+            // relative script name -- resolve it against currently executing
             // script's directory
             String pathPrefix = currentScriptDirectory;
             while(scriptName.startsWith("../"))
@@ -106,7 +106,7 @@ public class HostObject extends ScriptableObject
                 final int lastSlash = pathPrefix.lastIndexOf('/');
                 if(lastSlash == -1)
                 {
-                    throw new FileNotFoundException("script:" + 
+                    throw new FileNotFoundException("script:" +
                             currentScriptDirectory + '/' + scriptName);
                 }
                 scriptName = scriptName.substring(3);

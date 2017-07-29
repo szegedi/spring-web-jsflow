@@ -42,7 +42,7 @@ import org.szegedi.spring.web.jsflow.ScriptStorage;
 
 /**
  * A class able to serialize and deserialize a continuation within a specified
- * application context. 
+ * application context.
  * @author Attila Szegedi
  * @version $Id: $
  */
@@ -52,24 +52,24 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
     private PersistenceSupport persistenceSupport;
     private ApplicationContext applicationContext;
     private Map beansToStubs = Collections.EMPTY_MAP;
-    
-    
+
+
     public void setScriptStorage(final ScriptStorage scriptStorage)
     {
         this.scriptStorage = scriptStorage;
         persistenceSupport = scriptStorage.getPersistenceSupport();
     }
-    
+
     public ScriptStorage getScriptStorage()
     {
         return scriptStorage;
     }
-    
+
     public void setApplicationContext(final ApplicationContext applicationContext)
     {
         this.applicationContext = applicationContext;
     }
-    
+
     public void afterPropertiesSet() throws Exception
     {
         if(scriptStorage == null)
@@ -78,7 +78,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
         }
         createStubInfo();
     }
-    
+
     private void createStubInfo()
     {
         final String[] names = BeanFactoryUtils.beanNamesIncludingAncestors(applicationContext);
@@ -86,46 +86,46 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
         for (int i = 0; i < names.length; i++)
         {
             final String name = names[i];
-            beansToStubs.put(applicationContext.getBean(name), 
+            beansToStubs.put(applicationContext.getBean(name),
                     new ApplicationContextBeanStub(name));
         }
         beansToStubs.put(".", applicationContext);
         this.beansToStubs = beansToStubs;
     }
-    
+
     /**
      * Serializes a continuation. All script function object references as well
      * as all references to objects defined in the application context will be
-     * replaced by named stubs. Additionally, a digital fingerprint of the 
-     * internal JS bytecode representation of all JS functions on the 
+     * replaced by named stubs. Additionally, a digital fingerprint of the
+     * internal JS bytecode representation of all JS functions on the
      * continuation's stack is written.
      * @param state the continuation to serialize
      * @param stubbedFunctions a map that'll receive all mappings of stubs to
-     * functions. Can be used to locally deserialize a continuation and 
-     * reconnect it with exact same functions that were current during 
-     * serialization (thus making continuations immune to script reloading 
-     * within a single JVM run). Can be null if tracking of stubs is not 
+     * functions. Can be used to locally deserialize a continuation and
+     * reconnect it with exact same functions that were current during
+     * serialization (thus making continuations immune to script reloading
+     * within a single JVM run). Can be null if tracking of stubs is not
      * required.
      * @return the serialized form
      * @throws Exception
      */
-    protected byte[] serializeContinuation(final NativeContinuation state, 
+    protected byte[] serializeContinuation(final NativeContinuation state,
             final Map stubbedFunctions, final StubProvider stubProvider) throws Exception
     {
         final ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        final ObjectOutputStream out = new ContinuationOutputStream(bout, 
+        final ObjectOutputStream out = new ContinuationOutputStream(bout,
                 state, stubbedFunctions, stubProvider);
         out.writeObject(FunctionFingerprintManager.getFingerprints(state));
         out.writeObject(state);
         out.close();
         return bout.toByteArray();
     }
-    
+
     /**
      * Deserializes a continuation. All stubs written during serialization are
-     * resolved to appropriate objects within this application context. 
-     * Additionally, digital fingerprints of the functions on the 
-     * continuation's stack are matched to the fingerprints of the same 
+     * resolved to appropriate objects within this application context.
+     * Additionally, digital fingerprints of the functions on the
+     * continuation's stack are matched to the fingerprints of the same
      * functions currently in the memory. If they don't match (i.e. the script
      * was modified since the continuation was serialized), an exception is
      * thrown to prevent undefined behaviour as the continuation's stack might
@@ -144,12 +144,12 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
         FunctionFingerprintManager.checkFingerprints(cont, fingerprints);
         return cont;
     }
-    
+
     private class ContinuationInputStream extends ScriptableInputStream
     {
         private final StubResolver stubResolver;
-        
-        public ContinuationInputStream(final InputStream in, final StubResolver stubResolver) 
+
+        public ContinuationInputStream(final InputStream in, final StubResolver stubResolver)
         throws IOException
         {
             super(in, persistenceSupport.getLibrary());
@@ -157,12 +157,12 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
         }
 
         protected Object resolveObject(final Object obj)
-        throws 
+        throws
             IOException
         {
             if(obj instanceof ApplicationContextBeanStub)
             {
-                final ApplicationContextBeanStub stub = 
+                final ApplicationContextBeanStub stub =
                     (ApplicationContextBeanStub)obj;
                 final Object robj = applicationContext.getBean(stub.beanName);
                 if(robj != null)
@@ -171,7 +171,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
                 }
                 else
                 {
-                    throw new InvalidObjectException("No bean with name [" + 
+                    throw new InvalidObjectException("No bean with name [" +
                             stub.beanName + "] found");
                 }
             }
@@ -210,7 +210,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
             return super.resolveObject(obj);
         }
     }
-    
+
     private class ContinuationOutputStream extends ScriptableOutputStream
     {
         private final Map stubbedFunctions;
@@ -225,7 +225,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
             this.stubbedFunctions = stubbedFunctions;
             this.stubProvider = stubProvider;
         }
-        
+
         protected Object replaceObject(final Object obj) throws IOException
         {
             // App context
@@ -234,7 +234,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
             {
                 return stub;
             }
-            
+
             // Thread context
             if(stubProvider != null)
             {
@@ -244,7 +244,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
                     return stub;
                 }
             }
-            
+
             // Functions
             stub = persistenceSupport.getFunctionStub(obj);
             if(stub != null)
@@ -258,18 +258,18 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
             return super.replaceObject(obj);
         }
     }
-    
+
     private static class ApplicationContextBeanStub implements Serializable
     {
         private static final long serialVersionUID = 1L;
 
         private final String beanName;
-        
+
         ApplicationContextBeanStub(final String beanName)
         {
             this.beanName = beanName;
         }
-        
+
         public boolean equals(final Object obj)
         {
             if(obj instanceof ApplicationContextBeanStub)
@@ -278,18 +278,18 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
             }
             return false;
         }
-        
+
         public int hashCode()
         {
             return beanName.hashCode();
         }
-        
+
         public String toString()
         {
             return "stub:" + beanName;
         }
     }
-    
+
     /**
      * An interface that can be implemented to provide further context-specific
      * stubs.
@@ -307,7 +307,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
          */
         Object getStub(Object obj);
     }
-    
+
     /**
      * An interface that can be implemented to resolve further context-specific
      * stubs.
@@ -320,7 +320,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
         /**
          * Resolves a stub into an object.
          * @param stub the stub to resolve
-         * @return the resolved object, or null if the resolved does not 
+         * @return the resolved object, or null if the resolved does not
          * recognize the object as a stub.
          * @throws InvalidObjectException if the resolver recognizes the stub,
          * but is unable to provide the resolved object
