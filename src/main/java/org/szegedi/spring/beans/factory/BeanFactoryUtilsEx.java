@@ -22,12 +22,10 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 /**
  * An extension to the beans factory utils in Spring.
  * @author Attila Szegedi
- * @version $Id$
  */
-public class BeanFactoryUtilsEx
-{
+public class BeanFactoryUtilsEx {
     /**
-     * Returns a bean of specified type in the specified bean factory or its 
+     * Returns a bean of specified type in the specified bean factory or its
      * ancestors. In contrast with Spring's BeanFactoryUtils, doesn't throw an
      * exception if no bean is found, but rather returns null.
      * @param lbf the bean factory to look for the bean
@@ -35,25 +33,17 @@ public class BeanFactoryUtilsEx
      * @return the bean - if exactly one is defined. null - if none is defined
      * @throws NoSuchBeanDefinitionException if more than one bean is defined
      */
-    public static Object beanOfTypeIncludingAncestors(final ListableBeanFactory lbf, final Class type)
-    {
-        final Map map = org.springframework.beans.factory.BeanFactoryUtils.beansOfTypeIncludingAncestors(lbf, type);
-        switch(map.size())
-        {
+    public static <T> T beanOfTypeIncludingAncestors(final ListableBeanFactory lbf, final Class<T> type) {
+        final Map<String, T> map = org.springframework.beans.factory.BeanFactoryUtils.beansOfTypeIncludingAncestors(lbf, type);
+        switch(map.size()) {
             case 0:
-            {
                 return null;
-            }
             case 1:
-            {
                 return map.values().iterator().next();
-            }
             default:
-            {
                 throw new NoSuchBeanDefinitionException(
-                        "More than one bean of type " + type.getName()  + 
-                        " found: " + map.keySet()); 
-            }
+                        "More than one bean of type " + type.getName()  +
+                        " found: " + map.keySet());
         }
     }
 
