@@ -40,12 +40,12 @@ import sun.misc.BASE64Encoder;
  */
 public class ClientSideFlowStateStorage extends AbstractFlowStateStorage
 {
-    protected byte[] getSerializedState(HttpServletRequest request, String id) throws IOException
+    protected byte[] getSerializedState(final HttpServletRequest request, final String id) throws IOException
     {
         return new BASE64Decoder().decodeBuffer(id);
     }
     
-    protected String storeSerializedState(HttpServletRequest request, byte[] state)
+    protected String storeSerializedState(final HttpServletRequest request, final byte[] state)
     {
         return new BASE64Encoder().encodeBuffer(state);
     }

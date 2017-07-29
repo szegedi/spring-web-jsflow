@@ -38,7 +38,7 @@ public class PooledCodec implements BinaryStateCodec
 {
     private BinaryStateCodec binaryStateCodec;
     
-    public void setBinaryStateCodec(BinaryStateCodec binaryStateCodec)
+    public void setBinaryStateCodec(final BinaryStateCodec binaryStateCodec)
     {
         this.binaryStateCodec = binaryStateCodec;
     }
@@ -63,7 +63,7 @@ public class PooledCodec implements BinaryStateCodec
     {
         return new OneWayCodec()
         {
-            public byte[] code(byte[] data) throws Exception
+            public byte[] code(final byte[] data) throws Exception
             {
                 return transcode(decoderFactory, data);
             }
@@ -74,19 +74,19 @@ public class PooledCodec implements BinaryStateCodec
     {
         return new OneWayCodec()
         {
-            public byte[] code(byte[] data) throws Exception
+            public byte[] code(final byte[] data) throws Exception
             {
                 return transcode(encoderFactory, data);
             }
         };
     }
     
-    private static byte[] transcode(SoftPooledFactory factory, byte[] data) throws Exception
+    private static byte[] transcode(final SoftPooledFactory factory, final byte[] data) throws Exception
     {
         for(;;)
         {
-            Reference ref = factory.get();
-            OneWayCodec codec = (OneWayCodec)ref.get();
+            final Reference ref = factory.get();
+            final OneWayCodec codec = (OneWayCodec)ref.get();
             if(codec != null)
             {
                 try

@@ -62,32 +62,32 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage
     private String insertQuery;
     private Random random;
     
-    public void setJdbcOperations(JdbcOperations jdbcOperations)
+    public void setJdbcOperations(final JdbcOperations jdbcOperations)
     {
         this.jdbcOperations = jdbcOperations;
     }
 
-    public void setIdColumnName(String idColumnName)
+    public void setIdColumnName(final String idColumnName)
     {
         this.idColumnName = idColumnName;
     }
     
-    public void setRandom(Random random)
+    public void setRandom(final Random random)
     {
         this.random = random;
     }
     
-    public void setRandomColumnName(String randomColumnName)
+    public void setRandomColumnName(final String randomColumnName)
     {
         this.randomColumnName = randomColumnName;
     }
     
-    public void setStateColumnName(String stateColumnName)
+    public void setStateColumnName(final String stateColumnName)
     {
         this.stateColumnName = stateColumnName;
     }
     
-    public void setTableName(String tableName)
+    public void setTableName(final String tableName)
     {
         this.tableName = tableName;
     }
@@ -107,7 +107,7 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage
     
     private static final ResultSetExtractor EXTRACTOR = new ResultSetExtractor()
     {
-        public Object extractData(ResultSet rs) throws SQLException
+        public Object extractData(final ResultSet rs) throws SQLException
         {
             if(rs.next())
             {
@@ -117,17 +117,17 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage
         }
     };
     
-    protected byte[] getSerializedState(HttpServletRequest request, final String id) throws Exception
+    protected byte[] getSerializedState(final HttpServletRequest request, final String id) throws Exception
     {
         return (byte[])jdbcOperations.query(
                 new PreparedStatementCreator()
                 {
-                    public PreparedStatement createPreparedStatement(Connection con) 
+                    public PreparedStatement createPreparedStatement(final Connection con) 
                     throws SQLException
                     {
-                        PreparedStatement statement = con.prepareStatement(
+                        final PreparedStatement statement = con.prepareStatement(
                                 selectQuery);
-                        int i = id.indexOf(SEPARATOR);
+                        final int i = id.indexOf(SEPARATOR);
                         statement.setString(1, id.substring(i + 1));
                         statement.setString(2, id.substring(0, i));
                         return statement;
@@ -135,17 +135,17 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage
                 }, EXTRACTOR);
     }
     
-    protected String storeSerializedState(HttpServletRequest request, final byte[] state) throws Exception
+    protected String storeSerializedState(final HttpServletRequest request, final byte[] state) throws Exception
     {
         final int rnd = random.nextInt();
-        KeyHolder keyHolder = new GeneratedKeyHolder();
+        final KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcOperations.update(
                 new PreparedStatementCreator()
                 {
-                    public PreparedStatement createPreparedStatement(Connection con)
+                    public PreparedStatement createPreparedStatement(final Connection con)
                     throws SQLException
                     {
-                        PreparedStatement statement = con.prepareStatement(
+                        final PreparedStatement statement = con.prepareStatement(
                                 insertQuery, Statement.RETURN_GENERATED_KEYS);
                         statement.setBytes(1, state);
                         statement.setInt(2, rnd);

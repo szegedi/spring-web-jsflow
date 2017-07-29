@@ -84,7 +84,7 @@ implements InitializingBean
      * internal default instance of {@link HttpSessionFlowStateStorage}.
      * @param flowStateStorage
      */
-    public void setFlowStateStorage(FlowStateStorage flowStateStorage)
+    public void setFlowStateStorage(final FlowStateStorage flowStateStorage)
     {
         this.flowStateStorage = flowStateStorage;
     }
@@ -96,7 +96,7 @@ implements InitializingBean
      * create an internal default instance.
      * @param scriptStorage
      */
-    public void setScriptStorage(ScriptStorage scriptStorage)
+    public void setScriptStorage(final ScriptStorage scriptStorage)
     {
         this.scriptStorage = scriptStorage;
     }
@@ -109,7 +109,7 @@ implements InitializingBean
      * true will be used.
      * @param scriptSelector
      */
-    public void setScriptSelectionStrategy(ScriptSelectionStrategy scriptSelector)
+    public void setScriptSelectionStrategy(final ScriptSelectionStrategy scriptSelector)
     {
         this.scriptSelectionStrategy = scriptSelector;
     }
@@ -121,7 +121,7 @@ implements InitializingBean
      * factory returned by {@link ContextFactory#getGlobal()} will be used.
      * @param contextFactory
      */
-    public void setContextFactory(ContextFactory contextFactory)
+    public void setContextFactory(final ContextFactory contextFactory)
     {
         this.contextFactory = contextFactory;
     }
@@ -130,7 +130,7 @@ implements InitializingBean
      * @deprecated Use {@link #setScriptSelectionStrategy(ScriptSelectionStrategy)} with
      * a {@link UrlScriptSelectionStrategy} instead
      */
-    public void setResourcePath(String resourcePath)
+    public void setResourcePath(final String resourcePath)
     {
         getUrlScriptSelectionStrategy().setResourcePath(resourcePath);
     }
@@ -139,7 +139,7 @@ implements InitializingBean
      * @deprecated Use {@link #setScriptSelectionStrategy(ScriptSelectionStrategy)} with
      * a {@link UrlScriptSelectionStrategy} instead
      */
-    public void setUsePathInfo(boolean usePathInfo)
+    public void setUsePathInfo(final boolean usePathInfo)
     {
         getUrlScriptSelectionStrategy().setUsePathInfo(usePathInfo);
     }
@@ -148,7 +148,7 @@ implements InitializingBean
      * @deprecated Use {@link #setScriptSelectionStrategy(ScriptSelectionStrategy)} with
      * a {@link UrlScriptSelectionStrategy} instead
      */
-    public void setUseServletPath(boolean useServletPath)
+    public void setUseServletPath(final boolean useServletPath)
     {
         getUrlScriptSelectionStrategy().setUseServletPath(useServletPath);
     }
@@ -167,7 +167,7 @@ implements InitializingBean
         {
             return (UrlScriptSelectionStrategy)scriptSelectionStrategy;
         }
-        catch(ClassCastException e)
+        catch(final ClassCastException e)
         {
             throw new IllegalStateException("You can't use the deprecated " + 
                             "script selection methods after explicitly " +
@@ -185,7 +185,7 @@ implements InitializingBean
      * @param flowExecutionInterceptor
      */
     public void setFlowExecutionInterceptor(
-            FlowExecutionInterceptor flowExecutionInterceptor)
+            final FlowExecutionInterceptor flowExecutionInterceptor)
     {
         this.flowExecutionInterceptor = flowExecutionInterceptor;
     }
@@ -199,7 +199,7 @@ implements InitializingBean
      * @param stateExecutionInterceptor
      */
     public void setStateExecutionInterceptor(
-            StateExecutionInterceptor stateExecutionInterceptor)
+            final StateExecutionInterceptor stateExecutionInterceptor)
     {
         this.stateExecutionInterceptor = stateExecutionInterceptor;
     }
@@ -210,7 +210,7 @@ implements InitializingBean
         // execution interceptor, and flow state interceptor in the context if 
         // they're not explicitly set. Create default instances of script 
         // storage and flow state storage if none found.
-        ApplicationContext ctx = getApplicationContext();
+        final ApplicationContext ctx = getApplicationContext();
         if(scriptStorage == null)
         {
             scriptStorage = createDefaultScriptStorage(ctx);
@@ -223,7 +223,7 @@ implements InitializingBean
             if(flowStateStorage == null)
             {
                 flowStateStorage = new HttpSessionFlowStateStorage();
-                HttpSessionFlowStateStorage hflowStateStorage = (HttpSessionFlowStateStorage)flowStateStorage; 
+                final HttpSessionFlowStateStorage hflowStateStorage = (HttpSessionFlowStateStorage)flowStateStorage; 
                 hflowStateStorage.setApplicationContext(getApplicationContext());
                 hflowStateStorage.setScriptStorage(scriptStorage);
                 hflowStateStorage.afterPropertiesSet();
@@ -237,7 +237,7 @@ implements InitializingBean
         }
         if(scriptSelectionStrategy == null)
         {
-            UrlScriptSelectionStrategy dss = new UrlScriptSelectionStrategy();
+            final UrlScriptSelectionStrategy dss = new UrlScriptSelectionStrategy();
             dss.setUseServletPath(true);
             scriptSelectionStrategy = dss;
         }
@@ -245,9 +245,9 @@ implements InitializingBean
         // using the same script storage.
         if(flowStateStorage instanceof AbstractFlowStateStorage)
         {
-            AbstractFlowStateStorage pfss = 
+            final AbstractFlowStateStorage pfss = 
                 (AbstractFlowStateStorage)flowStateStorage;
-            ScriptStorage otherScriptStorage = pfss.getScriptStorage();
+            final ScriptStorage otherScriptStorage = pfss.getScriptStorage();
             if(otherScriptStorage == null)
             {
                 pfss.setScriptStorage(scriptStorage);
@@ -260,7 +260,7 @@ implements InitializingBean
         }
     }
 
-    public static ScriptStorage createDefaultScriptStorage(ApplicationContext ctx) throws Exception
+    public static ScriptStorage createDefaultScriptStorage(final ApplicationContext ctx) throws Exception
     {
         ScriptStorage scriptStorage = (ScriptStorage)
             BeanFactoryUtilsEx.beanOfTypeIncludingAncestors(ctx, 
@@ -272,7 +272,7 @@ implements InitializingBean
             scriptStorage.afterPropertiesSet();
             if(ctx instanceof ConfigurableApplicationContext)
             {
-                ConfigurableListableBeanFactory bf = ((ConfigurableApplicationContext)ctx).getBeanFactory();
+                final ConfigurableListableBeanFactory bf = ((ConfigurableApplicationContext)ctx).getBeanFactory();
                 bf.registerSingleton("scriptStorage", scriptStorage);
             }
         }
@@ -374,29 +374,29 @@ implements InitializingBean
     throws Exception
     {
         final NativeContinuation continuation = getState(request);
-        Context cx = Context.getCurrentContext();
+        final Context cx = Context.getCurrentContext();
         if(cx == null)
         {
             // No context - we're not running within OpenContextInViewInterceptor.
             // Open our own context only for the duration of the controller.
-            ContextAction cxa = new ContextAction()
+            final ContextAction cxa = new ContextAction()
             {
-                public Object run(Context cx)
+                public Object run(final Context cx)
                 {
                     try
                     {
                         return handleRequestInContext(request, response, 
                             continuation, cx);
                     }
-                    catch(ModelAndViewDefiningException e)
+                    catch(final ModelAndViewDefiningException e)
                     {
                         return e.getModelAndView();
                     }
-                    catch(RuntimeException e)
+                    catch(final RuntimeException e)
                     {
                         throw e;
                     }
-                    catch(Exception e)
+                    catch(final Exception e)
                     {
                         throw new UndeclaredThrowableException(e);
                     }
@@ -419,9 +419,9 @@ implements InitializingBean
         }
     }
 
-    private NativeContinuation getState(HttpServletRequest request)
+    private NativeContinuation getState(final HttpServletRequest request)
     {
-        String strId = request.getParameter(STATEID_KEY);
+        final String strId = request.getParameter(STATEID_KEY);
         if(strId == null)
         {
             return null;
@@ -444,7 +444,7 @@ implements InitializingBean
             scope = (ScriptableObject)ScriptableObject.getTopLevelScope(
                     continuation);
         }
-        HostObject hostObject = (HostObject)cx.newObject(scope, "HostObject");
+        final HostObject hostObject = (HostObject)cx.newObject(scope, "HostObject");
         hostObject.setScriptStorage(scriptStorage);
         ScriptableObject.defineProperty(scope, HOST_PROPERTY,  hostObject, 
                 HIDDEN | UNMODIFIABLE);
@@ -460,14 +460,14 @@ implements InitializingBean
         NativeContinuation newContinuation = null;
         if(continuation == null)
         {
-            String scriptPath = scriptSelectionStrategy.getScriptPath(request);
+            final String scriptPath = scriptSelectionStrategy.getScriptPath(request);
             if(scriptPath == null)
             {
                 // Couldn't select script
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST);
                 return null;
             }
-            String scriptDirectory = HostObject.getDirectoryForScript(
+            final String scriptDirectory = HostObject.getDirectoryForScript(
                     scriptPath); 
             hostObject.setCurrentScriptDirectory(scriptDirectory);
             ScriptableObject.defineProperty(scope, SCRIPT_DIR_PROPERTY, 
@@ -477,7 +477,7 @@ implements InitializingBean
             {
                 script = scriptStorage.getScript(scriptPath);
             }
-            catch(FileNotFoundException e)
+            catch(final FileNotFoundException e)
             {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND);
                 return null;
@@ -498,7 +498,7 @@ implements InitializingBean
                 {
                     stateExecutionInterceptor.aroundStateExecution(new Script()
                     {
-                        public Object exec(Context cx, Scriptable scope)
+                        public Object exec(final Context cx, final Scriptable scope)
                         {
                             return cx.executeScriptWithContinuations(script, 
                                     scope);
@@ -510,11 +510,11 @@ implements InitializingBean
                     cx.executeScriptWithContinuations(script, scope);
                 }
             }
-            catch(ContinuationPending e)
+            catch(final ContinuationPending e)
             {
                 newContinuation = (NativeContinuation)e.getContinuation();
             }
-            catch(Exception e)
+            catch(final Exception e)
             {
                 afterFlowExecution(request, cx, scope, e);
                 throw e;
@@ -530,7 +530,7 @@ implements InitializingBean
                 {
                     stateExecutionInterceptor.aroundStateExecution(new Script()
                     {
-                        public Object exec(Context cx, Scriptable scope)
+                        public Object exec(final Context cx, final Scriptable scope)
                         {
                             return cx.resumeContinuation(continuation, scope, 
                                     null);
@@ -542,11 +542,11 @@ implements InitializingBean
                     cx.resumeContinuation(continuation, scope, null);
                 }
             }
-            catch(ContinuationPending e)
+            catch(final ContinuationPending e)
             {
                 newContinuation = (NativeContinuation)e.getContinuation();
             }
-            catch(Exception e)
+            catch(final Exception e)
             {
                 afterFlowExecution(request, cx, scope, e);
                 throw e;
@@ -571,8 +571,8 @@ implements InitializingBean
     }
 
     
-    private void afterFlowExecution(HttpServletRequest request, Context cx, 
-            ScriptableObject scope, Exception cause) throws Exception
+    private void afterFlowExecution(final HttpServletRequest request, final Context cx, 
+            final ScriptableObject scope, final Exception cause) throws Exception
     {
         if(flowExecutionInterceptor != null)
         {
@@ -581,7 +581,7 @@ implements InitializingBean
         }
     }
 
-    private static void deleteProperty(ScriptableObject object, String property)
+    private static void deleteProperty(final ScriptableObject object, final String property)
     {
         object.setAttributes(property, 0);
         ScriptableObject.deleteProperty(object, property);

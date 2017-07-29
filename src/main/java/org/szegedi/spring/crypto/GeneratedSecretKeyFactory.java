@@ -37,7 +37,7 @@ public class GeneratedSecretKeyFactory extends ProviderBasedFactory
      * Sets the key algorithm to use. Defaults to "AES".
      * @param algorithm the key algorithm
      */
-    public void setAlgorithm(String algorithm)
+    public void setAlgorithm(final String algorithm)
     {
         this.algorithm = algorithm;
     }
@@ -46,7 +46,7 @@ public class GeneratedSecretKeyFactory extends ProviderBasedFactory
      * Sets the size of the keys in bits. Defaults to 128.
      * @param keySize the size of the keys.
      */
-    public void setKeySize(int keySize)
+    public void setKeySize(final int keySize)
     {
         this.keySize = keySize;
     }
@@ -57,7 +57,7 @@ public class GeneratedSecretKeyFactory extends ProviderBasedFactory
      * created, with the configured security provider.
      * @param secureRandom the secure random instance to use.
      */
-    public void setSecureRandom(SecureRandom secureRandom)
+    public void setSecureRandom(final SecureRandom secureRandom)
     {
         this.secureRandom = secureRandom;
     }
@@ -66,7 +66,7 @@ public class GeneratedSecretKeyFactory extends ProviderBasedFactory
     {
         if(secureRandom == null)
         {
-            SecureRandomFactory secureRandomFactory = new SecureRandomFactory();
+            final SecureRandomFactory secureRandomFactory = new SecureRandomFactory();
             secureRandomFactory.setProvider(provider);
             secureRandomFactory.afterPropertiesSet();
             secureRandom = (SecureRandom)secureRandomFactory.createInstance();

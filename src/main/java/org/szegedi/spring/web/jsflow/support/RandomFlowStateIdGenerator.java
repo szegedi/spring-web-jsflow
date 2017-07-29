@@ -28,12 +28,12 @@ public class RandomFlowStateIdGenerator implements FlowStateIdGenerator
 {
     private Random random;
 
-    public void setRandom(Random random)
+    public void setRandom(final Random random)
     {
         this.random = random;
     }
     
-    public Long generateStateId(NativeContinuation c)
+    public Long generateStateId(final NativeContinuation c)
     {
         return new Long(random.nextLong() & Long.MAX_VALUE);
     }

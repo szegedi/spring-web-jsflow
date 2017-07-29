@@ -37,12 +37,12 @@ class ScriptableMap extends AbstractMap
     private Set keys;
     private Set entries;
     
-    public ScriptableMap(Scriptable s)
+    public ScriptableMap(final Scriptable s)
     {
         this.s = s;
     }
     
-    public boolean containsKey(Object key)
+    public boolean containsKey(final Object key)
     {
         if(key instanceof Number)
         {
@@ -95,16 +95,16 @@ class ScriptableMap extends AbstractMap
                                 return ScriptableMap.this.get(key);
                             }
                             
-                            public Object setValue(Object value)
+                            public Object setValue(final Object value)
                             {
                                 return ScriptableMap.this.put(key, value);
                             }
                             
-                            public boolean equals(Object o)
+                            public boolean equals(final Object o)
                             {
                                 if(o instanceof Map.Entry)
                                 {
-                                    Map.Entry e = (Map.Entry)o;
+                                    final Map.Entry e = (Map.Entry)o;
                                     return isEqual(key, e.getKey()) && isEqual(
                                             getValue(), e.getValue());
                                 }
@@ -127,7 +127,7 @@ class ScriptableMap extends AbstractMap
         };
     }
 
-    public Object get(Object key)
+    public Object get(final Object key)
     {
         Object retval;
         if(key instanceof Number)
@@ -141,10 +141,10 @@ class ScriptableMap extends AbstractMap
         return ScriptableConverter.jsToJava(retval);
     }
     
-    public Object put(Object key, Object value)
+    public Object put(final Object key, final Object value)
     {
         keySet().add(key);
-        Object oldValue = get(key);
+        final Object oldValue = get(key);
         if(key instanceof Number)
         {
             ScriptableObject.putProperty(s, ((Number)key).intValue(), value);
@@ -156,9 +156,9 @@ class ScriptableMap extends AbstractMap
         return oldValue;
     }
     
-    public Object remove(Object key)
+    public Object remove(final Object key)
     {
-        Object oldValue = get(key);
+        final Object oldValue = get(key);
         keySet().remove(key);
         return oldValue;
    }
@@ -171,12 +171,12 @@ class ScriptableMap extends AbstractMap
             {
                 private final Set ikeys = new HashSet(Arrays.asList(s.getIds()));
                 
-                public boolean add(Object o)
+                public boolean add(final Object o)
                 {
                     return ikeys.add(o);
                 }
                 
-                public boolean contains(Object o)
+                public boolean contains(final Object o)
                 {
                     return ikeys.contains(o);
                 }
@@ -206,14 +206,14 @@ class ScriptableMap extends AbstractMap
                     };
                 }
                 
-                public boolean remove(Object key)
+                public boolean remove(final Object key)
                 {
-                    boolean x = ikeys.remove(key);
+                    final boolean x = ikeys.remove(key);
                     removeInternal(key);
                     return x;
                 }
                 
-                private void removeInternal(Object key)
+                private void removeInternal(final Object key)
                 {
                     if(key instanceof Number)
                     {
@@ -234,7 +234,7 @@ class ScriptableMap extends AbstractMap
         return keys;
     }
     
-    private static boolean isEqual(Object o1, Object o2)
+    private static boolean isEqual(final Object o1, final Object o2)
     {
         if(o1 == null)
         {

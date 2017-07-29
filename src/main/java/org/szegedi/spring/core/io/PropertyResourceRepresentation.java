@@ -29,14 +29,14 @@ import org.springframework.core.io.Resource;
  */
 public class PropertyResourceRepresentation extends ResourceRepresentation
 {
-    public PropertyResourceRepresentation(Resource resource)
+    public PropertyResourceRepresentation(final Resource resource)
     {
         super(resource);
     }
 
-    protected Object loadRepresentation(InputStream in) throws IOException
+    protected Object loadRepresentation(final InputStream in) throws IOException
     {
-        Properties properties = new Properties();
+        final Properties properties = new Properties();
         properties.load(in);
         return properties;
     }

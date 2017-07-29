@@ -45,12 +45,12 @@ public class HostObject extends ScriptableObject
         scriptStorage = null;
     }
     
-    void setCurrentScriptDirectory(String currentScriptDirectory)
+    void setCurrentScriptDirectory(final String currentScriptDirectory)
     {
         this.currentScriptDirectory = currentScriptDirectory;
     }
     
-    void setScriptStorage(ScriptStorage scriptStorage)
+    void setScriptStorage(final ScriptStorage scriptStorage)
     {
         this.scriptStorage = scriptStorage;
     }
@@ -60,12 +60,12 @@ public class HostObject extends ScriptableObject
         return CLASS_NAME;
     }
     
-    public void jsFunction_inspect(Scriptable obj)
+    public void jsFunction_inspect(final Scriptable obj)
     {
         System.out.println(obj);
     }
     
-    public void jsFunction_respond(String viewName, Scriptable model)
+    public void jsFunction_respond(final String viewName, final Scriptable model)
     {
         this.viewName = viewName == "undefined" ? null : viewName;
         this.model = model;
@@ -82,7 +82,7 @@ public class HostObject extends ScriptableObject
         return isGoingToWait;
     }
 
-    ModelAndView getModelAndView(Object continuationId)
+    ModelAndView getModelAndView(final Object continuationId)
     {
         if(model != null)
         {
@@ -92,10 +92,10 @@ public class HostObject extends ScriptableObject
                 new ScriptableMap(model));
     }
     
-    public void jsFunction_include(Scriptable scope, String scriptName)
+    public void jsFunction_include(final Scriptable scope, String scriptName)
     throws Exception
     {
-        Context cx = Context.getCurrentContext();
+        final Context cx = Context.getCurrentContext();
         if(scriptName.charAt(0) != '/')
         {
             // relative script name -- resolve it against currently executing 
@@ -103,7 +103,7 @@ public class HostObject extends ScriptableObject
             String pathPrefix = currentScriptDirectory;
             while(scriptName.startsWith("../"))
             {
-                int lastSlash = pathPrefix.lastIndexOf('/');
+                final int lastSlash = pathPrefix.lastIndexOf('/');
                 if(lastSlash == -1)
                 {
                     throw new FileNotFoundException("script:" + 
@@ -119,7 +119,7 @@ public class HostObject extends ScriptableObject
             // strip off leading slash
             scriptName = scriptName.substring(1);
         }
-        Script script = scriptStorage.getScript(scriptName);
+        final Script script = scriptStorage.getScript(scriptName);
         if(script == null)
         {
             throw new FileNotFoundException("script:" + scriptName);
@@ -127,7 +127,7 @@ public class HostObject extends ScriptableObject
         ++includeLevel;
         try
         {
-            String oldScriptDirectory = currentScriptDirectory;
+            final String oldScriptDirectory = currentScriptDirectory;
             currentScriptDirectory = getDirectoryForScript(scriptName);
             try
             {
@@ -144,9 +144,9 @@ public class HostObject extends ScriptableObject
         }
     }
 
-    static String getDirectoryForScript(String scriptName)
+    static String getDirectoryForScript(final String scriptName)
     {
-        int lastSlash = scriptName.lastIndexOf('/');
+        final int lastSlash = scriptName.lastIndexOf('/');
         return lastSlash == -1 ? "" : scriptName.substring(0, lastSlash);
     }
 }

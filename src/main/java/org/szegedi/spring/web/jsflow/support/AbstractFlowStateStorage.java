@@ -62,12 +62,12 @@ implements FlowStateStorage
 {
     private BinaryStateCodec binaryStateCodec;
     
-    public void setBinaryStateCodec(BinaryStateCodec binaryStateCodec)
+    public void setBinaryStateCodec(final BinaryStateCodec binaryStateCodec)
     {
         this.binaryStateCodec = binaryStateCodec;
     }
     
-    public NativeContinuation getState(HttpServletRequest request, String id)
+    public NativeContinuation getState(final HttpServletRequest request, final String id)
     {
         try
         {
@@ -82,11 +82,11 @@ implements FlowStateStorage
             }
             return deserializeContinuation(b, null);
         }
-        catch(RuntimeException e)
+        catch(final RuntimeException e)
         {
             throw e;
         }
-        catch(Exception e)
+        catch(final Exception e)
         {
             throw new FlowStateStorageException("Failed to load state", e);
         }
@@ -102,7 +102,7 @@ implements FlowStateStorage
      */
     protected abstract byte[] getSerializedState(HttpServletRequest request, String id) throws Exception;
 
-    public String storeState(HttpServletRequest request, NativeContinuation state)
+    public String storeState(final HttpServletRequest request, final NativeContinuation state)
     {
         try
         {
@@ -113,7 +113,7 @@ implements FlowStateStorage
             }
             return storeSerializedState(request, b);
         }
-        catch(Exception e)
+        catch(final Exception e)
         {
             throw new FlowStateStorageException("Failed to store state", e);
         }

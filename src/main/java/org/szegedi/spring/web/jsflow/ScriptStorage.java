@@ -82,7 +82,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
      * @param scriptCharacterEncoding
      * @since 1.2 
      */
-    public void setScriptCharacterEncoding(String scriptCharacterEncoding)
+    public void setScriptCharacterEncoding(final String scriptCharacterEncoding)
     {
         this.scriptCharacterEncoding = scriptCharacterEncoding;
     }
@@ -93,7 +93,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
      * {@link ResourceLoaderAware}, this will usually be invoked by the Spring 
      * framework to set the application context as the resource loader.
      */
-    public void setResourceLoader(ResourceLoader resourceLoader)
+    public void setResourceLoader(final ResourceLoader resourceLoader)
     {
         this.resourceLoader = resourceLoader;
     }
@@ -104,7 +104,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
      * @param prefix the resource path prefix used for locating script source
      * code resources. Defaults to "".
      */
-    public void setPrefix(String prefix)
+    public void setPrefix(final String prefix)
     {
         this.prefix = prefix;
     }
@@ -121,7 +121,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
      * @param noStaleCheckPeriod the period in milliseconds during which one
      * script file's timestamp is not rechecked.
      */
-    public void setNoStaleCheckPeriod(long noStaleCheckPeriod)
+    public void setNoStaleCheckPeriod(final long noStaleCheckPeriod)
     {
         if(noStaleCheckPeriod < 0)
         {
@@ -140,7 +140,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
      * a {@link Resource}, or a {@link Script}.
      * @since 1.2 
      */
-    public void setLibraryScripts(List libraryScripts)
+    public void setLibraryScripts(final List libraryScripts)
     {
         this.libraryScripts = libraryScripts;
     }
@@ -156,7 +156,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
      * is invoked after all library scripts have already been run.
      * @param libraryCustomizer
      */
-    public void setLibraryCustomizer(LibraryCustomizer libraryCustomizer)
+    public void setLibraryCustomizer(final LibraryCustomizer libraryCustomizer)
     {
         this.libraryCustomizer = libraryCustomizer;
     }
@@ -167,7 +167,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
      * @param securityDomainFactory
      */
     public void setSecurityDomainFactory(
-            SecurityDomainFactory securityDomainFactory)
+            final SecurityDomainFactory securityDomainFactory)
     {
         this.securityDomainFactory = securityDomainFactory;
     }
@@ -181,19 +181,19 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
      * majority of cases this is not necessary.
      * @param contextFactory
      */
-    public void setContextFactory(ContextFactory contextFactory)
+    public void setContextFactory(final ContextFactory contextFactory)
     {
         this.contextFactory = contextFactory;
     }
     
     public void afterPropertiesSet() throws Exception
     {
-        ContextAction ca = new ContextAction() {
-            public Object run(Context cx) {
+        final ContextAction ca = new ContextAction() {
+            public Object run(final Context cx) {
                 try {
                     cx.setOptimizationLevel(-1);
                     // Run the built-in library script
-                    Script libraryScript = loadScript(new ClassPathResource(
+                    final Script libraryScript = loadScript(new ClassPathResource(
                             "library.js", ScriptStorage.class), "~library.js");
                     cx.initStandardObjects(library);
                     libraryScript.exec(cx, library);
@@ -205,8 +205,8 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                     
                     if(libraryScripts != null) {
                         int i = 0;
-                        for (Iterator iter = libraryScripts.iterator(); iter.hasNext(); ++i) {
-                            Object scriptSpec = iter.next();
+                        for (final Iterator iter = libraryScripts.iterator(); iter.hasNext(); ++i) {
+                            final Object scriptSpec = iter.next();
                             Script s;
                             String path;
                             if(scriptSpec instanceof String) {
@@ -214,7 +214,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                                 s = getScript(path);
                             }
                             else if(scriptSpec instanceof Resource) {
-                                Resource r = (Resource)scriptSpec;
+                                final Resource r = (Resource)scriptSpec;
                                 path = r.getDescription();
                                 s = loadScript(r, path);
                             }
@@ -244,13 +244,13 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                     // Finally seal the library scope
                     library.sealObject();
                 }
-                catch(RuntimeException e) {
+                catch(final RuntimeException e) {
                     throw e;
                 }
-                catch(Error e) {
+                catch(final Error e) {
                     throw e;
                 }
-                catch(Throwable t) {
+                catch(final Throwable t) {
                     throw new UndeclaredThrowableException(t);
                 }
                 return null;
@@ -281,11 +281,11 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                 return library;
             }
             
-            protected Object getFunctionStub(Object function)
+            protected Object getFunctionStub(final Object function)
             {
                 if(function instanceof DebuggableScript)
                 {
-                    Object stub = functionsToStubs.get(function);
+                    final Object stub = functionsToStubs.get(function);
                     if(stub == null)
                     {
                         synchronized(lock)
@@ -298,7 +298,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
                 return null;
             }
 
-            protected Object resolveFunctionStub(Object stub) throws Exception
+            protected Object resolveFunctionStub(final Object stub) throws Exception
             {
                 if(stub instanceof FunctionStub)
                 {
@@ -335,7 +335,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         };
     }
     
-    Script getScript(String path) throws Exception
+    Script getScript(final String path) throws Exception
     {
         ScriptResource script;
         synchronized(scripts)
@@ -354,30 +354,30 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
     {
         private final String path;
         
-        ScriptResource(String path)
+        ScriptResource(final String path)
         {
             super(resourceLoader.getResource(prefix + path));
             this.path = path;
         }
         
-        protected Object loadRepresentation(InputStream in) throws IOException
+        protected Object loadRepresentation(final InputStream in) throws IOException
         {
             return loadScript(in, getResource(), path);
         }
     }
     
-    ScriptableObject createNewTopLevelScope(Context cx)
+    ScriptableObject createNewTopLevelScope(final Context cx)
     {
-        ScriptableObject scope = (ScriptableObject)cx.newObject(library);
+        final ScriptableObject scope = (ScriptableObject)cx.newObject(library);
         scope.setPrototype(library);
         scope.setParentScope(null);
         return scope;
     }
     
-    private Script loadScript(Resource resource, String path)
+    private Script loadScript(final Resource resource, final String path)
     throws IOException
     {
-        InputStream in = resource.getInputStream();
+        final InputStream in = resource.getInputStream();
         try
         {
             return loadScript(in, resource, path);
@@ -388,25 +388,25 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         }
     }
     
-    private Script loadScript(final InputStream in, Resource resource, 
-            String path)
+    private Script loadScript(final InputStream in, final Resource resource, 
+            final String path)
     throws IOException
     {
         final Reader r = new InputStreamReader(in, scriptCharacterEncoding);
         try
         {
-            Object securityDomain = securityDomainFactory == null ? null : 
+            final Object securityDomain = securityDomainFactory == null ? null : 
                 securityDomainFactory.createSecurityDomain(resource);
-            Script script = Context.getCurrentContext().compileReader(r, 
+            final Script script = Context.getCurrentContext().compileReader(r, 
                     resource.getDescription(), 1, securityDomain);
             createFunctionStubs(path, script);
             return script;
         }
-        catch(FileNotFoundException e)
+        catch(final FileNotFoundException e)
         {
             return null;
         }
-        catch(UndeclaredThrowableException e)
+        catch(final UndeclaredThrowableException e)
         {
             if(e.getCause() instanceof IOException)
             {
@@ -416,7 +416,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         }
     }
 
-    private void createFunctionStubs(String path, Script script)
+    private void createFunctionStubs(final String path, final Script script)
     {
         new FunctionStubFactory(path).createStubs(script);
     }
@@ -427,12 +427,12 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         private final Map newStubsToFunctions = new HashMap();
         private final Map newFunctionsToStubs = new IdentityHashMap();
         
-        public FunctionStubFactory(String scriptName)
+        public FunctionStubFactory(final String scriptName)
         {
             this.scriptName = scriptName;
         }
         
-        void createStubs(Script script)
+        void createStubs(final Script script)
         {
             createStubs("", Context.getDebuggableView(script));
             synchronized(lock)
@@ -444,12 +444,12 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
             }
         }
         
-        private void createStubs(String prefix, DebuggableScript fnOrScript)
+        private void createStubs(final String prefix, final DebuggableScript fnOrScript)
         {
-            FunctionStub stub = new FunctionStub(scriptName, prefix);
+            final FunctionStub stub = new FunctionStub(scriptName, prefix);
             newStubsToFunctions.put(stub, fnOrScript);
             newFunctionsToStubs.put(fnOrScript, stub);
-            int l = fnOrScript.getFunctionCount();
+            final int l = fnOrScript.getFunctionCount();
             for(int i = 0; i < l; ++i)
             {
                 createStubs(prefix + i + ".", fnOrScript.getFunction(i));
@@ -464,7 +464,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
         private final String scriptName;
         private final String functionName;
         
-        FunctionStub(String scriptName, String functionName)
+        FunctionStub(final String scriptName, final String functionName)
         {
             this.scriptName = scriptName;
             this.functionName = functionName;
@@ -475,11 +475,11 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean
             return scriptName.hashCode() ^ functionName.hashCode();
         }
         
-        public boolean equals(Object o)
+        public boolean equals(final Object o)
         {
             if(o instanceof FunctionStub)
             {
-                FunctionStub key = (FunctionStub)o;
+                final FunctionStub key = (FunctionStub)o;
                 return key.functionName.equals(functionName) && 
                     key.scriptName.equals(scriptName); 
             }

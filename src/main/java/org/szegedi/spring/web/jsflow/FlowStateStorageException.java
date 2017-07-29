@@ -27,12 +27,12 @@ public class FlowStateStorageException extends NestedRuntimeException
 {
     private static final long serialVersionUID = 1L;
 
-    public FlowStateStorageException(String msg)
+    public FlowStateStorageException(final String msg)
     {
         super(msg);
     }
 
-    public FlowStateStorageException(String msg, Throwable ex)
+    public FlowStateStorageException(final String msg, final Throwable ex)
     {
         super(msg, ex);
     }

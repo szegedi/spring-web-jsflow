@@ -32,7 +32,7 @@ public class SecureRandomFactory extends ProviderBasedFactory
      * Sets the pseudorandom algorithm to use. Defaults to "SHA1PRNG".
      * @param algorithm the pseudorandom algorithm to use.
      */
-    public void setAlgorithm(String algorithm)
+    public void setAlgorithm(final String algorithm)
     {
         this.algorithm = algorithm;
     }

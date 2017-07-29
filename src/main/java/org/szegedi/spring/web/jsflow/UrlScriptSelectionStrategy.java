@@ -28,7 +28,7 @@ public class UrlScriptSelectionStrategy implements ScriptSelectionStrategy
      * class.
      * @param resourcePath
      */
-    public void setResourcePath(String resourcePath)
+    public void setResourcePath(final String resourcePath)
     {
         if(resourcePath == null)
         {
@@ -46,7 +46,7 @@ public class UrlScriptSelectionStrategy implements ScriptSelectionStrategy
      * false.
      * @param usePathInfo
      */
-    public void setUsePathInfo(boolean usePathInfo)
+    public void setUsePathInfo(final boolean usePathInfo)
     {
         this.usePathInfo = usePathInfo;
     }
@@ -59,18 +59,18 @@ public class UrlScriptSelectionStrategy implements ScriptSelectionStrategy
      * concatenating resource path + (optionally path info). Defaults to false.
      * @param useServletPath
      */
-    public void setUseServletPath(boolean useServletPath)
+    public void setUseServletPath(final boolean useServletPath)
     {
         this.useServletPath = useServletPath;
     }
     
-    public String getScriptPath(HttpServletRequest request)
+    public String getScriptPath(final HttpServletRequest request)
     {
         if(!(usePathInfo || useServletPath))
         {
             return resourcePath;
         }
-        StringBuffer buf = new StringBuffer(resourcePath);
+        final StringBuffer buf = new StringBuffer(resourcePath);
         if(useServletPath)
         {
             String servletPath  = (String) request.getAttribute(

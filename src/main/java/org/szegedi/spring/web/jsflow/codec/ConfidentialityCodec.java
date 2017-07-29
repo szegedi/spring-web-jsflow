@@ -53,7 +53,7 @@ public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
      * or better yet a {@link org.szegedi.spring.crypto.KeySpecSecretKeyFactory}
      * @param secretKey the secret key
      */
-    public void setSecretKey(Key secretKey)
+    public void setSecretKey(final Key secretKey)
     {
         this.secretKey = secretKey;
     }
@@ -62,7 +62,7 @@ public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
      * Sets any optional algorithm parameters
      * @param algorithmParameters the algorithm parameters
      */
-    public void setAlgorithmParameters(AlgorithmParameters algorithmParameters)
+    public void setAlgorithmParameters(final AlgorithmParameters algorithmParameters)
     {
         this.algorithmParameters = algorithmParameters;
     }
@@ -72,7 +72,7 @@ public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
      * provider is used.
      * @param provider the name of the security provider to use or null.
      */
-    public void setProvider(String provider)
+    public void setProvider(final String provider)
     {
         this.provider = provider;
     }
@@ -83,7 +83,7 @@ public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
      * @param chainingAndPadding the block chaining and padding mode, or null
      * for algorithm defaults.
      */
-    public void setChainingAndPadding(String chainingAndPadding)
+    public void setChainingAndPadding(final String chainingAndPadding)
     {
         this.algorithm = chainingAndPadding;
     }
@@ -110,7 +110,7 @@ public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
         return createCoder(Cipher.ENCRYPT_MODE);
     }
     
-    private OneWayCodec createCoder(int mode) throws Exception
+    private OneWayCodec createCoder(final int mode) throws Exception
     {
         final Cipher cipher;
         if(provider == null)
@@ -132,7 +132,7 @@ public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
         
         return new OneWayCodec()
         {
-            public byte[] code(byte[] data) throws Exception
+            public byte[] code(final byte[] data) throws Exception
             {
                 return cipher.doFinal(data);
             }

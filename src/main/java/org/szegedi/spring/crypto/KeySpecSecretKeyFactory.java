@@ -38,7 +38,7 @@ public class KeySpecSecretKeyFactory extends ProviderBasedFactory
      * Sets the algorithm for the secret key. Required.
      * @param algorithm the secret key algorithm
      */
-    public void setAlgorithm(String algorithm)
+    public void setAlgorithm(final String algorithm)
     {
         this.algorithm = algorithm;
     }
@@ -48,7 +48,7 @@ public class KeySpecSecretKeyFactory extends ProviderBasedFactory
      * independent manner.
      * @param keySpec the key specification.
      */
-    public void setKeySpec(KeySpec keySpec)
+    public void setKeySpec(final KeySpec keySpec)
     {
         this.keySpec = keySpec;
     }

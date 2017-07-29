@@ -47,7 +47,7 @@ public class IntegrityCodec implements BinaryStateCodec, InitializingBean
      * obtain a key pair.
      * @param keyPair the signing/verifying keypair.
      */
-    public void setKeyPair(KeyPair keyPair)
+    public void setKeyPair(final KeyPair keyPair)
     {
         this.keyPair = keyPair;
     }
@@ -57,7 +57,7 @@ public class IntegrityCodec implements BinaryStateCodec, InitializingBean
      * key algorithm name, i.e. "SHA1WithRSA".
      * @param signatureAlgorithmName the signature algorithm name
      */
-    public void setSignatureAlgorithmName(String signatureAlgorithmName)
+    public void setSignatureAlgorithmName(final String signatureAlgorithmName)
     {
         this.signatureAlgorithmName = signatureAlgorithmName;
     }
@@ -73,19 +73,19 @@ public class IntegrityCodec implements BinaryStateCodec, InitializingBean
     
     private void testKeys() throws Exception
     {
-        Random r = new Random();
-        byte[] b = new byte[1024];
+        final Random r = new Random();
+        final byte[] b = new byte[1024];
         r.nextBytes(b);
         
-        Signature sign = Signature.getInstance(signatureAlgorithmName);
+        final Signature sign = Signature.getInstance(signatureAlgorithmName);
         sign.initSign(keyPair.getPrivate());
         sign.update(b);
         
-        Signature verify = Signature.getInstance(signatureAlgorithmName);
+        final Signature verify = Signature.getInstance(signatureAlgorithmName);
         verify.initVerify(keyPair.getPublic());
         verify.update(b);
         
-        byte[] signature = sign.sign(); 
+        final byte[] signature = sign.sign(); 
         if(!verify.verify(signature))
         {
             throw new IllegalArgumentException("Public and private key don't match");
@@ -101,15 +101,15 @@ public class IntegrityCodec implements BinaryStateCodec, InitializingBean
         return new OneWayCodec()
         {
 
-            public byte[] code(byte[] data) throws Exception
+            public byte[] code(final byte[] data) throws Exception
             {
-                int dataLen = data.length - signatureLength;
+                final int dataLen = data.length - signatureLength;
                 signature.update(data, 0, dataLen);
                 if(!signature.verify(data, dataLen, signatureLength))
                 {
                     throw new FlowStateStorageException("Invalid signature");
                 }
-                byte[] b = new byte[dataLen];
+                final byte[] b = new byte[dataLen];
                 System.arraycopy(data, 0, b, 0, dataLen);
                 return b;
             }
@@ -124,10 +124,10 @@ public class IntegrityCodec implements BinaryStateCodec, InitializingBean
         return new OneWayCodec()
         {
 
-            public byte[] code(byte[] data) throws Exception
+            public byte[] code(final byte[] data) throws Exception
             {
-                int dataLen = data.length;
-                byte[] b = new byte[dataLen + signatureLength];
+                final int dataLen = data.length;
+                final byte[] b = new byte[dataLen + signatureLength];
                 System.arraycopy(data, 0, b, 0, dataLen);
                 signature.update(data);
                 signature.sign(b, dataLen, signatureLength);

@@ -46,7 +46,7 @@ public class CompositeCodec implements BinaryStateCodec
      * when encoding, and in reverse order when decoding.
      * @param codecs the component codecs.
      */
-    public void setCodecs(List codecs)
+    public void setCodecs(final List codecs)
     {
         this.codecs = (BinaryStateCodec[]) codecs.toArray(
                 new BinaryStateCodec[codecs.size()]);
@@ -54,7 +54,7 @@ public class CompositeCodec implements BinaryStateCodec
     
     public OneWayCodec createDecoder() throws Exception
     {
-        OneWayCodec[] oneways = new OneWayCodec[codecs.length];
+        final OneWayCodec[] oneways = new OneWayCodec[codecs.length];
         for(int i = 0; i < codecs.length; ++i)
         {
             oneways[codecs.length - i - 1] = codecs[i].createDecoder();
@@ -65,7 +65,7 @@ public class CompositeCodec implements BinaryStateCodec
     
     public OneWayCodec createEncoder() throws Exception
     {
-        OneWayCodec[] oneways = new OneWayCodec[codecs.length];
+        final OneWayCodec[] oneways = new OneWayCodec[codecs.length];
         for(int i = 0; i < codecs.length; ++i)
         {
             oneways[i] = codecs[i].createEncoder();

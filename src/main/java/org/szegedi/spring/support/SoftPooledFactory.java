@@ -38,8 +38,8 @@ public abstract class SoftPooledFactory
         {
             while(!pool.isEmpty())
             {
-                Reference ref = (Reference)pool.remove(pool.size() - 1);
-                Object obj = ref.get();
+                final Reference ref = (Reference)pool.remove(pool.size() - 1);
+                final Object obj = ref.get();
                 if(obj != null)
                 {
                     return ref; 
@@ -49,7 +49,7 @@ public abstract class SoftPooledFactory
         return new SoftReference(create());
     }
     
-    public void put(Reference ref)
+    public void put(final Reference ref)
     {
         synchronized(pool)
         {

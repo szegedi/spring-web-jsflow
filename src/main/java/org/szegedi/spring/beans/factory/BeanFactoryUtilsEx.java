@@ -35,9 +35,9 @@ public class BeanFactoryUtilsEx
      * @return the bean - if exactly one is defined. null - if none is defined
      * @throws NoSuchBeanDefinitionException if more than one bean is defined
      */
-    public static Object beanOfTypeIncludingAncestors(ListableBeanFactory lbf, Class type)
+    public static Object beanOfTypeIncludingAncestors(final ListableBeanFactory lbf, final Class type)
     {
-        Map map = org.springframework.beans.factory.BeanFactoryUtils.beansOfTypeIncludingAncestors(lbf, type);
+        final Map map = org.springframework.beans.factory.BeanFactoryUtils.beansOfTypeIncludingAncestors(lbf, type);
         switch(map.size())
         {
             case 0:

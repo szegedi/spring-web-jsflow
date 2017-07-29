@@ -32,7 +32,7 @@ public abstract class ProviderBasedFactory extends AbstractFactoryBean
      * @param provider the name of the security provider or null for the default
      * provider.
      */
-    public void setProvider(String provider)
+    public void setProvider(final String provider)
     {
         this.provider = provider;
     }

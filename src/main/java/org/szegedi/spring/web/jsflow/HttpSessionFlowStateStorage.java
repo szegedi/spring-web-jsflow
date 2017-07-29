@@ -61,7 +61,7 @@ implements FlowStateStorage
      * discareded. Defaults to 100.
      * @param maxStates
      */
-    public void setMaxStates(int maxStates)
+    public void setMaxStates(final int maxStates)
     {
         if(maxStates <= 0)
         {
@@ -77,20 +77,20 @@ implements FlowStateStorage
      * @deprecated use {@link #setFlowStateIdGenerator(FlowStateIdGenerator)}
      * with a {@link RandomFlowStateIdGenerator} instead.
      */
-    public void setRandom(Random random)
+    public void setRandom(final Random random)
     {
         setRandomInternal(random);
     }
     
-    private void setRandomInternal(Random random)
+    private void setRandomInternal(final Random random)
     {
-        RandomFlowStateIdGenerator idGen = new RandomFlowStateIdGenerator();
+        final RandomFlowStateIdGenerator idGen = new RandomFlowStateIdGenerator();
         idGen.setRandom(random);
         flowStateIdGenerator = idGen;
     }
 
     public void setFlowStateIdGenerator(
-            FlowStateIdGenerator flowStateIdGenerator)
+            final FlowStateIdGenerator flowStateIdGenerator)
     {
         this.flowStateIdGenerator = flowStateIdGenerator;
     }
@@ -112,7 +112,7 @@ implements FlowStateStorage
      * @param provider the provider
      * @since 1.2
      */
-    public static void bindStubProvider(HttpSession session, StubProvider provider)
+    public static void bindStubProvider(final HttpSession session, final StubProvider provider)
     {
         session.setAttribute(STUB_PROVIDER_KEY, provider);
     }
@@ -125,30 +125,30 @@ implements FlowStateStorage
      * @param resolver the resolver
      * @since 1.2
      */
-    public static void bindStubResolver(HttpSession session, StubResolver resolver)
+    public static void bindStubResolver(final HttpSession session, final StubResolver resolver)
     {
         session.setAttribute(STUB_RESOLVER_KEY, resolver);
     }
 
-    public String storeState(HttpServletRequest request, NativeContinuation state)
+    public String storeState(final HttpServletRequest request, final NativeContinuation state)
     {
         Long id;
-        Map stateMap = getStateMap(request, true);
+        final Map stateMap = getStateMap(request, true);
         byte[] serialized;
         // Must serialize the continuation so it is deep-copied. If we 
         // didn't do this, we couldn't keep multiple independent states.
-        Map stubsToFunctions = new HashMap();
+        final Map stubsToFunctions = new HashMap();
         try
         {
             serialized = serializeContinuation(state, stubsToFunctions, 
                     (StubProvider)request.getSession().getAttribute(
                             STUB_PROVIDER_KEY));
         }
-        catch(RuntimeException e)
+        catch(final RuntimeException e)
         {
             throw e;
         }
-        catch(Exception e)
+        catch(final Exception e)
         {
             throw new FlowStateStorageException("Failed to store state", e);
         }
@@ -181,9 +181,9 @@ implements FlowStateStorage
         return Long.toHexString(id.longValue());
     }
     
-    public NativeContinuation getState(HttpServletRequest request, String id)
+    public NativeContinuation getState(final HttpServletRequest request, final String id)
     {
-        Map stateMap = getStateMap(request, false);
+        final Map stateMap = getStateMap(request, false);
         if(stateMap == null)
         {
             return null;
@@ -202,18 +202,18 @@ implements FlowStateStorage
             }
             return getContinuation(serialized, request.getSession(false));
         }
-        catch(RuntimeException e)
+        catch(final RuntimeException e)
         {
             throw e;
         }
-        catch(Exception e)
+        catch(final Exception e)
         {
             throw new FlowStateStorageException(
                     "Failed to load replicated state for stateId=" + id, e);
         }
     }
 
-    private NativeContinuation getContinuation(LocallySerializedContinuation lsc, HttpSession session) 
+    private NativeContinuation getContinuation(final LocallySerializedContinuation lsc, final HttpSession session) 
     throws Exception, AssertionError
     {
         final Map stubsToFunctions = lsc.getStubsToFunctions();
@@ -229,8 +229,8 @@ implements FlowStateStorage
             if(stubsToFunctions != null && !stubsToFunctions.isEmpty()) {
                 final StubResolver fstubResolver = stubResolver;
                 stubResolver = new StubResolver() {
-                    public Object resolveStub(Object stub) throws InvalidObjectException {
-                        Object obj = stubsToFunctions.get(stub);
+                    public Object resolveStub(final Object stub) throws InvalidObjectException {
+                        final Object obj = stubsToFunctions.get(stub);
                         return obj != null ? obj : fstubResolver.resolveStub(stub);
                     }
                 };
@@ -238,7 +238,7 @@ implements FlowStateStorage
         }
         else if(stubsToFunctions != null && !stubsToFunctions.isEmpty()) {
             stubResolver = new StubResolver() {
-                public Object resolveStub(Object stub) throws InvalidObjectException {
+                public Object resolveStub(final Object stub) throws InvalidObjectException {
                     return stubsToFunctions.get(stub);
                 }
             };
@@ -247,9 +247,9 @@ implements FlowStateStorage
         return deserializeContinuation(lsc.getSerializedState(), stubResolver);
     }
     
-    private Map getStateMap(HttpServletRequest request, boolean create)
+    private Map getStateMap(final HttpServletRequest request, final boolean create)
     {
-        HttpSession session = request.getSession(create);
+        final HttpSession session = request.getSession(create);
         if(session == null) {
             return null;
         }
@@ -273,24 +273,24 @@ implements FlowStateStorage
      * @param session the http session
      * @param callback a callback that will be invoked for each continuation.
      */
-    public void forEachContinuation(HttpSession session, 
-            ContinuationCallback callback)
+    public void forEachContinuation(final HttpSession session, 
+            final ContinuationCallback callback)
     {
-        Map m = (Map)session.getAttribute(MAP_KEY);
+        final Map m = (Map)session.getAttribute(MAP_KEY);
         if(m == null)
         {
             return;
         }
-        for (Iterator iter = m.entrySet().iterator(); iter.hasNext();)
+        for (final Iterator iter = m.entrySet().iterator(); iter.hasNext();)
         {
-            Map.Entry entry = (Map.Entry) iter.next();
-            String id = Long.toHexString(((Long)entry.getKey()).longValue());
+            final Map.Entry entry = (Map.Entry) iter.next();
+            final String id = Long.toHexString(((Long)entry.getKey()).longValue());
             try
             {
                 callback.forContinuation(id, getContinuation(
                         ((LocallySerializedContinuation)entry.getValue()), session));
             }
-            catch(Exception e)
+            catch(final Exception e)
             {
                 log.warn("Failed to process continuation " + id, e);
             }
@@ -323,7 +323,7 @@ implements FlowStateStorage
         private final byte[] serializedState;
         private transient final Map stubsToFunctions;
         
-        LocallySerializedContinuation(byte[] serializedState, Map stubsToFunctions)
+        LocallySerializedContinuation(final byte[] serializedState, final Map stubsToFunctions)
         {
             this.serializedState = serializedState;
             this.stubsToFunctions = stubsToFunctions;

@@ -27,7 +27,7 @@ class ScriptableList extends AbstractList
     private final Scriptable s;
     private int size = -1;
     
-    ScriptableList(Scriptable s)
+    ScriptableList(final Scriptable s)
     {
         this.s = s;
     }
@@ -38,15 +38,15 @@ class ScriptableList extends AbstractList
         {
             if(size == -1)
             {
-                Object[] ids = s.getIds();
-                int idsl = ids.length;
+                final Object[] ids = s.getIds();
+                final int idsl = ids.length;
                 int max = 0;
                 for(int i = 0; i < idsl; ++i)
                 {
-                    Object id = ids[i];
+                    final Object id = ids[i];
                     if(id instanceof Number)
                     {
-                        int nid = ((Number)id).intValue();
+                        final int nid = ((Number)id).intValue();
                         if(nid > max)
                         {
                             max = nid;
@@ -60,7 +60,7 @@ class ScriptableList extends AbstractList
         return size;
     }
     
-    public Object get(int index)
+    public Object get(final int index)
     {
         return ScriptableConverter.jsToJava(s.get(index, s));
     }

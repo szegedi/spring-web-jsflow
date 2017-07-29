@@ -43,13 +43,13 @@ public class OpenContextInViewInterceptor implements HandlerInterceptor
      * requires at least Rhino 1.6R3.
      * @param contextFactory
      */
-    public void setContextFactory(ContextFactory contextFactory)
+    public void setContextFactory(final ContextFactory contextFactory)
     {
         this.contextFactory = contextFactory;
     }
     
-    public boolean preHandle(HttpServletRequest request,
-            HttpServletResponse response, Object handler) throws Exception
+    public boolean preHandle(final HttpServletRequest request,
+            final HttpServletResponse response, final Object handler) throws Exception
     {
         Context cx;
         if(contextFactory == null)
@@ -67,16 +67,16 @@ public class OpenContextInViewInterceptor implements HandlerInterceptor
         return true;
     }
     
-    public void afterCompletion(HttpServletRequest request,
-            HttpServletResponse response, Object handler, Exception ex)
+    public void afterCompletion(final HttpServletRequest request,
+            final HttpServletResponse response, final Object handler, final Exception ex)
             throws Exception
     {
         Context.exit();
     }
     
-    public void postHandle(HttpServletRequest request,
-            HttpServletResponse response, Object handler,
-            ModelAndView modelAndView) throws Exception
+    public void postHandle(final HttpServletRequest request,
+            final HttpServletResponse response, final Object handler,
+            final ModelAndView modelAndView) throws Exception
     {
     }
 }

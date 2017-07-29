@@ -31,7 +31,7 @@ import org.springframework.core.io.Resource;
 public abstract class BeanResourceRepresentation extends 
 PropertyResourceRepresentation
 {
-    protected BeanResourceRepresentation(Resource resource)
+    protected BeanResourceRepresentation(final Resource resource)
     {
         super(resource);
     }
@@ -42,10 +42,10 @@ PropertyResourceRepresentation
      */
     protected abstract Object instantiateBean();
     
-    protected Object loadRepresentation(InputStream in) throws IOException
+    protected Object loadRepresentation(final InputStream in) throws IOException
     {
-        Properties props = (Properties)super.loadRepresentation(in);
-        Object bean = instantiateBean();
+        final Properties props = (Properties)super.loadRepresentation(in);
+        final Object bean = instantiateBean();
         new BeanWrapperImpl(bean).setPropertyValues(new MutablePropertyValues(
                 props), false);
         return bean;

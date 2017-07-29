@@ -41,7 +41,7 @@ public abstract class ResourceRepresentation
      * Constructs a new representation for the specified resource.
      * @param resource
      */
-    public ResourceRepresentation(Resource resource)
+    public ResourceRepresentation(final Resource resource)
     {
         this.resource = resource;
     }
@@ -55,10 +55,10 @@ public abstract class ResourceRepresentation
      * @throws Exception if there was an exception during loading of the 
      * representation
      */
-    public synchronized Object getRepresentation(long noStaleCheckPeriod)
+    public synchronized Object getRepresentation(final long noStaleCheckPeriod)
     throws Exception
     {
-        long now = System.currentTimeMillis();
+        final long now = System.currentTimeMillis();
         if(representation != null && now - noStaleCheckPeriod < lastChecked)
         {
             return representation;
@@ -79,14 +79,14 @@ public abstract class ResourceRepresentation
         return getRepresentationInternal(System.currentTimeMillis());
     }
     
-    private Object getRepresentationInternal(long now) throws Exception
+    private Object getRepresentationInternal(final long now) throws Exception
     {
         URL url;
         try
         {
             url = resource.getURL();
         }
-        catch(IOException e)
+        catch(final IOException e)
         {
             url = null;
         }
@@ -114,7 +114,7 @@ public abstract class ResourceRepresentation
         if(representation == null || newLastModified != lastModified)
         {
             lastModified = newLastModified;
-            InputStream in = conn == null ? resource.getInputStream() : 
+            final InputStream in = conn == null ? resource.getInputStream() : 
                 conn.getInputStream();
             try
             {

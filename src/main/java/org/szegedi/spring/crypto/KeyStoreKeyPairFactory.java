@@ -45,7 +45,7 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory implements Reso
      * Required.
      * @param keyAlias the key alias.
      */
-    public void setKeyAlias(String keyAlias)
+    public void setKeyAlias(final String keyAlias)
     {
         this.keyAlias = keyAlias;
     }
@@ -57,7 +57,7 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory implements Reso
      * take care of it (as it implements {@link ResourceLoaderAware}).
      * @param keystoreResource the path to the keystore resource
      */
-    public void setKeystoreResource(String keystoreResource)
+    public void setKeystoreResource(final String keystoreResource)
     {
         this.keystoreResource = keystoreResource;
     }
@@ -66,7 +66,7 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory implements Reso
      * Sets the type of the keystore. Defaults to "JKS".
      * @param keystoreType the type of the keystore.
      */
-    public void setKeystoreType(String keystoreType)
+    public void setKeystoreType(final String keystoreType)
     {
         this.keystoreType = keystoreType;
     }
@@ -76,12 +76,12 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory implements Reso
      * using {@link #setKeystoreResource(String)}.
      * @param keystoreUrl the URL to the keystore
      */
-    public void setKeystoreUrl(URL keystoreUrl)
+    public void setKeystoreUrl(final URL keystoreUrl)
     {
         this.keystoreUrl = keystoreUrl;
     }
 
-    public void setResourceLoader(ResourceLoader resourceLoader)
+    public void setResourceLoader(final ResourceLoader resourceLoader)
     {
         this.resourceLoader = resourceLoader;
     }
@@ -90,7 +90,7 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory implements Reso
      * Sets the password used to protect the private key in the keystore.
      * @param keyPassword the key password.
      */
-    public void setKeyPassword(String keyPassword)
+    public void setKeyPassword(final String keyPassword)
     {
         this.keyPassword = keyPassword;
     }

@@ -42,7 +42,7 @@ public class CompressionCodec implements BinaryStateCodec
      * @param compressionLevel a compression level. Defaults to 
      * {@link Deflater#DEFAULT_COMPRESSION}.
      */
-    public void setCompressionLevel(int compressionLevel)
+    public void setCompressionLevel(final int compressionLevel)
     {
         this.compressionLevel = compressionLevel;
     }
@@ -53,16 +53,16 @@ public class CompressionCodec implements BinaryStateCodec
         {
             private final Inflater inflater = new Inflater();
             
-            public byte[] code(byte[] data) throws Exception
+            public byte[] code(final byte[] data) throws Exception
             {
                 inflater.reset();
-                InflaterInputStream in = new InflaterInputStream(
+                final InflaterInputStream in = new InflaterInputStream(
                         new ByteArrayInputStream(data), inflater);
-                ByteArrayOutputStream out = new ByteArrayOutputStream(data.length * 2);
-                byte[] b = new byte[512];
+                final ByteArrayOutputStream out = new ByteArrayOutputStream(data.length * 2);
+                final byte[] b = new byte[512];
                 for(;;)
                 {
-                    int i = in.read(b);
+                    final int i = in.read(b);
                     if(i == -1)
                     {
                         break;
@@ -80,11 +80,11 @@ public class CompressionCodec implements BinaryStateCodec
         {
             private final Deflater deflater = new Deflater(compressionLevel);
             
-            public byte[] code(byte[] data) throws Exception
+            public byte[] code(final byte[] data) throws Exception
             {
                 deflater.reset();
-                ByteArrayOutputStream bout = new ByteArrayOutputStream(data.length / 2);
-                DeflaterOutputStream out = new DeflaterOutputStream(bout, 
+                final ByteArrayOutputStream bout = new ByteArrayOutputStream(data.length / 2);
+                final DeflaterOutputStream out = new DeflaterOutputStream(bout, 
                         deflater);
                 out.write(data);
                 out.close();
