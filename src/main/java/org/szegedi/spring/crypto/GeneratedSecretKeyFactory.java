@@ -21,74 +21,65 @@ import javax.crypto.SecretKey;
 import org.szegedi.spring.crypto.support.ProviderBasedFactory;
 
 /**
- * Generates a new secret key. Note that as the key is not preserved across 
- * application context restarts, whatever you might have encrypted using it will 
+ * Generates a new secret key. Note that as the key is not preserved across
+ * application context restarts, whatever you might have encrypted using it will
  * become invalid no later than when the JVM is shut down.
  * @author Attila Szegedi
- * @version $Id$
  */
-public class GeneratedSecretKeyFactory extends ProviderBasedFactory
-{
+public class GeneratedSecretKeyFactory extends ProviderBasedFactory<SecretKey> {
     private String algorithm = "AES";
     private SecureRandom secureRandom;
-    private int keySize = 128;
-    
+    private int keySize = 256;
+
     /**
      * Sets the key algorithm to use. Defaults to "AES".
      * @param algorithm the key algorithm
      */
-    public void setAlgorithm(final String algorithm)
-    {
+    public void setAlgorithm(final String algorithm) {
         this.algorithm = algorithm;
     }
-    
+
     /**
-     * Sets the size of the keys in bits. Defaults to 128.
+     * Sets the size of the keys in bits. Defaults to 256.
      * @param keySize the size of the keys.
      */
-    public void setKeySize(final int keySize)
-    {
+    public void setKeySize(final int keySize) {
         this.keySize = keySize;
     }
-    
+
     /**
      * Sets an instance of secure random to use. If not set, a one-off instance
      * created using a private instance of {@link SecureRandomFactory} will be
      * created, with the configured security provider.
      * @param secureRandom the secure random instance to use.
      */
-    public void setSecureRandom(final SecureRandom secureRandom)
-    {
+    public void setSecureRandom(final SecureRandom secureRandom) {
         this.secureRandom = secureRandom;
     }
-    
-    protected Object createInstance() throws Exception
-    {
-        if(secureRandom == null)
-        {
+
+    @Override
+    protected SecretKey createInstance() throws Exception {
+        if(secureRandom == null) {
             final SecureRandomFactory secureRandomFactory = new SecureRandomFactory();
             secureRandomFactory.setProvider(provider);
             secureRandomFactory.afterPropertiesSet();
-            secureRandom = (SecureRandom)secureRandomFactory.createInstance();
+            secureRandom = secureRandomFactory.createInstance();
         }
-        KeyGenerator kg;
-        if(provider == null)
-        {
+        final KeyGenerator kg;
+        if(provider == null) {
             kg = KeyGenerator.getInstance(algorithm);
-        }
-        else
-        {
+        } else {
             kg = KeyGenerator.getInstance(algorithm, provider);
         }
         kg.init(keySize, secureRandom);
         return kg.generateKey();
     }
-    
+
     /**
      * @return {@link SecretKey}.class
      */
-    public Class getObjectType()
-    {
+    @Override
+    public Class<?> getObjectType() {
         return SecretKey.class;
     }
 }

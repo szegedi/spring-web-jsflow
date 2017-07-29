@@ -15,6 +15,7 @@
 */
 package org.szegedi.spring.crypto;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.security.KeyPair;
@@ -25,14 +26,13 @@ import org.springframework.core.io.ResourceLoader;
 import org.szegedi.spring.crypto.support.ProviderBasedFactory;
 
 /**
- * Loads a private and public key pair from a Java keystore file. This is a 
- * recommended way to obtain a keypair, as it will remain valid across JVM 
+ * Loads a private and public key pair from a Java keystore file. This is a
+ * recommended way to obtain a keypair, as it will remain valid across JVM
  * restarts.
  * @author Attila Szegedi
  * @version $Id$
  */
-public class KeyStoreKeyPairFactory extends ProviderBasedFactory implements ResourceLoaderAware 
-{
+public class KeyStoreKeyPairFactory extends ProviderBasedFactory<KeyPair> implements ResourceLoaderAware {
     private String keyAlias = "default";
     private String keystoreType = "JKS";
     private URL keystoreUrl;
@@ -45,20 +45,18 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory implements Reso
      * Required.
      * @param keyAlias the key alias.
      */
-    public void setKeyAlias(final String keyAlias)
-    {
+    public void setKeyAlias(final String keyAlias) {
         this.keyAlias = keyAlias;
     }
 
     /**
      * Sets the resource path to the keystore file. You can use this method when
      * the keystore file is a resource managed by a resource loader. You must
-     * set the resource loader as well either manually, or let the framework 
+     * set the resource loader as well either manually, or let the framework
      * take care of it (as it implements {@link ResourceLoaderAware}).
      * @param keystoreResource the path to the keystore resource
      */
-    public void setKeystoreResource(final String keystoreResource)
-    {
+    public void setKeystoreResource(final String keystoreResource) {
         this.keystoreResource = keystoreResource;
     }
 
@@ -66,8 +64,7 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory implements Reso
      * Sets the type of the keystore. Defaults to "JKS".
      * @param keystoreType the type of the keystore.
      */
-    public void setKeystoreType(final String keystoreType)
-    {
+    public void setKeystoreType(final String keystoreType) {
         this.keystoreType = keystoreType;
     }
 
@@ -76,13 +73,12 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory implements Reso
      * using {@link #setKeystoreResource(String)}.
      * @param keystoreUrl the URL to the keystore
      */
-    public void setKeystoreUrl(final URL keystoreUrl)
-    {
+    public void setKeystoreUrl(final URL keystoreUrl) {
         this.keystoreUrl = keystoreUrl;
     }
 
-    public void setResourceLoader(final ResourceLoader resourceLoader)
-    {
+    @Override
+    public void setResourceLoader(final ResourceLoader resourceLoader) {
         this.resourceLoader = resourceLoader;
     }
 
@@ -90,48 +86,37 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory implements Reso
      * Sets the password used to protect the private key in the keystore.
      * @param keyPassword the key password.
      */
-    public void setKeyPassword(final String keyPassword)
-    {
+    public void setKeyPassword(final String keyPassword) {
         this.keyPassword = keyPassword;
     }
-    
-    protected Object createInstance() throws Exception
-    {
-        KeyStore keyStore;
-        if(provider == null)
-        {
+
+    @Override
+    protected KeyPair createInstance() throws Exception {
+        final KeyStore keyStore;
+        if (provider == null) {
             keyStore = KeyStore.getInstance(keystoreType);
-        }
-        else
-        {
+        } else {
             keyStore = KeyStore.getInstance(keystoreType, provider);
         }
-        InputStream in;
-        if(resourceLoader != null && keystoreResource != null)
-        {
-            in = resourceLoader.getResource(keystoreResource).getInputStream();
-        }
-        else
-        {
-            in = keystoreUrl.openStream();
-        }
-        try
-        {
+        try(final InputStream in = getKeyStoreStream()) {
             keyStore.load(in, null);
             return new KeyPair(keyStore.getCertificate(keyAlias).getPublicKey(),
                     (PrivateKey)keyStore.getKey(keyAlias, keyPassword.toCharArray()));
         }
-        finally
-        {
-            in.close();
-        }
     }
-    
+
+    private InputStream getKeyStoreStream() throws IOException {
+        if(resourceLoader != null && keystoreResource != null) {
+            return resourceLoader.getResource(keystoreResource).getInputStream();
+        }
+        return keystoreUrl.openStream();
+    }
+
     /**
      * @return {@link KeyPair}.class
      */
-    public Class getObjectType()
-    {
+    @Override
+    public Class<?> getObjectType() {
         return KeyPair.class;
     }
 }
