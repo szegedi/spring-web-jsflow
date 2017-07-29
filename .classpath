@@ -1,11 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src/java"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/js.jar" sourcepath="/Rhino/src"/>
-	<classpathentry kind="lib" path="lib/javax.servlet.jar"/>
-	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
-	<classpathentry kind="lib" path="lib/spring.jar" sourcepath="/Users/aszegedi.noenc/sw/spring-framework-2.0.6/dist/spring-src.zip"/>
-	<classpathentry kind="lib" path="/Users/aszegedi.noenc/sw/spring-webflow-1.0.4/spring-webflow-1.0.4.jar" sourcepath="/Users/aszegedi.noenc/sw/spring-webflow-1.0.4/spring-webflow-src-1.0.4.zip"/>
-	<classpathentry kind="output" path="build/eclipse"/>
+	<classpathentry kind="src" output="target/classes" path="src/main/java">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java">
+		<attributes>
+			<attribute name="optional" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.m2e.MAVEN2_CLASSPATH_CONTAINER">
+		<attributes>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>
