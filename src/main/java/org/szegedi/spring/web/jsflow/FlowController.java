@@ -198,7 +198,7 @@ implements InitializingBean
      * attempt to look up an instance of it by type in the application context 
      * during initialization. If none is found, no custom state interception 
      * will be performed.
-     * @param flowExecutionInterceptor
+     * @param stateExecutionInterceptor
      */
     public void setStateExecutionInterceptor(
             StateExecutionInterceptor stateExecutionInterceptor)
@@ -282,6 +282,7 @@ implements InitializingBean
     }
 
     /**
+     * <p>
      * First, the controller determines if there is a request parameter named 
      * "stateId" and if it contains a valid state ID. If so, it continues the 
      * execution of the associated flowscript at the point where it was waiting.
@@ -297,16 +298,15 @@ implements InitializingBean
      * servlet path and path info. 
      * All flowscripts have access to the following built-in objects:
      * </p><p>
-     * <table border="1" valign="top">
+     * <table border="1" summary="Built-in Objects">
      *   <tr><th>Name</th><th>Object</th></tr>
      *   <tr><td><tt>request</tt></td><td>the HttpServletRequest object</td></tr>
      *   <tr><td><tt>response</tt></td><td>the HttpServletResponse object</td></tr>
      *   <tr><td><tt>servletContext</tt></td><td>the ServletContext object</td></tr>
      *   <tr><td><tt>applicationContext</tt></td><td>the ApplicationContext object</td></tr>
      * </table>
-     * </p><p>
      * They also have access to following built-in functions:
-     * <table border="1" valign="top">
+     * <table border="1" summary="Built-in Functions">
      *   <tr><th>Function</th><th>Purpose</th></tr>
      *   <tr><td><tt>include(<i>path</i>)</tt></td><td>includes a script 
      *     referenced with the specified path as if it was executed at the 

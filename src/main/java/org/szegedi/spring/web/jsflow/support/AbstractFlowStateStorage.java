@@ -23,6 +23,7 @@ import org.szegedi.spring.web.jsflow.FlowStateStorageException;
 import org.szegedi.spring.web.jsflow.codec.BinaryStateCodec;
 
 /**
+ * <p> 
  * A flow state storage that serializes the flow states. It requires access to a
  * script storage. If none is configured, then the 
  * {@link org.szegedi.spring.web.jsflow.FlowController} will pass it its own 

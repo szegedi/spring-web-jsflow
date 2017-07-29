@@ -33,6 +33,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
 
 /**
+ * <p>
  * A flow state storage that operates against a JDBC data source. The name of
  * the table and the columns are configurable, by default, it assumes one
  * autoincrementing, unique constrained, indexed column named "id", and one 

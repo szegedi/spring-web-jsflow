@@ -34,7 +34,7 @@ public interface FlowStateIdGenerator
     public Long generateStateId(NativeContinuation state);
     
     /**
-     * Returns true if the return value of {@link #generateStateId(Continuation)}
+     * Returns true if the return value of {@link #generateStateId(NativeContinuation)}
      * depends on the passed state (that is, for a given state object, it will
      * always return the same ID). Implementations of the interface that 
      * implement counters or random generators will return false. 
@@ -43,7 +43,7 @@ public interface FlowStateIdGenerator
      * ID equal to an existing state's ID might cause the user of the class to
      * overwrite the existing ID. If an implementation returns false, the user
      * of the class is encouraged to invoke the 
-     * {@link #generateStateId(Continuation)} method repeatedly until it 
+     * {@link #generateStateId(NativeContinuation)} method repeatedly until it 
      * receives a non-conflicting ID.
      * @return whether this generator generates IDs that depend on the state. 
      */
