@@ -1,7 +1,7 @@
-#Rhino in Spring
+# Rhino in Spring
 
 Rhino in Spring is a project that intends to integrate [Mozilla Rhino](https://github.com/mozilla/rhino), a JavaScript runtime for the Java Virtual Machine with [Spring Framework](https://projects.spring.io/spring-framework/), a popular enterprise framework on the Java platform. The aim is to provide a system that amalgamates the rapid development benefits and flexibility of a dynamic language with the strength, scalability and versatility of the Java platform and the Spring framework.
 
-Rhino-in-Spring 1.3 can be used with Rhino version 1.7R2 or above, as well as with all 2.0 or higher Spring Framework versions.
+Rhino in Spring 1.3 can be used with Rhino version 1.7R2 or above, as well as with all 2.0 or higher Spring Framework versions.
 
 At the moment, the project delivers a controller component for Spring MVC that allows complex control flows spanning several webpages in web applications to be expressed as a single structured algorithm in JavaScript, putting the rich set of control flow structures and function reusability of a full-blown language at your fingertips. It transparently maps users' requests to the correct points of execution in your JavaScript code, even as users freely navigate your website using the browser's back button or even "File->New Window" functionality! A flexible set of state persistence options (including one where all state management is shifted to the browser, for maximum server scalability, with full cryptographic support for prevention of tampering) is included.
