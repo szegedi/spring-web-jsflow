@@ -17,45 +17,36 @@ package org.szegedi.spring.support;
 
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * A factory of soft-reference pooled objects. While we are aware that pooling
- * <i>in general</i> is harmful on modern VMs, we do actually have use cases - 
- * i.e. expensively initialized cryptographical transformators - that make 
+ * <i>in general</i> is harmful on modern VMs, we do actually have use cases -
+ * i.e. expensively initialized cryptographic transformers - that make
  * sense to pool.
  * @author Attila Szegedi
- * @version $Id$
  */
-public abstract class SoftPooledFactory
+public abstract class SoftPooledFactory<T>
 {
-    private final List pool = new ArrayList();
-    
-    public Reference get() throws Exception
-    {
-        synchronized(pool)
-        {
-            while(!pool.isEmpty())
-            {
-                final Reference ref = (Reference)pool.remove(pool.size() - 1);
-                final Object obj = ref.get();
-                if(obj != null)
-                {
-                    return ref; 
-                }
+    private final BlockingDeque<Reference<T>> pool = new LinkedBlockingDeque<>();
+
+    public Reference<T> get() throws Exception {
+        for(;;) {
+            final Reference<T> ref = pool.pollLast();
+            if (ref == null) {
+                return new SoftReference<>(create());
+            }
+            final T obj = ref.get();
+            if (obj != null) {
+                return ref;
             }
         }
-        return new SoftReference(create());
     }
-    
-    public void put(final Reference ref)
-    {
-        synchronized(pool)
-        {
-            pool.add(ref);
-        }
+
+    public void put(final Reference<T> ref) {
+        pool.offerLast(ref);
     }
-    
-    protected abstract Object create() throws Exception;
+
+    protected abstract T create() throws Exception;
 }
