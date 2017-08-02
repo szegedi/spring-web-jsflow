@@ -114,15 +114,8 @@ public abstract class ResourceRepresentation
         if(representation == null || newLastModified != lastModified)
         {
             lastModified = newLastModified;
-            final InputStream in = conn == null ? resource.getInputStream() :
-                conn.getInputStream();
-            try
-            {
+            try (final InputStream in = conn == null ? resource.getInputStream() : conn.getInputStream()) {
                 representation = loadRepresentation(in);
-            }
-            finally
-            {
-                in.close();
             }
         }
         else if(conn != null)
