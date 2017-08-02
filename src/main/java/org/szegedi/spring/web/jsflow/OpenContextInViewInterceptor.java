@@ -29,54 +29,48 @@ import org.springframework.web.servlet.ModelAndView;
  * object during view rendering, so you need not use this interceptor. However,
  * if you receive an exception saying there is no current Rhino context during
  * view rendering, you will need to use the interceptor.
+ * 
  * @author Attila Szegedi
  * @version $Id$
  */
-public class OpenContextInViewInterceptor implements HandlerInterceptor
-{
+public class OpenContextInViewInterceptor implements HandlerInterceptor {
     private ContextFactory contextFactory;
 
     /**
      * Sets the Rhino context factory to use. If not set, the global context
-     * factory returned by {@link ContextFactory#getGlobal()} will be used.
-     * Note that this feature (customized context factory in the interceptor)
+     * factory returned by {@link ContextFactory#getGlobal()} will be used. Note
+     * that this feature (customized context factory in the interceptor)
      * requires at least Rhino 1.6R3.
+     * 
      * @param contextFactory
      */
-    public void setContextFactory(final ContextFactory contextFactory)
-    {
+    public void setContextFactory(final ContextFactory contextFactory) {
         this.contextFactory = contextFactory;
     }
 
-    public boolean preHandle(final HttpServletRequest request,
-            final HttpServletResponse response, final Object handler) throws Exception
-    {
+    @Override
+    public boolean preHandle(final HttpServletRequest request, final HttpServletResponse response, final Object handler)
+            throws Exception {
         Context cx;
-        if(contextFactory == null)
-        {
+        if (contextFactory == null) {
             cx = Context.enter();
-        }
-        else
-        {
+        } else {
             cx = contextFactory.enterContext();
         }
-        if(cx.getOptimizationLevel() != -1)
-        {
+        if (cx.getOptimizationLevel() != -1) {
             cx.setOptimizationLevel(-1);
         }
         return true;
     }
 
-    public void afterCompletion(final HttpServletRequest request,
-            final HttpServletResponse response, final Object handler, final Exception ex)
-            throws Exception
-    {
+    @Override
+    public void afterCompletion(final HttpServletRequest request, final HttpServletResponse response,
+            final Object handler, final Exception ex) throws Exception {
         Context.exit();
     }
 
-    public void postHandle(final HttpServletRequest request,
-            final HttpServletResponse response, final Object handler,
-            final ModelAndView modelAndView) throws Exception
-    {
+    @Override
+    public void postHandle(final HttpServletRequest request, final HttpServletResponse response, final Object handler,
+            final ModelAndView modelAndView) throws Exception {
     }
 }

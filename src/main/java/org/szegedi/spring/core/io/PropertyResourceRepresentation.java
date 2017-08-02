@@ -24,18 +24,17 @@ import org.springframework.core.io.Resource;
  * A resource representation that treats the resource as a Java properties file
  * and represents the resource with a {@link java.util.Properties} object
  * initialized with those properties.
+ * 
  * @author Attila Szegedi
  * @version $Id: $
  */
-public class PropertyResourceRepresentation extends ResourceRepresentation
-{
-    public PropertyResourceRepresentation(final Resource resource)
-    {
+public class PropertyResourceRepresentation extends ResourceRepresentation {
+    public PropertyResourceRepresentation(final Resource resource) {
         super(resource);
     }
 
-    protected Object loadRepresentation(final InputStream in) throws IOException
-    {
+    @Override
+    protected Object loadRepresentation(final InputStream in) throws IOException {
         final Properties properties = new Properties();
         properties.load(in);
         return properties;

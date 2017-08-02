@@ -43,15 +43,16 @@ import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
  * that are considered old. Adding a timestamp column to the table that defaults
  * to the time of insert is advised. I.e. a MySQL table definition would look
  * like
- * </p><p>
+ * </p>
+ * <p>
  * <tt>create table webflowstates (id bigint not null auto_increment, state blob
  * not null, random not null int, created timestamp default current_timestamp, primary key (id));
  * </tt>
+ * 
  * @author Attila Szegedi
  * @version $Id$
  */
-public class JdbcFlowStateStorage extends AbstractFlowStateStorage
-{
+public class JdbcFlowStateStorage extends AbstractFlowStateStorage {
     private static final char SEPARATOR = ':';
     private JdbcOperations jdbcOperations;
     private String tableName = "webflowstates";
@@ -62,96 +63,78 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage
     private String insertQuery;
     private Random random;
 
-    public void setJdbcOperations(final JdbcOperations jdbcOperations)
-    {
+    public void setJdbcOperations(final JdbcOperations jdbcOperations) {
         this.jdbcOperations = jdbcOperations;
     }
 
-    public void setIdColumnName(final String idColumnName)
-    {
+    public void setIdColumnName(final String idColumnName) {
         this.idColumnName = idColumnName;
     }
 
-    public void setRandom(final Random random)
-    {
+    public void setRandom(final Random random) {
         this.random = random;
     }
 
-    public void setRandomColumnName(final String randomColumnName)
-    {
+    public void setRandomColumnName(final String randomColumnName) {
         this.randomColumnName = randomColumnName;
     }
 
-    public void setStateColumnName(final String stateColumnName)
-    {
+    public void setStateColumnName(final String stateColumnName) {
         this.stateColumnName = stateColumnName;
     }
 
-    public void setTableName(final String tableName)
-    {
+    public void setTableName(final String tableName) {
         this.tableName = tableName;
     }
 
-    public void afterPropertiesSet() throws Exception
-    {
+    @Override
+    public void afterPropertiesSet() throws Exception {
         super.afterPropertiesSet();
-        if(random == null)
-        {
+        if (random == null) {
             random = new SecureRandom();
         }
-        selectQuery = "SELECT " + stateColumnName + " FROM " + tableName +
-            " WHERE " + idColumnName + "=? AND " + randomColumnName + "=?";
-        insertQuery = "INSERT INTO " + tableName + " (" + stateColumnName +
-            ", " + randomColumnName + ") VALUES(?,?)";
+        selectQuery = "SELECT " + stateColumnName + " FROM " + tableName + " WHERE " + idColumnName + "=? AND "
+                + randomColumnName + "=?";
+        insertQuery = "INSERT INTO " + tableName + " (" + stateColumnName + ", " + randomColumnName + ") VALUES(?,?)";
     }
 
-    private static final ResultSetExtractor EXTRACTOR = new ResultSetExtractor()
-    {
-        public Object extractData(final ResultSet rs) throws SQLException
-        {
-            if(rs.next())
-            {
+    private static final ResultSetExtractor EXTRACTOR = new ResultSetExtractor() {
+        @Override
+        public Object extractData(final ResultSet rs) throws SQLException {
+            if (rs.next()) {
                 return rs.getBytes(1);
             }
             return null;
         }
     };
 
-    protected byte[] getSerializedState(final HttpServletRequest request, final String id) throws Exception
-    {
-        return (byte[])jdbcOperations.query(
-                new PreparedStatementCreator()
-                {
-                    public PreparedStatement createPreparedStatement(final Connection con)
-                    throws SQLException
-                    {
-                        final PreparedStatement statement = con.prepareStatement(
-                                selectQuery);
-                        final int i = id.indexOf(SEPARATOR);
-                        statement.setString(1, id.substring(i + 1));
-                        statement.setString(2, id.substring(0, i));
-                        return statement;
-                    };
-                }, EXTRACTOR);
+    @Override
+    protected byte[] getSerializedState(final HttpServletRequest request, final String id) throws Exception {
+        return (byte[]) jdbcOperations.query(new PreparedStatementCreator() {
+            @Override
+            public PreparedStatement createPreparedStatement(final Connection con) throws SQLException {
+                final PreparedStatement statement = con.prepareStatement(selectQuery);
+                final int i = id.indexOf(SEPARATOR);
+                statement.setString(1, id.substring(i + 1));
+                statement.setString(2, id.substring(0, i));
+                return statement;
+            };
+        }, EXTRACTOR);
     }
 
-    protected String storeSerializedState(final HttpServletRequest request, final byte[] state) throws Exception
-    {
+    @Override
+    protected String storeSerializedState(final HttpServletRequest request, final byte[] state) throws Exception {
         final int rnd = random.nextInt();
         final KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcOperations.update(
-                new PreparedStatementCreator()
-                {
-                    public PreparedStatement createPreparedStatement(final Connection con)
-                    throws SQLException
-                    {
-                        final PreparedStatement statement = con.prepareStatement(
-                                insertQuery, Statement.RETURN_GENERATED_KEYS);
-                        statement.setBytes(1, state);
-                        statement.setInt(2, rnd);
-                        return statement;
-                    };
-                }, keyHolder);
+        jdbcOperations.update(new PreparedStatementCreator() {
+            @Override
+            public PreparedStatement createPreparedStatement(final Connection con) throws SQLException {
+                final PreparedStatement statement = con.prepareStatement(insertQuery, Statement.RETURN_GENERATED_KEYS);
+                statement.setBytes(1, state);
+                statement.setInt(2, rnd);
+                return statement;
+            };
+        }, keyHolder);
         return rnd + (SEPARATOR + keyHolder.getKey().toString());
     }
 }

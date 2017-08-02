@@ -21,6 +21,7 @@ import org.szegedi.spring.crypto.support.ProviderBasedFactory;
 /**
  * Generates a {@link SecureRandom} instance using a specified algorithm and
  * security provider.
+ * 
  * @author Attila Szegedi
  */
 public class SecureRandomFactory extends ProviderBasedFactory<SecureRandom> {
@@ -28,7 +29,9 @@ public class SecureRandomFactory extends ProviderBasedFactory<SecureRandom> {
 
     /**
      * Sets the pseudorandom algorithm to use. Defaults to "SHA1PRNG".
-     * @param algorithm the pseudorandom algorithm to use.
+     * 
+     * @param algorithm
+     *            the pseudorandom algorithm to use.
      */
     public void setAlgorithm(final String algorithm) {
         this.algorithm = algorithm;
@@ -36,7 +39,7 @@ public class SecureRandomFactory extends ProviderBasedFactory<SecureRandom> {
 
     @Override
     protected SecureRandom createInstance() throws Exception {
-        if(provider == null) {
+        if (provider == null) {
             return SecureRandom.getInstance(algorithm);
         }
         return SecureRandom.getInstance(algorithm, provider);

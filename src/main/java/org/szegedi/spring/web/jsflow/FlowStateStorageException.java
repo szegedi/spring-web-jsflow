@@ -18,22 +18,21 @@ package org.szegedi.spring.web.jsflow;
 import org.springframework.core.NestedRuntimeException;
 
 /**
- * Thrown when {@link org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage}
+ * Thrown when
+ * {@link org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage}
  * persistence fails.
+ * 
  * @author Attila Szegedi
  * @version $Id$
  */
-public class FlowStateStorageException extends NestedRuntimeException
-{
+public class FlowStateStorageException extends NestedRuntimeException {
     private static final long serialVersionUID = 1L;
 
-    public FlowStateStorageException(final String msg)
-    {
+    public FlowStateStorageException(final String msg) {
         super(msg);
     }
 
-    public FlowStateStorageException(final String msg, final Throwable ex)
-    {
+    public FlowStateStorageException(final String msg, final Throwable ex) {
         super(msg, ex);
     }
 }

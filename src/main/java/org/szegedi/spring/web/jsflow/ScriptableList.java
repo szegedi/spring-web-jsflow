@@ -22,33 +22,26 @@ import org.mozilla.javascript.Scriptable;
  * @author Attila Szegedi
  * @version $Id$
  */
-class ScriptableList extends AbstractList
-{
+class ScriptableList extends AbstractList {
     private final Scriptable s;
     private int size = -1;
 
-    ScriptableList(final Scriptable s)
-    {
+    ScriptableList(final Scriptable s) {
         this.s = s;
     }
 
-    public int size()
-    {
-        synchronized(this)
-        {
-            if(size == -1)
-            {
+    @Override
+    public int size() {
+        synchronized (this) {
+            if (size == -1) {
                 final Object[] ids = s.getIds();
                 final int idsl = ids.length;
                 int max = 0;
-                for(int i = 0; i < idsl; ++i)
-                {
+                for (int i = 0; i < idsl; ++i) {
                     final Object id = ids[i];
-                    if(id instanceof Number)
-                    {
-                        final int nid = ((Number)id).intValue();
-                        if(nid > max)
-                        {
+                    if (id instanceof Number) {
+                        final int nid = ((Number) id).intValue();
+                        if (nid > max) {
                             max = nid;
                         }
 
@@ -60,8 +53,8 @@ class ScriptableList extends AbstractList
         return size;
     }
 
-    public Object get(final int index)
-    {
+    @Override
+    public Object get(final int index) {
         return ScriptableConverter.jsToJava(s.get(index, s));
     }
 }

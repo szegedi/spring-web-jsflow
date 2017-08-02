@@ -24,14 +24,14 @@ import org.springframework.core.io.Resource;
 /**
  * Represents a class that is capable of loading and caching a parsed
  * representation of contents of a Spring resource. In case the resource has a
- * URL representation and it changes, the object will be reloaded. The code
- * also has a special optimization for "file:" URLs. All subclasses have to do
- * is implement the {@link #loadRepresentation(InputStream)} method.
+ * URL representation and it changes, the object will be reloaded. The code also
+ * has a special optimization for "file:" URLs. All subclasses have to do is
+ * implement the {@link #loadRepresentation(InputStream)} method.
+ * 
  * @author Attila Szegedi
  * @version $Id: $
  */
-public abstract class ResourceRepresentation
-{
+public abstract class ResourceRepresentation {
     private final Resource resource;
     private Object representation;
     private long lastModified;
@@ -39,28 +39,28 @@ public abstract class ResourceRepresentation
 
     /**
      * Constructs a new representation for the specified resource.
+     * 
      * @param resource
      */
-    public ResourceRepresentation(final Resource resource)
-    {
+    public ResourceRepresentation(final Resource resource) {
         this.resource = resource;
     }
 
     /**
      * Returns the representation of the resource.
-     * @param noStaleCheckPeriod If the resource's timestamp was last checked
-     * no earlier than the specified number of milliseconds, it won't be
-     * checked and the cached representation will be returned instead.
+     * 
+     * @param noStaleCheckPeriod
+     *            If the resource's timestamp was last checked no earlier than
+     *            the specified number of milliseconds, it won't be checked and
+     *            the cached representation will be returned instead.
      * @return the representation of the resource
-     * @throws Exception if there was an exception during loading of the
-     * representation
+     * @throws Exception
+     *             if there was an exception during loading of the
+     *             representation
      */
-    public synchronized Object getRepresentation(final long noStaleCheckPeriod)
-    throws Exception
-    {
+    public synchronized Object getRepresentation(final long noStaleCheckPeriod) throws Exception {
         final long now = System.currentTimeMillis();
-        if(representation != null && now - noStaleCheckPeriod < lastChecked)
-        {
+        if (representation != null && now - noStaleCheckPeriod < lastChecked) {
             return representation;
         }
         return getRepresentationInternal(now);
@@ -70,69 +70,58 @@ public abstract class ResourceRepresentation
      * Returns the representation of the resource. Equal to
      * {@link #getRepresentation(long)} with 0 parameter, although a bit more
      * optimized.
+     * 
      * @return the representation of the resource
-     * @throws Exception if there was an exception during loading of the
-     * representation
+     * @throws Exception
+     *             if there was an exception during loading of the
+     *             representation
      */
-    public synchronized Object getRepresentation() throws Exception
-    {
+    public synchronized Object getRepresentation() throws Exception {
         return getRepresentationInternal(System.currentTimeMillis());
     }
 
-    private Object getRepresentationInternal(final long now) throws Exception
-    {
+    private Object getRepresentationInternal(final long now) throws Exception {
         URL url;
-        try
-        {
+        try {
             url = resource.getURL();
-        }
-        catch(final IOException e)
-        {
+        } catch (final IOException e) {
             url = null;
         }
         long newLastModified;
         URLConnection conn;
-        if(url != null)
-        {
-            if("file".equals(url.getProtocol()))
-            {
+        if (url != null) {
+            if ("file".equals(url.getProtocol())) {
                 newLastModified = resource.getFile().lastModified();
                 conn = null;
-            }
-            else
-            {
+            } else {
                 conn = url.openConnection();
                 newLastModified = conn.getLastModified();
             }
-        }
-        else
-        {
+        } else {
             newLastModified = 0;
             conn = null;
         }
         lastChecked = now;
-        if(representation == null || newLastModified != lastModified)
-        {
+        if (representation == null || newLastModified != lastModified) {
             lastModified = newLastModified;
             try (final InputStream in = conn == null ? resource.getInputStream() : conn.getInputStream()) {
                 representation = loadRepresentation(in);
             }
-        }
-        else if(conn != null)
-        {
+        } else if (conn != null) {
             conn.getInputStream().close();
         }
         return representation;
     }
 
-    public Resource getResource()
-    {
+    public Resource getResource() {
         return resource;
     }
 
     /**
      * Implement in subclasses to load the representation of the resource.
-     * @param in the input stream with resource bytes
+     * 
+     * @param in
+     *            the input stream with resource bytes
      * @return the object representing the resource.
      * @throws IOException
      */

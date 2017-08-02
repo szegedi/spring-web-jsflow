@@ -24,29 +24,22 @@ import org.mozilla.javascript.Wrapper;
  * @author Attila Szegedi
  * @version $Id$
  */
-class ScriptableConverter
-{
-    static Object jsToJava(Object retval)
-    {
-        if(retval instanceof Scriptable)
-        {
+class ScriptableConverter {
+    static Object jsToJava(Object retval) {
+        if (retval instanceof Scriptable) {
             retval = Context.jsToJava(retval, Object.class);
-            if(retval instanceof NativeArray)
-            {
-                return new ScriptableList((NativeArray)retval);
+            if (retval instanceof NativeArray) {
+                return new ScriptableList((NativeArray) retval);
             }
-            if(retval instanceof Scriptable)
-            {
-                return new ScriptableMap((Scriptable)retval);
+            if (retval instanceof Scriptable) {
+                return new ScriptableMap((Scriptable) retval);
             }
             return retval;
         }
-        if(retval instanceof Wrapper)
-        {
-            return ((Wrapper)retval).unwrap();
+        if (retval instanceof Wrapper) {
+            return ((Wrapper) retval).unwrap();
         }
-        if(retval == Scriptable.NOT_FOUND)
-        {
+        if (retval == Scriptable.NOT_FOUND) {
             return null;
         }
         return retval;

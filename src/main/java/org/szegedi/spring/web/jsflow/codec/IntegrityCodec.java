@@ -30,11 +30,11 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
  * recommended to use this codec with
  * {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage} as it
  * prevents the client from tampering the state.
+ * 
  * @author Attila Szegedi
  * @version $Id$
  */
-public class IntegrityCodec implements BinaryStateCodec, InitializingBean
-{
+public class IntegrityCodec implements BinaryStateCodec, InitializingBean {
     private KeyPair keyPair;
     private String signatureAlgorithmName;
     private int signatureLength;
@@ -45,34 +45,34 @@ public class IntegrityCodec implements BinaryStateCodec, InitializingBean
      * use a {@link org.szegedi.spring.crypto.GeneratedKeyPairFactory}, or even
      * better a {@link org.szegedi.spring.crypto.KeyStoreKeyPairFactory} to
      * obtain a key pair.
-     * @param keyPair the signing/verifying keypair.
+     * 
+     * @param keyPair
+     *            the signing/verifying keypair.
      */
-    public void setKeyPair(final KeyPair keyPair)
-    {
+    public void setKeyPair(final KeyPair keyPair) {
         this.keyPair = keyPair;
     }
 
     /**
      * Sets the name of the signature algorithm. Defaults to "SHA1With" + the
      * key algorithm name, i.e. "SHA1WithRSA".
-     * @param signatureAlgorithmName the signature algorithm name
+     * 
+     * @param signatureAlgorithmName
+     *            the signature algorithm name
      */
-    public void setSignatureAlgorithmName(final String signatureAlgorithmName)
-    {
+    public void setSignatureAlgorithmName(final String signatureAlgorithmName) {
         this.signatureAlgorithmName = signatureAlgorithmName;
     }
 
-    public void afterPropertiesSet() throws Exception
-    {
-        if(signatureAlgorithmName == null)
-        {
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        if (signatureAlgorithmName == null) {
             signatureAlgorithmName = "SHA1With" + keyPair.getPublic().getAlgorithm();
         }
         testKeys();
     }
 
-    private void testKeys() throws Exception
-    {
+    private void testKeys() throws Exception {
         final Random r = new Random();
         final byte[] b = new byte[1024];
         r.nextBytes(b);
@@ -86,27 +86,24 @@ public class IntegrityCodec implements BinaryStateCodec, InitializingBean
         verify.update(b);
 
         final byte[] signature = sign.sign();
-        if(!verify.verify(signature))
-        {
+        if (!verify.verify(signature)) {
             throw new IllegalArgumentException("Public and private key don't match");
         }
         signatureLength = signature.length;
     }
 
-    public OneWayCodec createDecoder() throws Exception
-    {
+    @Override
+    public OneWayCodec createDecoder() throws Exception {
         final Signature signature = Signature.getInstance(signatureAlgorithmName);
         signature.initVerify(keyPair.getPublic());
 
-        return new OneWayCodec()
-        {
+        return new OneWayCodec() {
 
-            public byte[] code(final byte[] data) throws Exception
-            {
+            @Override
+            public byte[] code(final byte[] data) throws Exception {
                 final int dataLen = data.length - signatureLength;
                 signature.update(data, 0, dataLen);
-                if(!signature.verify(data, dataLen, signatureLength))
-                {
+                if (!signature.verify(data, dataLen, signatureLength)) {
                     throw new FlowStateStorageException("Invalid signature");
                 }
                 final byte[] b = new byte[dataLen];
@@ -116,16 +113,15 @@ public class IntegrityCodec implements BinaryStateCodec, InitializingBean
         };
     }
 
-    public OneWayCodec createEncoder() throws Exception
-    {
+    @Override
+    public OneWayCodec createEncoder() throws Exception {
         final Signature signature = Signature.getInstance(signatureAlgorithmName);
         signature.initSign(keyPair.getPrivate());
 
-        return new OneWayCodec()
-        {
+        return new OneWayCodec() {
 
-            public byte[] code(final byte[] data) throws Exception
-            {
+            @Override
+            public byte[] code(final byte[] data) throws Exception {
                 final int dataLen = data.length;
                 final byte[] b = new byte[dataLen + signatureLength];
                 System.arraycopy(data, 0, b, 0, dataLen);

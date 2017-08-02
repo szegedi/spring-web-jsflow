@@ -23,16 +23,16 @@ import java.util.concurrent.LinkedBlockingDeque;
 /**
  * A factory of soft-reference pooled objects. While we are aware that pooling
  * <i>in general</i> is harmful on modern VMs, we do actually have use cases -
- * i.e. expensively initialized cryptographic transformers - that make
- * sense to pool.
+ * i.e. expensively initialized cryptographic transformers - that make sense to
+ * pool.
+ * 
  * @author Attila Szegedi
  */
-public abstract class SoftPooledFactory<T>
-{
+public abstract class SoftPooledFactory<T> {
     private final BlockingDeque<Reference<T>> pool = new LinkedBlockingDeque<>();
 
     public Reference<T> get() throws Exception {
-        for(;;) {
+        for (;;) {
             final Reference<T> ref = pool.pollLast();
             if (ref == null) {
                 return new SoftReference<>(create());

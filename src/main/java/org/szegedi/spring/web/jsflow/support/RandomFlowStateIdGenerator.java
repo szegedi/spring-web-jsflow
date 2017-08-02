@@ -21,25 +21,24 @@ import org.mozilla.javascript.NativeContinuation;
 /**
  * Default implementation of flow state id generator that uses a random number
  * generator.
+ * 
  * @author Attila Szegedi
  * @version $Id: $
  */
-public class RandomFlowStateIdGenerator implements FlowStateIdGenerator
-{
+public class RandomFlowStateIdGenerator implements FlowStateIdGenerator {
     private Random random;
 
-    public void setRandom(final Random random)
-    {
+    public void setRandom(final Random random) {
         this.random = random;
     }
 
-    public Long generateStateId(final NativeContinuation c)
-    {
+    @Override
+    public Long generateStateId(final NativeContinuation c) {
         return new Long(random.nextLong() & Long.MAX_VALUE);
     }
 
-    public boolean dependsOnContinuation()
-    {
+    @Override
+    public boolean dependsOnContinuation() {
         return false;
     }
 }

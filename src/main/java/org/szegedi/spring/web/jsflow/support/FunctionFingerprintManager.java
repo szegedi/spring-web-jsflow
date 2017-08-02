@@ -30,27 +30,25 @@ import java.util.WeakHashMap;
 import org.mozilla.javascript.NativeContinuation;
 
 /**
- * A class capable of calculating MD5 fingerprint sequences for continuations.
- * A MD5 fingerprint sequence consists of the MD5 fingerprint for each function
- * on the continuation's stack. A MD5 fingerprint for a function is calculated
- * from the ICode for that function. As the data structures we need to reach are
+ * A class capable of calculating MD5 fingerprint sequences for continuations. A
+ * MD5 fingerprint sequence consists of the MD5 fingerprint for each function on
+ * the continuation's stack. A MD5 fingerprint for a function is calculated from
+ * the ICode for that function. As the data structures we need to reach are
  * private parts of Rhino, we're using reflection with overriding accessibility
  * to get to them.
+ * 
  * @author Attila Szegedi
  * @version $Id$
  */
-class FunctionFingerprintManager
-{
+class FunctionFingerprintManager {
     private static final Field CALL_FRAME_PARENT;
     private static final Field CALL_FRAME_IDATA;
     private static final Field IDATA_ITS_NAME;
     private static final Field IDATA_ITS_SOURCE_FILE;
     private static final Field IDATA_ITS_ICODE;
 
-    static
-    {
-        try
-        {
+    static {
+        try {
             final Class callFrameClass = Class.forName("org.mozilla.javascript.Interpreter$CallFrame");
             CALL_FRAME_PARENT = getField(callFrameClass, "parentFrame");
             CALL_FRAME_IDATA = getField(callFrameClass, "idata");
@@ -59,13 +57,9 @@ class FunctionFingerprintManager
             IDATA_ITS_NAME = getField(idataClass, "itsName");
             IDATA_ITS_SOURCE_FILE = getField(idataClass, "itsSourceFile");
             IDATA_ITS_ICODE = getField(idataClass, "itsICode");
-        }
-        catch(final RuntimeException e)
-        {
+        } catch (final RuntimeException e) {
             throw e;
-        }
-        catch(final Exception e)
-        {
+        } catch (final Exception e) {
             throw new UndeclaredThrowableException(e);
         }
     }
@@ -73,66 +67,53 @@ class FunctionFingerprintManager
     private static Map fingerprints = Collections.EMPTY_MAP;
     private static final Object lock = new Object();
 
-    private FunctionFingerprintManager()
-    {
+    private FunctionFingerprintManager() {
     }
 
-    private static Field getField(final Class clazz, final String name) throws Exception
-    {
+    private static Field getField(final Class clazz, final String name) throws Exception {
         final Field f = clazz.getDeclaredField(name);
         f.setAccessible(true);
         return f;
     }
 
-    static Object getFingerprints(final NativeContinuation c) throws Exception
-    {
+    static Object getFingerprints(final NativeContinuation c) throws Exception {
         Object callFrame = c.getImplementation();
         final List l = new ArrayList();
-        while(callFrame != null)
-        {
+        while (callFrame != null) {
             l.add(getFingerprint(CALL_FRAME_IDATA.get(callFrame)));
             callFrame = CALL_FRAME_PARENT.get(callFrame);
         }
         return l.toArray(new long[l.size()][]);
     }
 
-    static void checkFingerprints(final NativeContinuation c, final Object objfingerprints)
-    throws Exception
-    {
-        final long[][] fingerprints = (long[][])objfingerprints;
+    static void checkFingerprints(final NativeContinuation c, final Object objfingerprints) throws Exception {
+        final long[][] fingerprints = (long[][]) objfingerprints;
         Object callFrame = c.getImplementation();
         int i = 0;
-        while(callFrame != null)
-        {
+        while (callFrame != null) {
             final Object idata = CALL_FRAME_IDATA.get(callFrame);
-            if(!Arrays.equals(fingerprints[i++], getFingerprint(idata)))
-            {
+            if (!Arrays.equals(fingerprints[i++], getFingerprint(idata))) {
                 throw new InvalidObjectException(getIdataDescription(idata) + " has changed");
             }
             callFrame = CALL_FRAME_PARENT.get(callFrame);
         }
     }
 
-    private static long[] getFingerprint(final Object idata) throws Exception
-    {
-        long[] fingerprint = (long[])fingerprints.get(idata);
-        if(fingerprint != null)
-        {
+    private static long[] getFingerprint(final Object idata) throws Exception {
+        long[] fingerprint = (long[]) fingerprints.get(idata);
+        if (fingerprint != null) {
             return fingerprint;
         }
-        synchronized(lock)
-        {
-            fingerprint = (long[])fingerprints.get(idata);
-            if(fingerprint != null)
-            {
+        synchronized (lock) {
+            fingerprint = (long[]) fingerprints.get(idata);
+            if (fingerprint != null) {
                 return fingerprint;
             }
             final MessageDigest digest = MessageDigest.getInstance("MD5");
-            final byte[] bfingerprint = digest.digest((byte[])IDATA_ITS_ICODE.get(idata));
+            final byte[] bfingerprint = digest.digest((byte[]) IDATA_ITS_ICODE.get(idata));
             fingerprint = new long[bfingerprint.length / 8];
             final DataInputStream din = new DataInputStream(new ByteArrayInputStream(bfingerprint));
-            for (int i = 0; i < fingerprint.length; i++)
-            {
+            for (int i = 0; i < fingerprint.length; i++) {
                 fingerprint[i] = din.readLong();
             }
             final Map newFingerprints = new WeakHashMap(fingerprints);
@@ -142,12 +123,10 @@ class FunctionFingerprintManager
         return fingerprint;
     }
 
-    static String listContinuationStack(final NativeContinuation c) throws Exception
-    {
+    static String listContinuationStack(final NativeContinuation c) throws Exception {
         final StringBuffer buf = new StringBuffer();
         Object callFrame = c.getImplementation();
-        while(callFrame != null)
-        {
+        while (callFrame != null) {
             buf.append(getIdataDescription(CALL_FRAME_IDATA.get(callFrame)));
             buf.append("\n");
             callFrame = CALL_FRAME_PARENT.get(callFrame);
@@ -155,9 +134,7 @@ class FunctionFingerprintManager
         return buf.toString();
     }
 
-    private static final String getIdataDescription(final Object idata) throws Exception
-    {
-        return "The function " + IDATA_ITS_NAME.get(idata) + " in script " +
-            IDATA_ITS_SOURCE_FILE.get(idata);
+    private static final String getIdataDescription(final Object idata) throws Exception {
+        return "The function " + IDATA_ITS_NAME.get(idata) + " in script " + IDATA_ITS_SOURCE_FILE.get(idata);
     }
 }

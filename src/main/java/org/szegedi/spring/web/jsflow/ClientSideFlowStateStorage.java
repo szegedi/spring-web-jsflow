@@ -35,6 +35,7 @@ import sun.misc.BASE64Encoder;
  * {@link org.szegedi.spring.web.jsflow.codec.CompositeCodec} (that you can
  * further enhance with {@link org.szegedi.spring.web.jsflow.codec.PooledCodec
  * pooling}).
+ * 
  * @author Attila Szegedi
  * @version $Id$
  */

@@ -29,6 +29,7 @@ import org.szegedi.spring.crypto.support.ProviderBasedFactory;
  * Loads a private and public key pair from a Java keystore file. This is a
  * recommended way to obtain a keypair, as it will remain valid across JVM
  * restarts.
+ * 
  * @author Attila Szegedi
  * @version $Id$
  */
@@ -43,7 +44,9 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory<KeyPair> implem
     /**
      * Sets the key alias (the name used to retrieve the keys from the factory).
      * Required.
-     * @param keyAlias the key alias.
+     * 
+     * @param keyAlias
+     *            the key alias.
      */
     public void setKeyAlias(final String keyAlias) {
         this.keyAlias = keyAlias;
@@ -54,7 +57,9 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory<KeyPair> implem
      * the keystore file is a resource managed by a resource loader. You must
      * set the resource loader as well either manually, or let the framework
      * take care of it (as it implements {@link ResourceLoaderAware}).
-     * @param keystoreResource the path to the keystore resource
+     * 
+     * @param keystoreResource
+     *            the path to the keystore resource
      */
     public void setKeystoreResource(final String keystoreResource) {
         this.keystoreResource = keystoreResource;
@@ -62,7 +67,9 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory<KeyPair> implem
 
     /**
      * Sets the type of the keystore. Defaults to "JKS".
-     * @param keystoreType the type of the keystore.
+     * 
+     * @param keystoreType
+     *            the type of the keystore.
      */
     public void setKeystoreType(final String keystoreType) {
         this.keystoreType = keystoreType;
@@ -71,7 +78,9 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory<KeyPair> implem
     /**
      * Sets the keystore URL. You must supply either a URL or a resource path
      * using {@link #setKeystoreResource(String)}.
-     * @param keystoreUrl the URL to the keystore
+     * 
+     * @param keystoreUrl
+     *            the URL to the keystore
      */
     public void setKeystoreUrl(final URL keystoreUrl) {
         this.keystoreUrl = keystoreUrl;
@@ -84,7 +93,9 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory<KeyPair> implem
 
     /**
      * Sets the password used to protect the private key in the keystore.
-     * @param keyPassword the key password.
+     * 
+     * @param keyPassword
+     *            the key password.
      */
     public void setKeyPassword(final String keyPassword) {
         this.keyPassword = keyPassword;
@@ -98,15 +109,15 @@ public class KeyStoreKeyPairFactory extends ProviderBasedFactory<KeyPair> implem
         } else {
             keyStore = KeyStore.getInstance(keystoreType, provider);
         }
-        try(final InputStream in = getKeyStoreStream()) {
+        try (final InputStream in = getKeyStoreStream()) {
             keyStore.load(in, null);
             return new KeyPair(keyStore.getCertificate(keyAlias).getPublicKey(),
-                    (PrivateKey)keyStore.getKey(keyAlias, keyPassword.toCharArray()));
+                    (PrivateKey) keyStore.getKey(keyAlias, keyPassword.toCharArray()));
         }
     }
 
     private InputStream getKeyStoreStream() throws IOException {
-        if(resourceLoader != null && keystoreResource != null) {
+        if (resourceLoader != null && keystoreResource != null) {
             return resourceLoader.getResource(keystoreResource).getInputStream();
         }
         return keystoreUrl.openStream();

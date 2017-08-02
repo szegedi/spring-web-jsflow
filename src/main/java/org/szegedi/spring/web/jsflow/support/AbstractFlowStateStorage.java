@@ -27,7 +27,8 @@ import org.szegedi.spring.web.jsflow.codec.BinaryStateCodec;
  * script storage. If none is configured, then the
  * {@link org.szegedi.spring.web.jsflow.FlowController} will pass it its own
  * script storage - this is usually the intention.
- * </p><p>
+ * </p>
+ * <p>
  * When creating the serialized flowstates, it stubs all the application context
  * beans and script function objects, thus minimizing the size of the serialized
  * state. When deserializing, it will reattach the deserialized state to stubbed
@@ -38,7 +39,8 @@ import org.szegedi.spring.web.jsflow.codec.BinaryStateCodec;
  * running scripts or objects referenced by them, as they will either fail
  * serialization, or - lacking stubbing - cause duplicate instances to be
  * created upon deserialization.
- * </p><p>
+ * </p>
+ * <p>
  * As a safety feature, the MD5 fingerprint of each function's code that is on
  * the continuation's call stack is stored along with the continuation, and
  * matched upon retrieval, with an exception being thrown if they don't match.
@@ -46,7 +48,8 @@ import org.szegedi.spring.web.jsflow.codec.BinaryStateCodec;
  * (i.e. because you restarted the servlet context and reloaded a changed
  * script) this causes clean fast failure, instead of unpredictable behavior
  * caused by invalid return addresses in the continuation stack frames.
- * </p><p>
+ * </p>
+ * <p>
  * The class supports setting a
  * {@link org.szegedi.spring.web.jsflow.codec.BinaryStateCodec}, enabling
  * pluggable compression, encryption, and/or digital signing of the serialized
@@ -54,76 +57,69 @@ import org.szegedi.spring.web.jsflow.codec.BinaryStateCodec;
  * {@link org.szegedi.spring.web.jsflow.ClientSideFlowStateStorage} subclass
  * where the client is entrusted with storing the flowstates, so you might wish
  * to ensure they're resistant to tampering.
+ * 
  * @author Attila Szegedi
  * @version $Id$
  */
-public abstract class AbstractFlowStateStorage extends FlowStateSerializer
-implements FlowStateStorage
-{
+public abstract class AbstractFlowStateStorage extends FlowStateSerializer implements FlowStateStorage {
     private BinaryStateCodec binaryStateCodec;
 
-    public void setBinaryStateCodec(final BinaryStateCodec binaryStateCodec)
-    {
+    public void setBinaryStateCodec(final BinaryStateCodec binaryStateCodec) {
         this.binaryStateCodec = binaryStateCodec;
     }
 
-    public NativeContinuation getState(final HttpServletRequest request, final String id)
-    {
-        try
-        {
+    @Override
+    public NativeContinuation getState(final HttpServletRequest request, final String id) {
+        try {
             byte[] b = getSerializedState(request, id);
-            if(b == null)
-            {
+            if (b == null) {
                 return null;
             }
-            if(binaryStateCodec != null)
-            {
+            if (binaryStateCodec != null) {
                 b = binaryStateCodec.createDecoder().code(b);
             }
             return deserializeContinuation(b, null);
-        }
-        catch(final RuntimeException e)
-        {
+        } catch (final RuntimeException e) {
             throw e;
-        }
-        catch(final Exception e)
-        {
+        } catch (final Exception e) {
             throw new FlowStateStorageException("Failed to load state", e);
         }
     }
 
     /**
      * Implement in subclasses to retrieve the serialized state.
-     * @param request the HTTP request that triggered the retrieval. Can be used
-     * to implement session-private storages for states.
-     * @param id the id of the state
+     * 
+     * @param request
+     *            the HTTP request that triggered the retrieval. Can be used to
+     *            implement session-private storages for states.
+     * @param id
+     *            the id of the state
      * @return the byte array representing the serialized state
      * @throws Exception
      */
     protected abstract byte[] getSerializedState(HttpServletRequest request, String id) throws Exception;
 
-    public String storeState(final HttpServletRequest request, final NativeContinuation state)
-    {
-        try
-        {
+    @Override
+    public String storeState(final HttpServletRequest request, final NativeContinuation state) {
+        try {
             byte[] b = serializeContinuation(state, null, null);
-            if(binaryStateCodec != null)
-            {
+            if (binaryStateCodec != null) {
                 b = binaryStateCodec.createEncoder().code(b);
             }
             return storeSerializedState(request, b);
-        }
-        catch(final Exception e)
-        {
+        } catch (final Exception e) {
             throw new FlowStateStorageException("Failed to store state", e);
         }
     }
 
     /**
      * Implement in subclasses to store the serialized state.
-     * @param request the HTTP request that triggered the store operation. Can
-     * be used to implement session-private storages for states.
-     * @param state byte array representing the serialized state
+     * 
+     * @param request
+     *            the HTTP request that triggered the store operation. Can be
+     *            used to implement session-private storages for states.
+     * @param state
+     *            byte array representing the serialized state
      * @return the id of the state
      * @throws Exception
      */

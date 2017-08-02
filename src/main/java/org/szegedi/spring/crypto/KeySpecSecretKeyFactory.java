@@ -26,6 +26,7 @@ import org.szegedi.spring.crypto.support.ProviderBasedFactory;
  * or load it from a serialized file, or synthesize it from a password. Equal
  * specifications result in identical keys, thus you can use it to construct a
  * key valid across JVM restarts.
+ * 
  * @author Attila Szegedi
  */
 public class KeySpecSecretKeyFactory extends ProviderBasedFactory<SecretKey> {
@@ -34,7 +35,9 @@ public class KeySpecSecretKeyFactory extends ProviderBasedFactory<SecretKey> {
 
     /**
      * Sets the algorithm for the secret key. Required.
-     * @param algorithm the secret key algorithm
+     * 
+     * @param algorithm
+     *            the secret key algorithm
      */
     public void setAlgorithm(final String algorithm) {
         this.algorithm = algorithm;
@@ -43,7 +46,9 @@ public class KeySpecSecretKeyFactory extends ProviderBasedFactory<SecretKey> {
     /**
      * Sets the key specification that defines the key in an implementation
      * independent manner.
-     * @param keySpec the key specification.
+     * 
+     * @param keySpec
+     *            the key specification.
      */
     public void setKeySpec(final KeySpec keySpec) {
         this.keySpec = keySpec;
@@ -52,7 +57,7 @@ public class KeySpecSecretKeyFactory extends ProviderBasedFactory<SecretKey> {
     @Override
     protected SecretKey createInstance() throws Exception {
         final SecretKeyFactory skf;
-        if(provider == null) {
+        if (provider == null) {
             skf = SecretKeyFactory.getInstance(algorithm);
         } else {
             skf = SecretKeyFactory.getInstance(algorithm, provider);

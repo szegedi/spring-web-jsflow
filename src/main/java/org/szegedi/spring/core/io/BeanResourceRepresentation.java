@@ -25,29 +25,27 @@ import org.springframework.core.io.Resource;
 /**
  * A resource representation that treats the resource as a Java properties file
  * and represents the resource with a bean initialized with those properties.
+ * 
  * @author Attila Szegedi
  * @version $Id: $
  */
-public abstract class BeanResourceRepresentation extends
-PropertyResourceRepresentation
-{
-    protected BeanResourceRepresentation(final Resource resource)
-    {
+public abstract class BeanResourceRepresentation extends PropertyResourceRepresentation {
+    protected BeanResourceRepresentation(final Resource resource) {
         super(resource);
     }
 
     /**
      * Implement in a subclass to create an uninitialized bean.
+     * 
      * @return a new bean representing this resource.
      */
     protected abstract Object instantiateBean();
 
-    protected Object loadRepresentation(final InputStream in) throws IOException
-    {
-        final Properties props = (Properties)super.loadRepresentation(in);
+    @Override
+    protected Object loadRepresentation(final InputStream in) throws IOException {
+        final Properties props = (Properties) super.loadRepresentation(in);
         final Object bean = instantiateBean();
-        new BeanWrapperImpl(bean).setPropertyValues(new MutablePropertyValues(
-                props), false);
+        new BeanWrapperImpl(bean).setPropertyValues(new MutablePropertyValues(props), false);
         return bean;
     }
 }

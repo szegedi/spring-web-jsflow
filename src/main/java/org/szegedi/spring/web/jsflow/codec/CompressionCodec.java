@@ -25,46 +25,43 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
 
 /**
  * A codec that will compress the serialized flowstate upon encoding and
- * decompress it upon decoding. In particular useful as
- * part of a {@link org.szegedi.spring.web.jsflow.codec.CompositeCodec}, in
- * front of a {@link org.szegedi.spring.web.jsflow.codec.ConfidentialityCodec},
- * as compression improves the security of the encryption.
+ * decompress it upon decoding. In particular useful as part of a
+ * {@link org.szegedi.spring.web.jsflow.codec.CompositeCodec}, in front of a
+ * {@link org.szegedi.spring.web.jsflow.codec.ConfidentialityCodec}, as
+ * compression improves the security of the encryption.
+ * 
  * @author Attila Szegedi
  * @version $Id$
  */
-public class CompressionCodec implements BinaryStateCodec
-{
+public class CompressionCodec implements BinaryStateCodec {
     private int compressionLevel = Deflater.DEFAULT_COMPRESSION;
 
     /**
      * Sets the compression level - see {@link Deflater} compression level
      * constants.
-     * @param compressionLevel a compression level. Defaults to
-     * {@link Deflater#DEFAULT_COMPRESSION}.
+     * 
+     * @param compressionLevel
+     *            a compression level. Defaults to
+     *            {@link Deflater#DEFAULT_COMPRESSION}.
      */
-    public void setCompressionLevel(final int compressionLevel)
-    {
+    public void setCompressionLevel(final int compressionLevel) {
         this.compressionLevel = compressionLevel;
     }
 
-    public OneWayCodec createDecoder() throws Exception
-    {
-        return new OneWayCodec()
-        {
+    @Override
+    public OneWayCodec createDecoder() throws Exception {
+        return new OneWayCodec() {
             private final Inflater inflater = new Inflater();
 
-            public byte[] code(final byte[] data) throws Exception
-            {
+            @Override
+            public byte[] code(final byte[] data) throws Exception {
                 inflater.reset();
-                final InflaterInputStream in = new InflaterInputStream(
-                        new ByteArrayInputStream(data), inflater);
+                final InflaterInputStream in = new InflaterInputStream(new ByteArrayInputStream(data), inflater);
                 final ByteArrayOutputStream out = new ByteArrayOutputStream(data.length * 2);
                 final byte[] b = new byte[512];
-                for(;;)
-                {
+                for (;;) {
                     final int i = in.read(b);
-                    if(i == -1)
-                    {
+                    if (i == -1) {
                         break;
                     }
                     out.write(b, 0, i);
@@ -74,18 +71,16 @@ public class CompressionCodec implements BinaryStateCodec
         };
     }
 
-    public OneWayCodec createEncoder() throws Exception
-    {
-        return new OneWayCodec()
-        {
+    @Override
+    public OneWayCodec createEncoder() throws Exception {
+        return new OneWayCodec() {
             private final Deflater deflater = new Deflater(compressionLevel);
 
-            public byte[] code(final byte[] data) throws Exception
-            {
+            @Override
+            public byte[] code(final byte[] data) throws Exception {
                 deflater.reset();
                 final ByteArrayOutputStream bout = new ByteArrayOutputStream(data.length / 2);
-                final DeflaterOutputStream out = new DeflaterOutputStream(bout,
-                        deflater);
+                final DeflaterOutputStream out = new DeflaterOutputStream(bout, deflater);
                 out.write(data);
                 out.close();
                 return bout.toByteArray();

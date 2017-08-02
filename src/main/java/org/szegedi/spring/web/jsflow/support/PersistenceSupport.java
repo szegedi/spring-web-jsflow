@@ -21,12 +21,14 @@ import org.mozilla.javascript.ScriptableObject;
  * An implementation class, used to expose implementation details required for
  * persistence from {@link org.szegedi.spring.web.jsflow.ScriptStorage}. Not
  * intended for client use.
+ * 
  * @author Attila Szegedi
  * @version $Id$
  */
-public abstract class PersistenceSupport
-{
+public abstract class PersistenceSupport {
     protected abstract ScriptableObject getLibrary();
+
     protected abstract Object getFunctionStub(Object function);
+
     protected abstract Object resolveFunctionStub(Object stub) throws Exception;
 }

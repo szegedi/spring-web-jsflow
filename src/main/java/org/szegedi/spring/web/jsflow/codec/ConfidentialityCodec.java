@@ -33,107 +33,100 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
  * consider enclosing it (or the composite codec) into a
  * {@link org.szegedi.spring.web.jsflow.codec.PooledCodec} to improve
  * performance, especially when using some sort of password-based encryption as
- * it has high cipher initialization time requirements. Note however that if
- * you are not concerned about secrecy, but just want to prevent the client from
+ * it has high cipher initialization time requirements. Note however that if you
+ * are not concerned about secrecy, but just want to prevent the client from
  * tampering with or forging a false flowstate, then you should use an
  * {@link org.szegedi.spring.web.jsflow.codec.IntegrityCodec} instead.
+ * 
  * @author Attila Szegedi
  * @version $Id$
  */
-public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean
-{
+public class ConfidentialityCodec implements BinaryStateCodec, InitializingBean {
     private Key secretKey;
     private AlgorithmParameters algorithmParameters;
     private String provider;
     private String algorithm;
 
     /**
-     * Sets the secret key used for encryption and decryption. You can obtain
-     * a key using a {@link org.szegedi.spring.crypto.GeneratedSecretKeyFactory}
+     * Sets the secret key used for encryption and decryption. You can obtain a
+     * key using a {@link org.szegedi.spring.crypto.GeneratedSecretKeyFactory}
      * or better yet a {@link org.szegedi.spring.crypto.KeySpecSecretKeyFactory}
-     * @param secretKey the secret key
+     * 
+     * @param secretKey
+     *            the secret key
      */
-    public void setSecretKey(final Key secretKey)
-    {
+    public void setSecretKey(final Key secretKey) {
         this.secretKey = secretKey;
     }
 
     /**
      * Sets any optional algorithm parameters
-     * @param algorithmParameters the algorithm parameters
+     * 
+     * @param algorithmParameters
+     *            the algorithm parameters
      */
-    public void setAlgorithmParameters(final AlgorithmParameters algorithmParameters)
-    {
+    public void setAlgorithmParameters(final AlgorithmParameters algorithmParameters) {
         this.algorithmParameters = algorithmParameters;
     }
 
     /**
      * Sets the name of the security provider to use. If not set, the default
      * provider is used.
-     * @param provider the name of the security provider to use or null.
+     * 
+     * @param provider
+     *            the name of the security provider to use or null.
      */
-    public void setProvider(final String provider)
-    {
+    public void setProvider(final String provider) {
         this.provider = provider;
     }
 
     /**
      * Sets the block chaining and padding mode, i.e. "CBC/PKCS5Padding". If not
      * set, the key's algorithm defaults are used.
-     * @param chainingAndPadding the block chaining and padding mode, or null
-     * for algorithm defaults.
+     * 
+     * @param chainingAndPadding
+     *            the block chaining and padding mode, or null for algorithm
+     *            defaults.
      */
-    public void setChainingAndPadding(final String chainingAndPadding)
-    {
+    public void setChainingAndPadding(final String chainingAndPadding) {
         this.algorithm = chainingAndPadding;
     }
 
-    public void afterPropertiesSet() throws Exception
-    {
-        if(algorithm == null)
-        {
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        if (algorithm == null) {
             algorithm = secretKey.getAlgorithm();
-        }
-        else
-        {
+        } else {
             algorithm = secretKey.getAlgorithm() + "/" + algorithm;
         }
     }
 
-    public OneWayCodec createDecoder() throws Exception
-    {
+    @Override
+    public OneWayCodec createDecoder() throws Exception {
         return createCoder(Cipher.DECRYPT_MODE);
     }
 
-    public OneWayCodec createEncoder() throws Exception
-    {
+    @Override
+    public OneWayCodec createEncoder() throws Exception {
         return createCoder(Cipher.ENCRYPT_MODE);
     }
 
-    private OneWayCodec createCoder(final int mode) throws Exception
-    {
+    private OneWayCodec createCoder(final int mode) throws Exception {
         final Cipher cipher;
-        if(provider == null)
-        {
+        if (provider == null) {
             cipher = Cipher.getInstance(algorithm);
-        }
-        else
-        {
+        } else {
             cipher = Cipher.getInstance(algorithm, provider);
         }
-        if(algorithmParameters == null)
-        {
+        if (algorithmParameters == null) {
             cipher.init(mode, secretKey);
-        }
-        else
-        {
+        } else {
             cipher.init(mode, secretKey, algorithmParameters);
         }
 
-        return new OneWayCodec()
-        {
-            public byte[] code(final byte[] data) throws Exception
-            {
+        return new OneWayCodec() {
+            @Override
+            public byte[] code(final byte[] data) throws Exception {
                 return cipher.doFinal(data);
             }
         };
