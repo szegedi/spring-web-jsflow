@@ -34,7 +34,7 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
  * {@link org.szegedi.spring.web.jsflow.codec.PooledCodec} if you use either
  * confidentiality or integrity, as their coding operations can have high
  * initialization overhead.
- * 
+ *
  * @author Attila Szegedi
  * @version $Id$
  */
@@ -45,7 +45,7 @@ public class CompositeCodec implements BinaryStateCodec {
      * Sets the component codecs of this codec - each of them instance of
      * {@link BinaryStateCodec}. The codecs are applied in the specified order
      * when encoding, and in reverse order when decoding.
-     * 
+     *
      * @param codecs
      *            the component codecs.
      */

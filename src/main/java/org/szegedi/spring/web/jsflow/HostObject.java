@@ -25,7 +25,7 @@ import org.springframework.web.servlet.ModelAndView;
 /**
  * An internal host object used to implement built-in functions for scripts. You
  * should never use it directly. It is public only as an implementation detail.
- * 
+ *
  * @author Attila Szegedi
  * @version $Id$
  */

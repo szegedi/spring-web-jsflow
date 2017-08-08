@@ -52,7 +52,7 @@ import org.szegedi.spring.web.jsflow.support.PersistenceSupport;
  * The storage will be used by all the flow controllers in the application
  * context. The script storage is resource loader aware, and will use the
  * resource loader it was made aware of for loading script source code.
- * 
+ *
  * @author Attila Szegedi
  * @version $Id$
  */
@@ -77,7 +77,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
     /**
      * Sets the character encoding used to load scripts' source code. Defaults
      * to the value of the system property <code>file.encoding</code>.
-     * 
+     *
      * @param scriptCharacterEncoding
      * @since 1.2
      */
@@ -99,7 +99,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
     /**
      * Sets the prefix prepended to the script name to form the full path and
      * name of the resource that stores the script source code, i.e. "scripts/".
-     * 
+     *
      * @param prefix
      *            the resource path prefix used for locating script source code
      *            resources. Defaults to "".
@@ -116,7 +116,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
      * then its timestamp will be checked and if it changed, the script will be
      * reloaded. Setting it to nonzero improves performance, while setting it to
      * a very large value effectively disables automatic script reloading.
-     * 
+     *
      * @param noStaleCheckPeriod
      *            the period in milliseconds during which one script file's
      *            timestamp is not rechecked.
@@ -132,7 +132,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
      * Sets a list of library scripts. These scripts will be executed in the
      * context of the global "library" scope that is the prototype of all
      * conversation scopes.
-     * 
+     *
      * @param libraryScripts
      *            the list of additional library scripts. Each element can be a
      *            string (will resolve to a path as per
@@ -154,7 +154,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
      * functions defined in those scripts to be properly stubbed for
      * serialization and other clustered replication mechanisms. The customizer
      * is invoked after all library scripts have already been run.
-     * 
+     *
      * @param libraryCustomizer
      */
     public void setLibraryCustomizer(final LibraryCustomizer libraryCustomizer) {
@@ -164,7 +164,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
     /**
      * Sets a security domain factory for this script storage. It can be used to
      * associate Rhino security domain objects with scripts.
-     * 
+     *
      * @param securityDomainFactory
      */
     public void setSecurityDomainFactory(final SecurityDomainFactory securityDomainFactory) {
@@ -178,7 +178,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
      * or {@link OpenContextInViewInterceptor}, you might want to explicitly
      * specify that factory here as well, although in majority of cases this is
      * not necessary.
-     * 
+     *
      * @param contextFactory
      */
     public void setContextFactory(final ContextFactory contextFactory) {
@@ -259,7 +259,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
      * Returns an object implementing support functionality for persistent flow
      * state storage. Not usable by client applications, this is meant to be
      * used by the persistent flow state storage
-     * 
+     *
      * @return the persistence support object.
      */
     public PersistenceSupport getPersistenceSupport() {

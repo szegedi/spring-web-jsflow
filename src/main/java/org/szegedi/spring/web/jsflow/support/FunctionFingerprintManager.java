@@ -36,7 +36,7 @@ import org.mozilla.javascript.NativeContinuation;
  * the ICode for that function. As the data structures we need to reach are
  * private parts of Rhino, we're using reflection with overriding accessibility
  * to get to them.
- * 
+ *
  * @author Attila Szegedi
  * @version $Id$
  */

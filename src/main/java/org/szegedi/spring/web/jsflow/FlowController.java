@@ -52,7 +52,7 @@ import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
  * several flows represented by several scripts, depending on the script
  * selection strategy used. The operation of the controller can be cusomized by
  * installing various interceptors into it.
- * 
+ *
  * @author Attila Szegedi
  * @version $Id$
  */
@@ -80,7 +80,7 @@ public class FlowController extends AbstractController implements InitializingBe
      * attempt to look up an instance of it by type in the application context
      * during initialization. If none is found, the controller will create an
      * internal default instance of {@link HttpSessionFlowStateStorage}.
-     * 
+     *
      * @param flowStateStorage
      */
     public void setFlowStateStorage(final FlowStateStorage flowStateStorage) {
@@ -92,7 +92,7 @@ public class FlowController extends AbstractController implements InitializingBe
      * will attempt to look up an instance of it by type in the application
      * context during initialization. If none is found, it will create an
      * internal default instance.
-     * 
+     *
      * @param scriptStorage
      */
     public void setScriptStorage(final ScriptStorage scriptStorage) {
@@ -104,7 +104,7 @@ public class FlowController extends AbstractController implements InitializingBe
      * requests. If not set, an instance of {@link UrlScriptSelectionStrategy}
      * with {@link UrlScriptSelectionStrategy#setUseServletPath(boolean)} set to
      * true will be used.
-     * 
+     *
      * @param scriptSelector
      */
     public void setScriptSelectionStrategy(final ScriptSelectionStrategy scriptSelector) {
@@ -117,7 +117,7 @@ public class FlowController extends AbstractController implements InitializingBe
      * {@link OpenContextInViewInterceptor} (otherwise the interceptor's is
      * used). If not set, the global context factory returned by
      * {@link ContextFactory#getGlobal()} will be used.
-     * 
+     *
      * @param contextFactory
      */
     public void setContextFactory(final ContextFactory contextFactory) {
@@ -177,7 +177,7 @@ public class FlowController extends AbstractController implements InitializingBe
      * to look up an instance of it by type in the application context during
      * initialization. If none is found, no custom flow initialization will be
      * performed.
-     * 
+     *
      * @param flowExecutionInterceptor
      */
     public void setFlowExecutionInterceptor(final FlowExecutionInterceptor flowExecutionInterceptor) {
@@ -190,7 +190,7 @@ public class FlowController extends AbstractController implements InitializingBe
      * attempt to look up an instance of it by type in the application context
      * during initialization. If none is found, no custom state interception
      * will be performed.
-     * 
+     *
      * @param stateExecutionInterceptor
      */
     public void setStateExecutionInterceptor(final StateExecutionInterceptor stateExecutionInterceptor) {
@@ -353,7 +353,7 @@ public class FlowController extends AbstractController implements InitializingBe
      * blocks to distinguish between control flow exiting the block for the last
      * time (really "finally") and control flow exiting the block because of
      * wait. I.e. the typical use is:
-     * 
+     *
      * <pre>
      * try
      * {
@@ -370,7 +370,7 @@ public class FlowController extends AbstractController implements InitializingBe
      *     }
      * }
      * </pre>
-     * 
+     *
      * </td>
      * </tr>
      * </table>
@@ -400,14 +400,12 @@ public class FlowController extends AbstractController implements InitializingBe
             };
             if (contextFactory == null) {
                 return (ModelAndView) Context.call(cxa);
-            } else {
-                return (ModelAndView) contextFactory.call(cxa);
             }
-        } else {
-            // Have a context associated with the thread - we're probably
-            // running within OpenContextInViewInterceptor. Just use it.
-            return handleRequestInContext(request, response, continuation, cx);
+            return (ModelAndView) contextFactory.call(cxa);
         }
+        // Have a context associated with the thread - we're probably
+        // running within OpenContextInViewInterceptor. Just use it.
+        return handleRequestInContext(request, response, continuation, cx);
     }
 
     private NativeContinuation getState(final HttpServletRequest request) {

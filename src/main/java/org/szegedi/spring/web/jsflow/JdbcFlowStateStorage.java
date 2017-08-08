@@ -48,7 +48,7 @@ import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
  * <tt>create table webflowstates (id bigint not null auto_increment, state blob
  * not null, random not null int, created timestamp default current_timestamp, primary key (id));
  * </tt>
- * 
+ *
  * @author Attila Szegedi
  * @version $Id$
  */

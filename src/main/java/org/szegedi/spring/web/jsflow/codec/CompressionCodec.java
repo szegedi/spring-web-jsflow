@@ -29,7 +29,7 @@ import org.szegedi.spring.web.jsflow.codec.support.OneWayCodec;
  * {@link org.szegedi.spring.web.jsflow.codec.CompositeCodec}, in front of a
  * {@link org.szegedi.spring.web.jsflow.codec.ConfidentialityCodec}, as
  * compression improves the security of the encryption.
- * 
+ *
  * @author Attila Szegedi
  * @version $Id$
  */
@@ -39,7 +39,7 @@ public class CompressionCodec implements BinaryStateCodec {
     /**
      * Sets the compression level - see {@link Deflater} compression level
      * constants.
-     * 
+     *
      * @param compressionLevel
      *            a compression level. Defaults to
      *            {@link Deflater#DEFAULT_COMPRESSION}.

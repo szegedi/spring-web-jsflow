@@ -39,7 +39,7 @@ import org.szegedi.spring.web.jsflow.support.RandomFlowStateIdGenerator;
  * (requesting a state from a session it doesn't belong to won't work, and it is
  * also possible to have identical flowstate ids in two sessions without any
  * interference).
- * 
+ *
  * @author Attila Szegedi
  * @version $Id$
  */
@@ -57,7 +57,7 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
      * Sets the maximum number of states per HTTP session that this manager will
      * store. If the number is exceeded, the least recently used state will be
      * discareded. Defaults to 100.
-     * 
+     *
      * @param maxStates
      */
     public void setMaxStates(final int maxStates) {
@@ -70,7 +70,7 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
     /**
      * Sets a source of randomness for generating state IDs. If not explicitly
      * set, it will create and use a private instance of {@link SecureRandom}.
-     * 
+     *
      * @param random
      * @deprecated use {@link #setFlowStateIdGenerator(FlowStateIdGenerator)}
      *             with a {@link RandomFlowStateIdGenerator} instead.
@@ -102,7 +102,7 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
      * Binds a stub provider into the HttpSession. Client code can use this
      * provider to provide serialization stubs for various session-related
      * objects
-     * 
+     *
      * @param session
      *            the HttpSession to bind the provider into
      * @param provider
@@ -117,7 +117,7 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
      * Binds a stub resolver into the HttpSession. Client code can use this
      * resolver to resolve serialization stubs for various session-related
      * objects
-     * 
+     *
      * @param session
      *            the HttpSession to bind the resolver into
      * @param resolver
@@ -244,7 +244,7 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
      * Enumerates all the continuations bound to a particular HTTP session. Can
      * be used from a session listener to post-process continuations in
      * invalidated/expired sessions.
-     * 
+     *
      * @param session
      *            the http session
      * @param callback
@@ -270,14 +270,14 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
     /**
      * Should be implemented by classes used as callbacks for
      * {@link HttpSessionFlowStateStorage#forEachContinuation(HttpSession, ContinuationCallback)}
-     * 
+     *
      * @author Attila Szegedi
      * @version $Id$
      */
     public static interface ContinuationCallback {
         /**
          * Invoked to process a particular continuation.
-         * 
+         *
          * @param id
          *            the ID of the continuation
          * @param continuation

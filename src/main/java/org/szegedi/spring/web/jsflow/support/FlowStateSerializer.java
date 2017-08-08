@@ -43,7 +43,7 @@ import org.szegedi.spring.web.jsflow.ScriptStorage;
 /**
  * A class able to serialize and deserialize a continuation within a specified
  * application context.
- * 
+ *
  * @author Attila Szegedi
  * @version $Id: $
  */
@@ -92,7 +92,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
      * replaced by named stubs. Additionally, a digital fingerprint of the
      * internal JS bytecode representation of all JS functions on the
      * continuation's stack is written.
-     * 
+     *
      * @param state
      *            the continuation to serialize
      * @param stubbedFunctions
@@ -124,7 +124,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
      * continuation was serialized), an exception is thrown to prevent undefined
      * behaviour as the continuation's stack might now contain invalid return
      * addresses.
-     * 
+     *
      * @param b
      *            the serialized continuation
      * @return the deserialized continuation
@@ -254,7 +254,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
     /**
      * An interface that can be implemented to provide further context-specific
      * stubs.
-     * 
+     *
      * @author Attila Szegedi
      * @version $Id: $
      * @since 1.2
@@ -262,7 +262,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
     public static interface StubProvider {
         /**
          * Return a stub for an object.
-         * 
+         *
          * @param obj
          *            the object to stub
          * @return the stub for the object, or null if the provider can not stub
@@ -274,7 +274,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
     /**
      * An interface that can be implemented to resolve further context-specific
      * stubs.
-     * 
+     *
      * @author Attila Szegedi
      * @version $Id: $
      * @since 1.2
@@ -282,7 +282,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
     public static interface StubResolver {
         /**
          * Resolves a stub into an object.
-         * 
+         *
          * @param stub
          *            the stub to resolve
          * @return the resolved object, or null if the resolved does not
