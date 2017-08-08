@@ -22,7 +22,7 @@ import org.mozilla.javascript.Scriptable;
  * @author Attila Szegedi
  * @version $Id$
  */
-class ScriptableList extends AbstractList {
+class ScriptableList extends AbstractList<Object> {
     private final Scriptable s;
     private int size = -1;
 

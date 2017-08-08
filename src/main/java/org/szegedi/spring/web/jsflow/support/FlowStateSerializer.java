@@ -51,7 +51,7 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
     private ScriptStorage scriptStorage;
     private PersistenceSupport persistenceSupport;
     private ApplicationContext applicationContext;
-    private Map beansToStubs = Collections.EMPTY_MAP;
+    private Map<Object, Object> beansToStubs = Collections.EMPTY_MAP;
 
     public void setScriptStorage(final ScriptStorage scriptStorage) {
         this.scriptStorage = scriptStorage;
@@ -77,9 +77,8 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
 
     private void createStubInfo() {
         final String[] names = BeanFactoryUtils.beanNamesIncludingAncestors(applicationContext);
-        final Map beansToStubs = new IdentityHashMap();
-        for (int i = 0; i < names.length; i++) {
-            final String name = names[i];
+        final Map<Object, Object> beansToStubs = new IdentityHashMap<>();
+        for (final String name: names) {
             beansToStubs.put(applicationContext.getBean(name), new ApplicationContextBeanStub(name));
         }
         beansToStubs.put(".", applicationContext);
@@ -105,13 +104,13 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
      * @return the serialized form
      * @throws Exception
      */
-    protected byte[] serializeContinuation(final NativeContinuation state, final Map stubbedFunctions,
+    protected byte[] serializeContinuation(final NativeContinuation state, final Map<Object, Object> stubbedFunctions,
             final StubProvider stubProvider) throws Exception {
         final ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        final ObjectOutputStream out = new ContinuationOutputStream(bout, state, stubbedFunctions, stubProvider);
-        out.writeObject(FunctionFingerprintManager.getFingerprints(state));
-        out.writeObject(state);
-        out.close();
+        try (final ObjectOutputStream out = new ContinuationOutputStream(bout, state, stubbedFunctions, stubProvider)) {
+            out.writeObject(FunctionFingerprintManager.getFingerprints(state));
+            out.writeObject(state);
+        }
         return bout.toByteArray();
     }
 
@@ -132,11 +131,12 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
      */
     protected NativeContinuation deserializeContinuation(final byte[] b, final StubResolver stubResolver)
             throws Exception {
-        final ObjectInputStream in = new ContinuationInputStream(new ByteArrayInputStream(b), stubResolver);
-        final Object fingerprints = in.readObject();
-        final NativeContinuation cont = (NativeContinuation) in.readObject();
-        FunctionFingerprintManager.checkFingerprints(cont, fingerprints);
-        return cont;
+        try (final ObjectInputStream in = new ContinuationInputStream(new ByteArrayInputStream(b), stubResolver)) {
+            final long[][] fingerprints = (long[][])in.readObject();
+            final NativeContinuation cont = (NativeContinuation) in.readObject();
+            FunctionFingerprintManager.checkFingerprints(cont, fingerprints);
+            return cont;
+        }
     }
 
     private class ContinuationInputStream extends ScriptableInputStream {
@@ -154,40 +154,38 @@ public abstract class FlowStateSerializer implements ApplicationContextAware, In
                 final Object robj = applicationContext.getBean(stub.beanName);
                 if (robj != null) {
                     return robj;
-                } else {
-                    throw new InvalidObjectException("No bean with name [" + stub.beanName + "] found");
                 }
-            } else {
-                Object robj;
-                if (stubResolver != null) {
-                    robj = stubResolver.resolveStub(obj);
-                    if (robj != null) {
-                        return robj;
-                    }
-                }
-                try {
-                    robj = persistenceSupport.resolveFunctionStub(obj);
-                } catch (final IOException e) {
-                    throw e;
-                } catch (final RuntimeException e) {
-                    throw e;
-                } catch (final Exception e) {
-                    throw new UndeclaredThrowableException(e);
-                }
+                throw new InvalidObjectException("No bean with name [" + stub.beanName + "] found");
+            }
+            Object robj;
+            if (stubResolver != null) {
+                robj = stubResolver.resolveStub(obj);
                 if (robj != null) {
                     return robj;
                 }
+            }
+            try {
+                robj = persistenceSupport.resolveFunctionStub(obj);
+            } catch (final IOException e) {
+                throw e;
+            } catch (final RuntimeException e) {
+                throw e;
+            } catch (final Exception e) {
+                throw new UndeclaredThrowableException(e);
+            }
+            if (robj != null) {
+                return robj;
             }
             return super.resolveObject(obj);
         }
     }
 
     private class ContinuationOutputStream extends ScriptableOutputStream {
-        private final Map stubbedFunctions;
+        private final Map<Object, Object> stubbedFunctions;
         private final StubProvider stubProvider;
 
         public ContinuationOutputStream(final OutputStream out, final NativeContinuation cont,
-                final Map stubbedFunctions, final StubProvider stubProvider) throws IOException {
+                final Map<Object, Object> stubbedFunctions, final StubProvider stubProvider) throws IOException {
             super(out, ScriptableObject.getTopLevelScope(cont).getPrototype());
             addExcludedName(HostObject.CLASS_NAME);
             addExcludedName(HostObject.CLASS_NAME + ".prototype");

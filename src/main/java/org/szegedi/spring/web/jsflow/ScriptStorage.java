@@ -63,13 +63,13 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
     private ResourceLoader resourceLoader;
     private String prefix = "";
     private LibraryCustomizer libraryCustomizer;
-    private List libraryScripts;
+    private List<Object> libraryScripts;
     private SecurityDomainFactory securityDomainFactory;
     private ContextFactory contextFactory;
     private long noStaleCheckPeriod = 10000;
-    private final Map scripts = new HashMap();
-    private Map functionsToStubs = Collections.EMPTY_MAP;
-    private Map stubsToFunctions = Collections.EMPTY_MAP;
+    private final Map<String, ScriptResource> scripts = new HashMap<>();
+    private Map<Object, Object> functionsToStubs = Collections.EMPTY_MAP;
+    private Map<Object, Object> stubsToFunctions = Collections.EMPTY_MAP;
     private final Object lock = new Object();
     private String scriptCharacterEncoding = System.getProperty("file.encoding");
     private final ScriptableObject library = new NativeObject();
@@ -141,7 +141,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
      *            {@link Script}.
      * @since 1.2
      */
-    public void setLibraryScripts(final List libraryScripts) {
+    public void setLibraryScripts(final List<Object> libraryScripts) {
         this.libraryScripts = libraryScripts;
     }
 
@@ -205,7 +205,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
 
                     if (libraryScripts != null) {
                         int i = 0;
-                        for (final Iterator iter = libraryScripts.iterator(); iter.hasNext(); ++i) {
+                        for (final Iterator<Object> iter = libraryScripts.iterator(); iter.hasNext(); ++i) {
                             final Object scriptSpec = iter.next();
                             Script s;
                             String path;
@@ -235,7 +235,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
                     // bit of a hack to initialize all lazy objects that
                     // ScriptableOutputStream would initialize, so we can then
                     // safely seal it
-                    new ScriptableOutputStream(new ByteArrayOutputStream(), library);
+                    new ScriptableOutputStream(new ByteArrayOutputStream(), library).close();
                     // Finally seal the library scope
                     library.sealObject();
                 } catch (final RuntimeException e) {
@@ -316,7 +316,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
     Script getScript(final String path) throws Exception {
         ScriptResource script;
         synchronized (scripts) {
-            script = (ScriptResource) scripts.get(path);
+            script = scripts.get(path);
             if (script == null) {
                 script = new ScriptResource(path);
                 scripts.put(path, script);
@@ -347,11 +347,8 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
     }
 
     private Script loadScript(final Resource resource, final String path) throws IOException {
-        final InputStream in = resource.getInputStream();
-        try {
+        try (final InputStream in = resource.getInputStream()) {
             return loadScript(in, resource, path);
-        } finally {
-            in.close();
         }
     }
 
@@ -380,8 +377,8 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
 
     private class FunctionStubFactory {
         private final String scriptName;
-        private final Map newStubsToFunctions = new HashMap();
-        private final Map newFunctionsToStubs = new IdentityHashMap();
+        private final Map<Object, Object> newStubsToFunctions = new HashMap<>();
+        private final Map<Object, Object> newFunctionsToStubs = new IdentityHashMap<>();
 
         public FunctionStubFactory(final String scriptName) {
             this.scriptName = scriptName;

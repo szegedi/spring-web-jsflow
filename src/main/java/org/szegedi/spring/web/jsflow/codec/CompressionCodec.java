@@ -80,9 +80,9 @@ public class CompressionCodec implements BinaryStateCodec {
             public byte[] code(final byte[] data) throws Exception {
                 deflater.reset();
                 final ByteArrayOutputStream bout = new ByteArrayOutputStream(data.length / 2);
-                final DeflaterOutputStream out = new DeflaterOutputStream(bout, deflater);
-                out.write(data);
-                out.close();
+                try (final DeflaterOutputStream out = new DeflaterOutputStream(bout, deflater)) {
+                    out.write(data);
+                }
                 return bout.toByteArray();
             }
         };

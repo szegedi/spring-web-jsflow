@@ -19,7 +19,6 @@ import java.io.InvalidObjectException;
 import java.io.Serializable;
 import java.security.SecureRandom;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
@@ -131,11 +130,11 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
     @Override
     public String storeState(final HttpServletRequest request, final NativeContinuation state) {
         Long id;
-        final Map stateMap = getStateMap(request, true);
+        final Map<Long, LocallySerializedContinuation> stateMap = getStateMap(request, true);
         byte[] serialized;
         // Must serialize the continuation so it is deep-copied. If we
         // didn't do this, we couldn't keep multiple independent states.
-        final Map stubsToFunctions = new HashMap();
+        final Map<Object, Object> stubsToFunctions = new HashMap<>();
         try {
             serialized = serializeContinuation(state, stubsToFunctions,
                     (StubProvider) request.getSession().getAttribute(STUB_PROVIDER_KEY));
@@ -169,14 +168,14 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
 
     @Override
     public NativeContinuation getState(final HttpServletRequest request, final String id) {
-        final Map stateMap = getStateMap(request, false);
+        final Map<Long, LocallySerializedContinuation> stateMap = getStateMap(request, false);
         if (stateMap == null) {
             return null;
         }
         try {
             LocallySerializedContinuation serialized;
             synchronized (stateMap) {
-                serialized = (LocallySerializedContinuation) stateMap.get(Long.valueOf(id, 16));
+                serialized = stateMap.get(Long.valueOf(id, 16));
             }
             if (serialized == null) {
                 return null;
@@ -191,7 +190,7 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
 
     private NativeContinuation getContinuation(final LocallySerializedContinuation lsc, final HttpSession session)
             throws Exception, AssertionError {
-        final Map stubsToFunctions = lsc.getStubsToFunctions();
+        final Map<Object, Object> stubsToFunctions = lsc.getStubsToFunctions();
         StubResolver stubResolver;
         if (session != null) {
             stubResolver = (StubResolver) session.getAttribute(STUB_RESOLVER_KEY);
@@ -222,17 +221,17 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
         return deserializeContinuation(lsc.getSerializedState(), stubResolver);
     }
 
-    private Map getStateMap(final HttpServletRequest request, final boolean create) {
+    private Map<Long, LocallySerializedContinuation> getStateMap(final HttpServletRequest request, final boolean create) {
         final HttpSession session = request.getSession(create);
         if (session == null) {
             return null;
         }
-        Map m = (Map) session.getAttribute(MAP_KEY);
+        Map<Long, LocallySerializedContinuation> m = (Map) session.getAttribute(MAP_KEY);
         if (m == null) {
             synchronized (session) {
                 m = (Map) session.getAttribute(MAP_KEY);
                 if (m == null) {
-                    m = new LinkedHashMap(maxStates);
+                    m = new LinkedHashMap<>(maxStates);
                     session.setAttribute(MAP_KEY, m);
                 }
             }
@@ -251,16 +250,14 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
      *            a callback that will be invoked for each continuation.
      */
     public void forEachContinuation(final HttpSession session, final ContinuationCallback callback) {
-        final Map m = (Map) session.getAttribute(MAP_KEY);
+        final Map<Long, LocallySerializedContinuation> m = (Map) session.getAttribute(MAP_KEY);
         if (m == null) {
             return;
         }
-        for (final Iterator iter = m.entrySet().iterator(); iter.hasNext();) {
-            final Map.Entry entry = (Map.Entry) iter.next();
-            final String id = Long.toHexString(((Long) entry.getKey()).longValue());
+        for (final Map.Entry<Long, LocallySerializedContinuation> entry: m.entrySet()) {
+            final String id = Long.toHexString(entry.getKey().longValue());
             try {
-                callback.forContinuation(id,
-                        getContinuation((LocallySerializedContinuation) entry.getValue(), session));
+                callback.forContinuation(id, getContinuation(entry.getValue(), session));
             } catch (final Exception e) {
                 log.warn("Failed to process continuation " + id, e);
             }
@@ -291,9 +288,9 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
         private static final long serialVersionUID = 1L;
 
         private final byte[] serializedState;
-        private transient final Map stubsToFunctions;
+        private transient final Map<Object, Object> stubsToFunctions;
 
-        LocallySerializedContinuation(final byte[] serializedState, final Map stubsToFunctions) {
+        LocallySerializedContinuation(final byte[] serializedState, final Map<Object, Object> stubsToFunctions) {
             this.serializedState = serializedState;
             this.stubsToFunctions = stubsToFunctions;
         }
@@ -302,7 +299,7 @@ public class HttpSessionFlowStateStorage extends FlowStateSerializer implements 
             return serializedState;
         }
 
-        Map getStubsToFunctions() {
+        Map<Object, Object> getStubsToFunctions() {
             return stubsToFunctions;
         }
     }

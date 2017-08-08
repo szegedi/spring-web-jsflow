@@ -98,9 +98,9 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage {
         insertQuery = "INSERT INTO " + tableName + " (" + stateColumnName + ", " + randomColumnName + ") VALUES(?,?)";
     }
 
-    private static final ResultSetExtractor EXTRACTOR = new ResultSetExtractor() {
+    private static final ResultSetExtractor<byte[]> EXTRACTOR = new ResultSetExtractor<byte[]>() {
         @Override
-        public Object extractData(final ResultSet rs) throws SQLException {
+        public byte[] extractData(final ResultSet rs) throws SQLException {
             if (rs.next()) {
                 return rs.getBytes(1);
             }
@@ -110,7 +110,7 @@ public class JdbcFlowStateStorage extends AbstractFlowStateStorage {
 
     @Override
     protected byte[] getSerializedState(final HttpServletRequest request, final String id) throws Exception {
-        return (byte[]) jdbcOperations.query(new PreparedStatementCreator() {
+        return jdbcOperations.query(new PreparedStatementCreator() {
             @Override
             public PreparedStatement createPreparedStatement(final Connection con) throws SQLException {
                 final PreparedStatement statement = con.prepareStatement(selectQuery);

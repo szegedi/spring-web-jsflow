@@ -49,8 +49,8 @@ public class CompositeCodec implements BinaryStateCodec {
      * @param codecs
      *            the component codecs.
      */
-    public void setCodecs(final List codecs) {
-        this.codecs = (BinaryStateCodec[]) codecs.toArray(new BinaryStateCodec[codecs.size()]);
+    public void setCodecs(final List<BinaryStateCodec> codecs) {
+        this.codecs = codecs.toArray(new BinaryStateCodec[codecs.size()]);
     }
 
     @Override
