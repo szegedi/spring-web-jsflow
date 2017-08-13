@@ -10,7 +10,7 @@ spring-webmvc-jsflow can be used with Rhino version 1.7R2 or above, as well as w
 
 ## Getting Started
 
-We helpfully set up a separate [example project](szegedi/spring-web-jsflow-example) with a runnable example webapp and tutorial.
+We helpfully set up a separate [example project](https://github.com/szegedi/spring-web-jsflow-example) with a runnable example webapp and tutorial.
 
 ## Why does it exist?
 
