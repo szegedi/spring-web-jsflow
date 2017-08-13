@@ -8,6 +8,10 @@ The aim is to provide a system that amalgamates the rapid development benefits a
 
 spring-webmvc-jsflow can be used with Rhino version 1.7R2 or above, as well as with all 2.0 or higher Spring Framework versions.
 
+## Getting Started
+
+We helpfully set up a separate [example project](szegedi/spring-web-jsflow-example) with a runnable example webapp and tutorial.
+
 ## Why does it exist?
 
 For pretty much the same purpose [Spring Web Flow](http://projects.spring.io/spring-webflow/) exists. The main difference is that with JSFlow, you can express web flows as ordinary programs written in JavaScript, while with Spring Web Flow you must express them as state machines encoded in XML.
