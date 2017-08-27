@@ -61,7 +61,7 @@ public class HostObject extends ScriptableObject {
     }
 
     public void jsFunction_respond(final String viewName, final Scriptable model) {
-        this.viewName = viewName == "undefined" ? null : viewName;
+        this.viewName = "undefined".equals(viewName) ? null : viewName;
         this.model = model;
     }
 
