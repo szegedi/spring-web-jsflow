@@ -28,10 +28,11 @@ import org.mozilla.javascript.ScriptableObject;
 /**
  * A Map interface for Scriptables. Used to convert a Scriptable model into a
  * Map, as Spring MVC expects models to be Maps.
- * 
+ *
  * @author Attila Szegedi
  * @version $Id$
  */
+@SuppressWarnings("rawtypes")
 class ScriptableMap extends AbstractMap {
     private final Scriptable s;
     private Set keys;
@@ -130,6 +131,7 @@ class ScriptableMap extends AbstractMap {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object put(final Object key, final Object value) {
         keySet().add(key);
         final Object oldValue = get(key);
@@ -151,65 +153,70 @@ class ScriptableMap extends AbstractMap {
     @Override
     public Set keySet() {
         if (keys == null) {
-            return new AbstractSet() {
-                private final Set ikeys = new HashSet(Arrays.asList(s.getIds()));
-
-                @Override
-                public boolean add(final Object o) {
-                    return ikeys.add(o);
-                }
-
-                @Override
-                public boolean contains(final Object o) {
-                    return ikeys.contains(o);
-                }
-
-                @Override
-                public Iterator iterator() {
-                    return new Iterator() {
-                        private final Iterator i = ikeys.iterator();
-                        private Object lastKey;
-
-                        @Override
-                        public boolean hasNext() {
-                            return i.hasNext();
-                        }
-
-                        @Override
-                        public Object next() {
-                            return lastKey = i.next();
-                        }
-
-                        @Override
-                        public void remove() {
-                            i.remove();
-                            removeInternal(lastKey);
-                        }
-                    };
-                }
-
-                @Override
-                public boolean remove(final Object key) {
-                    final boolean x = ikeys.remove(key);
-                    removeInternal(key);
-                    return x;
-                }
-
-                private void removeInternal(final Object key) {
-                    if (key instanceof Number) {
-                        ScriptableObject.deleteProperty(s, ((Number) key).intValue());
-                    } else {
-                        ScriptableObject.deleteProperty(s, String.valueOf(key));
-                    }
-                }
-
-                @Override
-                public int size() {
-                    return ikeys.size();
-                }
-            };
+            keys = createKeySet();
         }
         return keys;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Set createKeySet() {
+        return new AbstractSet() {
+            private final Set ikeys = new HashSet(Arrays.asList(s.getIds()));
+
+            @Override
+            public boolean add(final Object o) {
+                return ikeys.add(o);
+            }
+
+            @Override
+            public boolean contains(final Object o) {
+                return ikeys.contains(o);
+            }
+
+            @Override
+            public Iterator iterator() {
+                return new Iterator() {
+                    private final Iterator i = ikeys.iterator();
+                    private Object lastKey;
+
+                    @Override
+                    public boolean hasNext() {
+                        return i.hasNext();
+                    }
+
+                    @Override
+                    public Object next() {
+                        return lastKey = i.next();
+                    }
+
+                    @Override
+                    public void remove() {
+                        i.remove();
+                        removeInternal(lastKey);
+                    }
+                };
+            }
+
+            @Override
+            public boolean remove(final Object key) {
+                final boolean x = ikeys.remove(key);
+                removeInternal(key);
+                return x;
+            }
+
+            private void removeInternal(final Object key) {
+                if (key instanceof Number) {
+                    ScriptableObject.deleteProperty(s, ((Number) key).intValue());
+                } else {
+                    ScriptableObject.deleteProperty(s, String.valueOf(key));
+                }
+            }
+
+            @Override
+            public int size() {
+                return ikeys.size();
+            }
+        };
     }
 
     private static boolean isEqual(final Object o1, final Object o2) {
