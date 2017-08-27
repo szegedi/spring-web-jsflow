@@ -15,11 +15,9 @@
 */
 package org.szegedi.spring.web.jsflow;
 
-import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.util.Base64Utils;
 import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
 
 /**
  * An implementation of the flowstate storage that returns the BASE64-encoded
@@ -35,18 +33,18 @@ import sun.misc.BASE64Encoder;
  * {@link org.szegedi.spring.web.jsflow.codec.CompositeCodec} (that you can
  * further enhance with {@link org.szegedi.spring.web.jsflow.codec.PooledCodec
  * pooling}).
- * 
+ *
  * @author Attila Szegedi
  * @version $Id$
  */
 public class ClientSideFlowStateStorage extends AbstractFlowStateStorage {
     @Override
-    protected byte[] getSerializedState(final HttpServletRequest request, final String id) throws IOException {
-        return new BASE64Decoder().decodeBuffer(id);
+    protected byte[] getSerializedState(final HttpServletRequest request, final String id) {
+        return Base64Utils.decodeFromString(id);
     }
 
     @Override
     protected String storeSerializedState(final HttpServletRequest request, final byte[] state) {
-        return new BASE64Encoder().encodeBuffer(state);
+        return Base64Utils.encodeToString(state);
     }
 }
