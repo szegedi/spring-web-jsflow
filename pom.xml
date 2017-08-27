@@ -12,7 +12,7 @@
   <url>http://github.com/szegedi/spring-webmvc-jsflow</url>
 
   <prerequisites>
-    <maven>2.2.1</maven>
+    <maven>3.3.9</maven>
   </prerequisites>
   
   <licenses>
@@ -72,6 +72,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
+        <version>3.0.1</version>
         <executions>
           <execution>
             <id>attach-sources</id>
@@ -84,6 +85,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.0.0-M1</version>
         <configuration>
           <links>
             <link>http://download.oracle.com/javase/8/docs/api/</link>
