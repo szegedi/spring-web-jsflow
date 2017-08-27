@@ -3,7 +3,7 @@
   <groupId>org.szegedi</groupId>
   <artifactId>spring-webmvc-jsflow</artifactId>
   <name>JSFlow for Spring Web MVC</name>
-  <version>1.3</version>
+  <version>1.4-SNAPSHOT</version>
   <packaging>jar</packaging>
   <description>A controller component for Spring MVC that allows complex
     control flows spanning several webpages in web applications to be
