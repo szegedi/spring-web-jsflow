@@ -21,14 +21,14 @@ import org.szegedi.spring.web.jsflow.FlowStateStorage;
 /**
  * An interface for objects that generate flow state IDs. Might be used by
  * various {@link FlowStateStorage} implementations.
- * 
+ *
  * @author Attila Szegedi
  * @version $Id: $
  */
 public interface FlowStateIdGenerator {
     /**
      * Generate the flow state id for the specified state.
-     * 
+     *
      * @param state
      * @return the new ID. Must not be negative.
      */
@@ -46,7 +46,7 @@ public interface FlowStateIdGenerator {
      * implementation returns false, the user of the class is encouraged to
      * invoke the {@link #generateStateId(NativeContinuation)} method repeatedly
      * until it receives a non-conflicting ID.
-     * 
+     *
      * @return whether this generator generates IDs that depend on the state.
      */
     public boolean dependsOnContinuation();
