@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextAction;
-import org.mozilla.javascript.ContextFactory;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.ScriptableObject;
@@ -44,6 +43,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.szegedi.spring.core.io.ResourceRepresentation;
+import org.szegedi.spring.web.jsflow.support.ContextFactoryHolder;
 import org.szegedi.spring.web.jsflow.support.PersistenceSupport;
 
 /**
@@ -56,7 +56,7 @@ import org.szegedi.spring.web.jsflow.support.PersistenceSupport;
  * @author Attila Szegedi
  * @version $Id$
  */
-public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
+public class ScriptStorage extends ContextFactoryHolder implements ResourceLoaderAware, InitializingBean {
     private static final String[] lazilyNames = { "RegExp", "Packages", "java", "getClass", "JavaAdapter",
             "JavaImporter", "XML", "XMLList", "Namespace", "QName" };
 
@@ -65,7 +65,6 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
     private LibraryCustomizer libraryCustomizer;
     private List<Object> libraryScripts;
     private SecurityDomainFactory securityDomainFactory;
-    private ContextFactory contextFactory;
     private long noStaleCheckPeriod = 10000;
     private final Map<String, ScriptResource> scripts = new HashMap<>();
     private Map<Object, Object> functionsToStubs = Collections.EMPTY_MAP;
@@ -171,20 +170,6 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
         this.securityDomainFactory = securityDomainFactory;
     }
 
-    /**
-     * Sets the context factory used to run the library script. If none is set
-     * the global context factory {@link ContextFactory#getGlobal()} is used. If
-     * you are using a custom context factory in either {@link FlowController}
-     * or {@link OpenContextInViewInterceptor}, you might want to explicitly
-     * specify that factory here as well, although in majority of cases this is
-     * not necessary.
-     *
-     * @param contextFactory
-     */
-    public void setContextFactory(final ContextFactory contextFactory) {
-        this.contextFactory = contextFactory;
-    }
-
     @Override
     public void afterPropertiesSet() throws Exception {
         final ContextAction ca = new ContextAction() {
@@ -248,11 +233,7 @@ public class ScriptStorage implements ResourceLoaderAware, InitializingBean {
                 return null;
             }
         };
-        if (contextFactory == null) {
-            Context.call(ca);
-        } else {
-            contextFactory.call(ca);
-        }
+        getContextFactory().call(ca);
     }
 
     /**

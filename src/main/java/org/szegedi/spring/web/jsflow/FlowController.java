@@ -37,6 +37,7 @@ import org.springframework.web.servlet.ModelAndViewDefiningException;
 import org.springframework.web.servlet.mvc.AbstractController;
 import org.szegedi.spring.beans.factory.BeanFactoryUtilsEx;
 import org.szegedi.spring.web.jsflow.support.AbstractFlowStateStorage;
+import org.szegedi.spring.web.jsflow.support.ContextFactoryHolder;
 
 /**
  * A Spring MVC {@link org.springframework.web.servlet.mvc.Controller} that uses
@@ -72,7 +73,7 @@ public class FlowController extends AbstractController implements InitializingBe
     private FlowStateStorage flowStateStorage;
     private FlowExecutionInterceptor flowExecutionInterceptor;
     private StateExecutionInterceptor stateExecutionInterceptor;
-    private ContextFactory contextFactory;
+    private final ContextFactoryHolder contextFactoryHolder = new ContextFactoryHolder();
 
     /**
      * Sets the flow state storage used to store flow states between a HTTP
@@ -115,13 +116,14 @@ public class FlowController extends AbstractController implements InitializingBe
      * Sets the Rhino context factory to use. It will only be used when the
      * flowscripts are executed outside of a
      * {@link OpenContextInViewInterceptor} (otherwise the interceptor's is
-     * used). If not set, the global context factory returned by
-     * {@link ContextFactory#getGlobal()} will be used.
+     * used). If it's not set either here or in the interceptor, the global
+     * context factory returned by {@link ContextFactory#getGlobal()} will
+     * be used.
      *
      * @param contextFactory
      */
     public void setContextFactory(final ContextFactory contextFactory) {
-        this.contextFactory = contextFactory;
+        contextFactoryHolder.setContextFactory(contextFactory);
     }
 
     /**
@@ -398,10 +400,7 @@ public class FlowController extends AbstractController implements InitializingBe
                     }
                 }
             };
-            if (contextFactory == null) {
-                return (ModelAndView) Context.call(cxa);
-            }
-            return (ModelAndView) contextFactory.call(cxa);
+            return (ModelAndView)contextFactoryHolder.getContextFactory().call(cxa);
         }
         // Have a context associated with the thread - we're probably
         // running within OpenContextInViewInterceptor. Just use it.

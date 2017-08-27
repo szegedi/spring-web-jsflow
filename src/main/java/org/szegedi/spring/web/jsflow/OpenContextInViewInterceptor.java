@@ -18,9 +18,9 @@ package org.szegedi.spring.web.jsflow;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ContextFactory;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
+import org.szegedi.spring.web.jsflow.support.ContextFactoryHolder;
 
 /**
  * A Spring handler interceptor that opens a Rhino context and associates it
@@ -29,34 +29,15 @@ import org.springframework.web.servlet.ModelAndView;
  * object during view rendering, so you need not use this interceptor. However,
  * if you receive an exception saying there is no current Rhino context during
  * view rendering, you will need to use the interceptor.
- * 
+ *
  * @author Attila Szegedi
  * @version $Id$
  */
-public class OpenContextInViewInterceptor implements HandlerInterceptor {
-    private ContextFactory contextFactory;
-
-    /**
-     * Sets the Rhino context factory to use. If not set, the global context
-     * factory returned by {@link ContextFactory#getGlobal()} will be used. Note
-     * that this feature (customized context factory in the interceptor)
-     * requires at least Rhino 1.6R3.
-     * 
-     * @param contextFactory
-     */
-    public void setContextFactory(final ContextFactory contextFactory) {
-        this.contextFactory = contextFactory;
-    }
-
+public class OpenContextInViewInterceptor extends ContextFactoryHolder implements HandlerInterceptor {
     @Override
     public boolean preHandle(final HttpServletRequest request, final HttpServletResponse response, final Object handler)
             throws Exception {
-        Context cx;
-        if (contextFactory == null) {
-            cx = Context.enter();
-        } else {
-            cx = contextFactory.enterContext();
-        }
+        final Context cx = getContextFactory().enterContext();
         if (cx.getOptimizationLevel() != -1) {
             cx.setOptimizationLevel(-1);
         }
