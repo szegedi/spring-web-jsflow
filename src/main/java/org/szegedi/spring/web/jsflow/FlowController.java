@@ -59,8 +59,8 @@ import org.szegedi.spring.web.jsflow.support.ContextFactoryHolder;
  */
 public class FlowController extends AbstractController implements InitializingBean {
     static final String STATEID_KEY = "stateId";
-    public static final String HOST_PROPERTY = "__host__";
-    public static final String SCRIPT_DIR_PROPERTY = "__scriptDirectory__";
+    private static final String HOST_PROPERTY = "__host__";
+    private static final String SCRIPT_DIR_PROPERTY = "__scriptDirectory__";
     private static final String REQUEST_PROPERTY = "request";
     private static final String RESPONSE_PROPERTY = "response";
     private static final String SERVLETCONTEXT_PROPERTY = "servletContext";
