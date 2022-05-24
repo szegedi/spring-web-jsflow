@@ -6,8 +6,6 @@ It delivers a controller component for Spring MVC that allows complex control fl
 
 The aim is to provide a system that amalgamates the rapid development benefits and flexibility of a dynamic language with the strength, scalability and versatility of the Java platform and the Spring framework.
 
-spring-webmvc-jsflow can be used with Rhino version 1.7R2 or above, as well as with all 2.0 or higher Spring Framework versions.
-
 ## Getting Started
 
 We helpfully set up a separate [example project](https://github.com/szegedi/spring-web-jsflow-example) with a runnable example webapp and tutorial.
